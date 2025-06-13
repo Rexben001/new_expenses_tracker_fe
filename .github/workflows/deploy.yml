@@ -21,6 +21,10 @@ jobs:
       - name: Install dependencies with retry
         run: npm ci
 
+      - name: Debug file tree
+        run: |
+          ls -R frontend/src
+
       - name: Build React app
         run: cd frontend && npm run build
 
