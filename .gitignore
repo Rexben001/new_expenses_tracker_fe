@@ -6,3 +6,5 @@
 cdk.out
 
 dist
+
+.env
