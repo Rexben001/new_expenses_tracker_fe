@@ -119,12 +119,17 @@ export function BudgetIdPage() {
         </div>
       </div>
 
-      {filteredExpenses.length ? <p className="mx-4">Expenses</p> : null}
+      {filteredExpenses.length ? (
+        <p className="mx-4 bold">
+          Expenses{" "}
+          <span className="text-blue-500">({filteredExpenses.length})</span>
+        </p>
+      ) : null}
 
       {filteredExpenses.length ? (
         filteredExpenses.map(
           ({ id, title, category, amount, updatedAt, currency }) => (
-            <div className="mx-5">
+            <div key={id} className="mx-5">
               <ExpenseBox
                 key={id}
                 id={id}

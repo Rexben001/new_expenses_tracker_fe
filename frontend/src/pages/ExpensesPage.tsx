@@ -39,7 +39,10 @@ export function ExpensesPage() {
   return (
     <div className="min-h-screen bg-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">All Expenses</h1>
+        <h1 className="text-xl font-bold">
+          All Expenses{" "}
+          <span className="text-blue-500">({filterExpenses.length})</span>
+        </h1>
         <button className="text-gray-500 hover:text-gray-800">
           <FiFilter className="text-xl" />
         </button>
