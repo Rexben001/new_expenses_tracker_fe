@@ -5,43 +5,41 @@ import {
   differenceInCalendarWeeks,
   differenceInCalendarMonths,
   differenceInYears,
+  parseISO,
 } from "date-fns";
-import { parseISO } from "date-fns";
 
 export function formatRelativeDate(date?: string): string {
   if (!date) return "";
   const now = new Date();
 
-  const time = format(new Date(date), "h:mmaaa").toLowerCase(); // e.g. '4:30pm'
-
   if (isToday(date)) {
-    return `Today, ${time}`;
+    return `Today`;
   }
 
   if (isYesterday(date)) {
-    return `Yesterday, ${time}`;
+    return `Yesterday`;
   }
 
   const weeksDiff = differenceInCalendarWeeks(now, date);
   if (weeksDiff === 1) {
-    return `Last week, ${time}`;
+    return `Last week`;
   }
 
   const monthsDiff = differenceInCalendarMonths(now, date);
   if (monthsDiff === 1) {
-    return `Last month, ${time}`;
+    return `Last month`;
   }
 
   const yearsDiff = differenceInYears(now, date);
   if (yearsDiff === 1) {
-    return `Last year, ${time}`;
+    return `Last year`;
   }
 
   if (yearsDiff >= 2) {
-    return `${format(date, "MMM d, yyyy")}, ${time}`;
+    return `${format(date, "MMM d, yyyy")}`;
   }
 
-  return `${format(date, "MMM d")}, ${time}`;
+  return `${format(date, "MMM d")}`;
 }
 
 export function getMonth() {
