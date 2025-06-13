@@ -1,7 +1,7 @@
 const cognitoAuthConfig = {
   authority: "https://eu-west-1jun0zg2eg.auth.eu-west-1.amazoncognito.com",
   client_id: "3ot8dopkkdbs6gj759q3tk8jsk",
-  redirect_uri: import.meta.env.VITE_LOGIN_URL,
+  redirect_uri: import.meta.env.VITE_LOGIN_URL ?? "http://localhost:5173",
   response_type: "token",
   scope: "email openid profile",
 };

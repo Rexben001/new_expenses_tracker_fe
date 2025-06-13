@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { getBudgets, getExpenses } from "../services/api";
+import { getBudgets, getExpenses, getUser } from "../services/api";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
 import { getMonthlyTotal, sortItemByRecent } from "../services/item";
 
+export type User = {
+  userName?: string;
+  currency?: string;
+  email?: string;
+};
 export function ItemContextProvider(props: { children: React.ReactNode }) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [user, setUser] = useState<User>({});
 
   const [loading, setLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
@@ -15,6 +21,7 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
   useEffect(() => {
     fetchBudgets();
     fetchExpenses();
+    fetchUser();
   }, []);
 
   const fetchBudgets = async () => {
@@ -42,11 +49,26 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
     setLoading(false);
   };
 
+  const fetchUser = async () => {
+    setLoading(true);
+
+    try {
+      const user = await getUser();
+      setUser(user);
+    } catch (error) {
+      console.log({ error });
+    }
+
+    setLoading(false);
+  };
+
   const currentMonthExpensesTotal = getMonthlyTotal(expenses);
 
   const recentExpenses = sortItemByRecent(expenses);
 
   const recentBudgets = sortItemByRecent(budgets);
+
+  const currency = user?.currency ?? "EUR";
 
   const value = useMemo(
     () => ({
@@ -60,6 +82,9 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
       recentExpenses,
       recentBudgets,
       fetchExpenses,
+      fetchBudgets,
+      user,
+      currency,
     }),
     [
       budgets,
@@ -68,6 +93,8 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
       currentMonthExpensesTotal,
       recentExpenses,
       recentBudgets,
+      user,
+      currency,
     ]
   );
 

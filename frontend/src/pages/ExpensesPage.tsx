@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { deleteExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
@@ -6,14 +6,28 @@ import { FiFilter, FiSearch, FiPlus } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
+import { useEffect } from "react";
 
 export function ExpensesPage() {
   const { expenses, loading, fetchExpenses } = useItemContext();
+
+  const location = useLocation();
 
   const removeExpense = async (id: string) => {
     await deleteExpense(id);
     fetchExpenses();
   };
+
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchExpenses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
+  useEffect(() => {
+    window.history.replaceState({}, document.title);
+  }, []);
 
   if (loading) return <LoadingScreen />;
 

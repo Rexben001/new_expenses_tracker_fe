@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
 import { createBudget, updateBudget } from "../services/api";
+import { useItemContext } from "../hooks/useItemContext";
 
 const CATEGORY_OPTIONS = [
   "Food",
@@ -16,6 +17,7 @@ const CATEGORY_OPTIONS = [
 const PERIOD_OPTIONS = ["monthly", "yearly"];
 
 export function BudgetForm() {
+  const { currency } = useItemContext();
   const { budgetId } = useParams();
   const isEditMode = Boolean(budgetId);
   const navigate = useNavigate();
@@ -38,7 +40,7 @@ export function BudgetForm() {
     updatedAt: "",
     description: "",
     period: "",
-    currency: "EUR",
+    currency,
   });
 
   useEffect(() => {
@@ -71,7 +73,7 @@ export function BudgetForm() {
       });
     else createBudget({ ...formData, amount: Number(formData.amount) });
 
-    navigate("/budgets");
+    navigate("/budgets", { state: { refresh: true } });
   };
 
   return (

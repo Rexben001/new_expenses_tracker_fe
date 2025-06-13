@@ -110,6 +110,21 @@ export function deleteExpense(id: string, budgetId?: string) {
   });
 }
 
+export function getUser() {
+  return fetchApi({
+    method: "GET",
+    path: "users",
+  });
+}
+
+export function updateUser(body: unknown) {
+  return fetchApi({
+    method: "PUT",
+    path: "users",
+    body,
+  });
+}
+
 const getExpensesPath = (id?: string, budgetId?: string) => {
   let path = "expenses";
 

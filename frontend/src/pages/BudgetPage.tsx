@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiEdit2, FiTrash2, FiFilter, FiSearch, FiPlus } from "react-icons/fi";
 import { FooterNav } from "../components/FooterNav";
 import { deleteBudget } from "../services/api";
@@ -7,11 +7,25 @@ import { formatCurrency } from "../services/formatCurrency";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
+import { useEffect } from "react";
 
 export function BudgetPage() {
   const navigate = useNavigate();
 
-  const { budgets, loading } = useItemContext();
+  const location = useLocation();
+
+  const { budgets, loading, fetchBudgets } = useItemContext();
+
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchBudgets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
+  useEffect(() => {
+    window.history.replaceState({}, document.title);
+  }, []);
 
   if (loading) return <LoadingScreen />;
 
@@ -88,6 +102,7 @@ export function BudgetPage() {
                     onClick={async (e) => {
                       e.stopPropagation();
                       await deleteBudget(id);
+                      fetchBudgets();
                     }}
                   >
                     <FiTrash2 />
@@ -122,8 +137,8 @@ export function BudgetPage() {
  * TODO
  * search budgets
  * validate inputs
- * Work on the sign/signup
  * Handle not found values
- * Handle errors
+ * Handle errors, display errors
  * Get expenses should get all expenses including the ones that belong to a budget, just add a budget name/color code to the expense
+ * Fix logout
  */

@@ -6,6 +6,7 @@ import { ExpensesPage } from "./pages/ExpensesPage";
 import { BudgetForm } from "./pages/BudgetForm";
 import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
+import { Profile } from "./pages/Profile";
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/expenses/new" element={<ExpenseForm />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/expenses/new" element={<ExpenseForm />} />

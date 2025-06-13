@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
 import { createExpense, updateExpense } from "../services/api";
+import { useItemContext } from "../hooks/useItemContext";
 
 const CATEGORY_OPTIONS = [
   "Food & Drinks",
@@ -13,10 +14,11 @@ const CATEGORY_OPTIONS = [
 ];
 
 export function ExpenseForm() {
+  const { currency } = useItemContext();
+
   const { expenseId } = useParams();
   const isEditMode = Boolean(expenseId);
   const navigate = useNavigate();
-
   const location = useLocation();
 
   const state = location.state as {
@@ -34,7 +36,7 @@ export function ExpenseForm() {
     category: "",
     updatedAt: "",
     description: "",
-    currency: "EUR",
+    currency,
   });
 
   useEffect(() => {
@@ -75,7 +77,10 @@ export function ExpenseForm() {
       );
 
     if (state.id) navigate("/budgets");
-    else navigate("/expenses");
+    else
+      navigate("/expenses", {
+        state: { refresh: true },
+      });
   };
 
   return (

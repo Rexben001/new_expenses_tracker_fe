@@ -11,13 +11,10 @@ import {
 } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
-import { logoutUrl } from "../services/getLoginUrl";
+import { logout } from "../services/isLoggedIn";
 
 export function Dashboard() {
-  const user = {
-    name: "Rexben",
-    avatarUrl: "https://i.pravatar.cc/100",
-  };
+  const avatarUrl = "https://i.pravatar.cc/100";
 
   const {
     budgets,
@@ -26,6 +23,7 @@ export function Dashboard() {
     recentExpenses,
     recentBudgets,
     loading,
+    user,
   } = useItemContext();
 
   useEffect(() => {
@@ -38,9 +36,7 @@ export function Dashboard() {
     if (hash.includes("access_token")) {
       const params = new URLSearchParams(hash.substring(1));
       const idToken = params.get("id_token");
-      const accessToken = params.get("access_token");
       localStorage.setItem("idToken", idToken || "");
-      localStorage.setItem("accessToken", accessToken || "");
       return true;
     }
     return false;
@@ -58,18 +54,18 @@ export function Dashboard() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src={user.avatarUrl}
+              src={avatarUrl}
               alt="Avatar"
               className="w-10 h-10 rounded-full"
             />
             <div>
               <p className="text-sm text-gray-500">Good {getTimeOfTheDay()}</p>
-              <p className="font-medium">{user.name}</p>
+              <p className="font-medium">{user.userName || user?.email}</p>
             </div>
           </div>
           <button
             className="text-gray-500 hover:text-black"
-            onClick={() => (window.location.href = logoutUrl)}
+            onClick={() => logout()}
           >
             Logout
           </button>
@@ -81,7 +77,7 @@ export function Dashboard() {
             <span>Monthly</span>
           </div>
           <div className="text-3xl font-semibold mt-2">
-            {formatCurrency(currentMonthExpensesTotal || 0)}
+            {formatCurrency(currentMonthExpensesTotal || 0, user.currency)}
           </div>
         </div>
 
@@ -107,7 +103,7 @@ export function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-gray-800">
-                  {formatCurrency(expense?.amount)}
+                  {formatCurrency(expense?.amount, user.currency)}
                 </p>
                 <div className="flex justify-end gap-2 mt-2">
                   <button className="text-blue-500 hover:text-blue-700">
@@ -152,7 +148,7 @@ export function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-gray-800">
-                  {formatCurrency(budget?.amount)}
+                  {formatCurrency(budget?.amount, user.currency)}
                 </p>
                 <div className="flex justify-end gap-2 mt-2">
                   <button className="text-blue-500 hover:text-blue-700">
