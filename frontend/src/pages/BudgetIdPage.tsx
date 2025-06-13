@@ -9,9 +9,14 @@ import { ExpenseBox } from "../components/ExpenseBox";
 import type { Expense } from "../types/expenses";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { useExpenseSearch } from "../hooks/useExpensesSearch";
 
 export function BudgetIdPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  const [query, setQuery] = useState("");
+
+  const filteredExpenses = useExpenseSearch(query, expenses);
 
   const { setLoading, loading } = useItemContext();
 
@@ -86,7 +91,9 @@ export function BudgetIdPage() {
       <div className="mb-4 relative">
         <input
           type="text"
-          placeholder="Search budgets"
+          placeholder="Search expenses"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
@@ -112,24 +119,26 @@ export function BudgetIdPage() {
         </div>
       </div>
 
-      {expenses.length ? <p>Expenses</p> : null}
+      {filteredExpenses.length ? <p className="mx-4">Expenses</p> : null}
 
-      {expenses.length ? (
-        expenses.map(({ id, title, category, amount, updatedAt, currency }) => (
-          <div className="mx-5">
-            <ExpenseBox
-              key={id}
-              id={id}
-              title={title}
-              category={category}
-              amount={amount || 0}
-              updatedAt={updatedAt || ""}
-              currency={currency}
-              removeExpense={removeExpense}
-              budgetId={budgetId}
-            />
-          </div>
-        ))
+      {filteredExpenses.length ? (
+        filteredExpenses.map(
+          ({ id, title, category, amount, updatedAt, currency }) => (
+            <div className="mx-5">
+              <ExpenseBox
+                key={id}
+                id={id}
+                title={title}
+                category={category}
+                amount={amount || 0}
+                updatedAt={updatedAt || ""}
+                currency={currency}
+                removeExpense={removeExpense}
+                budgetId={budgetId}
+              />
+            </div>
+          )
+        )
       ) : (
         <AddNewItem
           url="/expenses/new"
