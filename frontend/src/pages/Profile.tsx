@@ -1,5 +1,5 @@
 import { FooterNav } from "../components/FooterNav";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useItemContext } from "../hooks/useItemContext";
 import { getMonth, getTimeOfTheDay } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
