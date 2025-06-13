@@ -1,5 +1,5 @@
 {
-    "name": "express-fe",
+    "name": "new_expenses_tracker_fe",
     "private": true,
     "workspaces": [
         "cdk-fe",
