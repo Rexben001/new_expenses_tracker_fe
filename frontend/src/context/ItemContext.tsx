@@ -16,7 +16,22 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>({});
 
   const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    extractToken();
+  }, []);
+
+  const extractToken = () => {
+    const hash = window.location.hash;
+
+    if (hash.includes("access_token")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const idToken = params.get("id_token");
+      localStorage.setItem("idToken", idToken || "");
+      return true;
+    }
+    return false;
+  };
 
   useEffect(() => {
     fetchBudgets();

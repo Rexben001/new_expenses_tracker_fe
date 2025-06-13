@@ -1,7 +1,5 @@
-// Updated Dashboard with footer menu based on Figma
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { FooterNav } from "../components/FooterNav";
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useItemContext } from "../hooks/useItemContext";
 import {
@@ -11,7 +9,8 @@ import {
 } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
-import { logout } from "../services/isLoggedIn";
+import { removeToken } from "../services/isLoggedIn";
+import { logoutUrl } from "../services/getLoginUrl";
 
 export function Dashboard() {
   const avatarUrl = "https://i.pravatar.cc/100";
@@ -25,22 +24,6 @@ export function Dashboard() {
     loading,
     user,
   } = useItemContext();
-
-  useEffect(() => {
-    extractToken();
-  }, []);
-
-  const extractToken = () => {
-    const hash = window.location.hash;
-
-    if (hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const idToken = params.get("id_token");
-      localStorage.setItem("idToken", idToken || "");
-      return true;
-    }
-    return false;
-  };
 
   const expense = recentExpenses[0];
 
@@ -65,7 +48,10 @@ export function Dashboard() {
           </div>
           <button
             className="text-gray-500 hover:text-black"
-            onClick={() => logout()}
+            onClick={() => {
+              removeToken();
+              window.location.href = logoutUrl;
+            }}
           >
             Logout
           </button>

@@ -19,6 +19,6 @@ export const loginUrl = `${domain}/login?client_id=${clientId}&response_type=${r
   "+"
 )}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-export const logoutUrl = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
+export const logoutUrl = `${domain}/logout?client_id=${clientId}&response_type=${responseType}&logout_uri=${encodeURIComponent(
   redirectUri
 )}&redirect_uri=${encodeURIComponent(redirectUri)}`;

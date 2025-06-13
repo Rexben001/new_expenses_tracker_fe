@@ -6,12 +6,17 @@ import { FiFilter, FiSearch, FiPlus } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useExpenseSearch } from "../hooks/useExpensesSearch";
 
 export function ExpensesPage() {
-  const { expenses, loading, fetchExpenses } = useItemContext();
+  const { loading, fetchExpenses } = useItemContext();
 
   const location = useLocation();
+
+  const [query, setQuery] = useState("");
+
+  const filterExpenses = useExpenseSearch(query);
 
   const removeExpense = async (id: string) => {
     await deleteExpense(id);
@@ -44,24 +49,28 @@ export function ExpensesPage() {
         <input
           type="text"
           placeholder="Search expenses"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
       </div>
 
-      {expenses?.length ? (
-        expenses.map(({ id, title, category, amount, updatedAt, currency }) => (
-          <ExpenseBox
-            key={id}
-            id={id}
-            title={title}
-            category={category}
-            amount={amount}
-            updatedAt={updatedAt}
-            currency={currency}
-            removeExpense={removeExpense}
-          />
-        ))
+      {filterExpenses?.length ? (
+        filterExpenses.map(
+          ({ id, title, category, amount, updatedAt, currency }) => (
+            <ExpenseBox
+              key={id}
+              id={id}
+              title={title}
+              category={category}
+              amount={amount}
+              updatedAt={updatedAt}
+              currency={currency}
+              removeExpense={removeExpense}
+            />
+          )
+        )
       ) : (
         <AddNewItem
           url="/expenses/new"

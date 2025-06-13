@@ -16,17 +16,11 @@ export function isTokenExpired(token: string): boolean {
   }
 }
 
-function removeToken() {
+export function removeToken() {
   localStorage.removeItem("idToken");
 }
 
 export function handleUnauthorized() {
   removeToken();
   window.location.href = loginUrl; // or redirect to Cognito Hosted UI
-}
-
-export async function logout() {
-  removeToken();
-
-  window.location.reload();
 }

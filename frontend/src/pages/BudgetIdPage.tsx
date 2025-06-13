@@ -31,10 +31,15 @@ export function BudgetIdPage() {
   };
 
   const fetchBudgetExpenses = useCallback(async () => {
-    setLoading(true);
-    const expenses = await getExpense("", budgetId);
+    try {
+      setLoading(true);
+      const expenses = await getExpense("", budgetId);
 
-    setExpenses(expenses);
+      setExpenses(expenses);
+    } catch (error) {
+      console.log({ error });
+      setExpenses([]);
+    }
     setLoading(false);
   }, [budgetId, setLoading]);
 

@@ -7,14 +7,19 @@ import { formatCurrency } from "../services/formatCurrency";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useBudgetSearch } from "../hooks/useBudgetsSearch";
 
 export function BudgetPage() {
   const navigate = useNavigate();
 
   const location = useLocation();
 
-  const { budgets, loading, fetchBudgets } = useItemContext();
+  const { loading, fetchBudgets } = useItemContext();
+
+  const [query, setQuery] = useState("");
+
+  const filteredBudgets = useBudgetSearch(query);
 
   useEffect(() => {
     if (location.state?.refresh) {
@@ -29,6 +34,8 @@ export function BudgetPage() {
 
   if (loading) return <LoadingScreen />;
 
+  // const mainExpenses = filteredBud
+
   return (
     <div className="min-h-screen bg-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
@@ -42,13 +49,15 @@ export function BudgetPage() {
         <input
           type="text"
           placeholder="Search budgets"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
       </div>
 
-      {budgets.length ? (
-        budgets.map(
+      {filteredBudgets.length ? (
+        filteredBudgets.map(
           ({ id, title, category, period, updatedAt, amount, currency }) => (
             <div
               key={id}
