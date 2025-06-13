@@ -1,45 +1,45 @@
-name: Deploy React App to S3 with CDK
+# name: Deploy React App to S3 with CDK
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment: main # Optional: specify the environment for deployment
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     environment: main # Optional: specify the environment for deployment
 
-    steps:
-      - uses: actions/checkout@v3
+#     steps:
+#       - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 20
 
-      - name: Install dependencies
-        run: npm ci
+#       - name: Install dependencies
+#         run: npm ci
 
-      - name: Confirm vite-env.d.ts is present
-        run: cat frontend/vite-env.d.ts
+#       - name: Confirm vite-env.d.ts is present
+#         run: cat frontend/vite-env.d.ts
 
-      - name: Build React app
-        run: cd frontend && npm run build
+#       - name: Build React app
+#         run: cd frontend && npm run build
 
-      - name: Install AWS CDK CLI
-        run: npm install -g aws-cdk
+#       - name: Install AWS CDK CLI
+#         run: npm install -g aws-cdk
 
-      - name: CDK Bootstrap
-        run: cd cdk-fe && cdk bootstrap
-        env:
-          AWS_REGION: eu-west-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: CDK Bootstrap
+#         run: cd cdk-fe && cdk bootstrap
+#         env:
+#           AWS_REGION: eu-west-1
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: CDK Deploy
-        run: cd cdk-fe && cdk deploy --require-approval=never
-        env:
-          AWS_REGION: eu-west-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: CDK Deploy
+#         run: cd cdk-fe && cdk deploy --require-approval=never
+#         env:
+#           AWS_REGION: eu-west-1
+#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
