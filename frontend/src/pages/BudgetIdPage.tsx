@@ -63,7 +63,7 @@ export function BudgetIdPage() {
   const removeExpense = async (id: string, budgetId?: string) => {
     await deleteExpense(id, budgetId);
     setLoading(true);
-    fetchBudgetExpenses();
+    await fetchBudgetExpenses();
     setLoading(false);
   };
 

@@ -28,7 +28,7 @@ export function ExpensesPage() {
 
   const removeExpense = async (id: string) => {
     await deleteExpense(id);
-    fetchExpenses();
+    await fetchExpenses();
   };
 
   useEffect(() => {
