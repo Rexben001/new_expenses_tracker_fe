@@ -40,14 +40,17 @@ export function Profile() {
     await fetchUser();
   };
 
-  useEffect(() => {
-    // Apply or remove dark mode class
-    document.documentElement.classList.toggle(
-      "dark",
-      user?.colorMode === "Dark"
-    );
-  }, [user]);
+  const toggleDarkMode = () => {
+    const isDark = document.documentElement.classList.contains("dark");
 
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("color-theme", "light");
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("color-theme", "dark");
+    }
+  };
   if (loading) return <LoadingScreen />;
 
   return (
@@ -64,6 +67,10 @@ export function Profile() {
             <p className="font-medium">{user?.userName}</p>
           </div>
         </div>
+
+        <button id="toggleMode" onClick={() => toggleDarkMode()}>
+          🌒{" "}
+        </button>
       </header>
 
       <section>
@@ -102,7 +109,7 @@ export function Profile() {
                 ))}
               </select>
             </div>
-            <div>
+            {/* <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Color Mode
               </label>
@@ -121,7 +128,7 @@ export function Profile() {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">

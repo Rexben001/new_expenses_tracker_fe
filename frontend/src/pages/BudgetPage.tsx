@@ -52,7 +52,7 @@ export function BudgetPage() {
           <span className="text-blue-500">({filteredBudgets.length})</span>
         </h1>
         <button
-          className="text-gray-500 hover:text-gray-800"
+          className="text-gray-500 dark:text-white hover:text-gray-800"
           onClick={() => setShowPopup(!showPopup)}
         >
           <FiFilter className="text-xl" />

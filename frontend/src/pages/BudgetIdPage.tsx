@@ -87,7 +87,7 @@ export function BudgetIdPage() {
 
         <h1 className="text-xl font-bold"> Budget</h1>
         <button
-          className="text-gray-500 hover:text-gray-800"
+          className="text-gray-500 dark:text-white hover:text-gray-800"
           onClick={() => setShowPopup(!showPopup)}
         >
           <FiFilter className="text-xl" />
@@ -125,23 +125,21 @@ export function BudgetIdPage() {
       ) : null}
 
       {filteredExpenses.length ? (
-        filteredExpenses.map(
-          ({ id, title, category, amount, updatedAt }) => (
-            <div key={id} className="mx-5">
-              <ExpenseBox
-                key={id}
-                id={id}
-                title={title}
-                category={category}
-                amount={amount || 0}
-                updatedAt={updatedAt || ""}
-                currency={currency!}
-                removeExpense={removeExpense}
-                budgetId={budgetId}
-              />
-            </div>
-          )
-        )
+        filteredExpenses.map(({ id, title, category, amount, updatedAt }) => (
+          <div key={id} className="mx-5">
+            <ExpenseBox
+              key={id}
+              id={id}
+              title={title}
+              category={category}
+              amount={amount || 0}
+              updatedAt={updatedAt || ""}
+              currency={currency!}
+              removeExpense={removeExpense}
+              budgetId={budgetId}
+            />
+          </div>
+        ))
       ) : (
         <AddNewItem
           url="/expenses/new"

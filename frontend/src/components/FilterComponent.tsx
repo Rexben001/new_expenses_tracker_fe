@@ -15,12 +15,12 @@ export const ItemFilterPopup = ({
 }: ItemFilterPopupProps) => {
   return (
     <div className="flex justify-between items-center bg-white  dark:bg-gray-900 dark:text-white p-1 mb-1">
-      <div>
+      <div className="dark:shadow-amber-50">
         <label>Month:</label>
         <select
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="border-b-blue-700"
+          className="w-full py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All</option>
           {Array.from({ length: 12 }, (_, i) => (
@@ -32,9 +32,13 @@ export const ItemFilterPopup = ({
       </div>
       <div>
         <label>Year:</label>
-        <select value={year} onChange={(e) => setYear(e.target.value)}>
+        <select
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          className="w-full py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
           <option value="">All</option>
-          {[2025, 2024, 2023].map((y) => (
+          {[2030, 2029, 2028, 2027, 2026, 2025, 2024, 2023, 2022].map((y) => (
             <option key={y} value={y}>
               {y}
             </option>
@@ -43,11 +47,11 @@ export const ItemFilterPopup = ({
       </div>
 
       <button
-        className="mt-2 bg-amber-700 text-white px-2 py-1 rounded"
+        className="mt-2 bg-amber-700 text-white px-2.5 py-2 rounded"
         onClick={() => resetFilter()}
         hidden={!month && !year}
       >
-        Clear
+        X
       </button>
     </div>
   );
