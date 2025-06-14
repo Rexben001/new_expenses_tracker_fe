@@ -64,8 +64,6 @@ export function Profile() {
             <p className="font-medium">{user?.userName}</p>
           </div>
         </div>
-
-        <button onClick={() => setDarkMode(!darkMode)}>🌒</button>
       </header>
 
       <section>
