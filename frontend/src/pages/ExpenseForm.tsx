@@ -49,7 +49,6 @@ export function ExpenseForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const id = state?.id ?? formData.budgetId;
-    console.log({ id });
 
     if (isEditMode)
       await updateExpense(
