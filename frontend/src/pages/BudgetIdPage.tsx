@@ -79,7 +79,7 @@ export function BudgetIdPage() {
     <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/budgets")}
           className="text-gray-600 dark:text-white  hover:text-black"
         >
           <FiChevronLeft className="text-2xl" />

@@ -74,11 +74,19 @@ export function ExpenseForm() {
       });
   };
 
+  const goBack = () => {
+    if (state.id) {
+      navigate(`budgets/${state.id}`);
+    } else {
+      navigate("expenses");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => goBack()}
           className="text-gray-600 dark:text-white  hover:text-black"
         >
           <FiChevronLeft className="text-2xl" />
