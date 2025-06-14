@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
-import { createExpense, getExpenses, updateExpense } from "../services/api";
+import { createExpense, updateExpense } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
 
 export function ExpenseForm() {
-  const { currency, budgets } = useItemContext();
+  const { currency, budgets, fetchExpenses } = useItemContext();
 
   const { expenseId } = useParams();
   const isEditMode = Boolean(expenseId);
@@ -62,7 +62,7 @@ export function ExpenseForm() {
     else
       await createExpense({ ...formData, amount: Number(formData.amount) }, id);
 
-    await getExpenses();
+    await fetchExpenses();
 
     if (id) {
       navigate(`/budgets/${id}`, {
