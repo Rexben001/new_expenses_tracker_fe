@@ -62,7 +62,7 @@ export function ExpenseForm() {
     else
       await createExpense({ ...formData, amount: Number(formData.amount) }, id);
 
-    getExpenses();
+    await getExpenses();
 
     if (id) {
       navigate(`/budgets/${id}`, {
