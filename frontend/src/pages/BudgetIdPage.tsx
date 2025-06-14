@@ -39,7 +39,7 @@ export function BudgetIdPage() {
   const budget = state.title
     ? {
         ...state,
-        id: budgetId,
+        id: budgetId ?? "",
       }
     : budgets.find((budget) => budget.id === budgetId);
 

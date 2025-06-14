@@ -156,10 +156,3 @@ export function Profile() {
     </div>
   );
 }
-
-/**
- * FIX
- * delete multiple expenses
- * Dark Mode
- * Change the avatars to icons
- */
