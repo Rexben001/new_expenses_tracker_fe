@@ -13,7 +13,7 @@ export const AddNewItem = ({
 }) => {
   return (
     <section>
-      <div className="bg-gray-100 text-center text-sm text-gray-500 p-4 rounded-xl">
+      <div className="bg-gray-100  dark:bg-gray-900 dark:text-white text-center text-sm text-gray-500 p-4 rounded-xl">
         {/* <p>You don’t have any budget for this month</p> */}
         <p>{text}</p>
         <button className="mt-2 text-blue-500">

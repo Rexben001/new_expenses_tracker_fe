@@ -26,7 +26,7 @@ export const ExpenseBox = ({
   return (
     <div
       key={id}
-      className="bg-white rounded-xl p-4 shadow flex justify-between items-start mb-4"
+      className="bg-white  dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4"
     >
       <div>
         <p className="font-semibold text-base">{title}</p>
@@ -37,7 +37,9 @@ export const ExpenseBox = ({
         </p>
       </div>
       <div className="text-right">
-        <p className="text-lg font-bold text-gray-800">${amount}</p>
+        <p className="text-lg font-bold text-gray-800 dark:text-white">
+          ${amount}
+        </p>
         <div className="flex justify-end gap-2 mt-2">
           <button className="text-blue-500 hover:text-blue-700">
             <Link

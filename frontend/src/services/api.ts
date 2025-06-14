@@ -117,7 +117,7 @@ export function getUser() {
   });
 }
 
-export function updateUser(body: unknown) {
+export async function updateUser(body: unknown) {
   return fetchApi({
     method: "PUT",
     path: "users",

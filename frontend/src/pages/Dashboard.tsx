@@ -1,4 +1,3 @@
-import { FaTrash, FaEdit } from "react-icons/fa";
 import { FooterNav } from "../components/FooterNav";
 import { Link } from "react-router-dom";
 import { useItemContext } from "../hooks/useItemContext";
@@ -11,34 +10,28 @@ import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
+import { BudgetBox } from "../components/BudgetBox";
 
 export function Dashboard() {
-  const avatarUrl = "https://i.pravatar.cc/100";
+  const { budgets, expenses, currentMonthExpensesTotal, loading, user } =
+    useItemContext();
 
-  const {
-    budgets,
-    expenses,
-    currentMonthExpensesTotal,
-    recentExpenses,
-    recentBudgets,
-    loading,
-    user,
-  } = useItemContext();
+  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
-  const expense = recentExpenses[0];
+  const expense = expenses[0];
 
-  const budget = recentBudgets[0];
+  const budget = budgets[0];
 
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="flex flex-col space-y-4 min-h-screen bg-white px-4 pt-6 pb-24 max-w-md mx-auto">
+    <div className="flex flex-col space-y-4 min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
             src={avatarUrl}
-            alt="Avatar"
-            className="w-10 h-10 rounded-full"
+            alt="User avatar"
+            className="w-10 h-10 rounded-full object-cover"
           />
           <div>
             <p className="text-sm text-gray-500">Good {getTimeOfTheDay()}</p>
@@ -56,7 +49,7 @@ export function Dashboard() {
         </button>
       </header>
 
-      <div className="bg-gradient-to-r from-blue-500 to-blue-400 text-white p-4 rounded-xl shadow">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-400 dark:from-indigo-50 dark:to-indigo-100 dark:text-blue-600  text-white p-4 rounded-xl shadow">
         <div className="flex justify-between text-sm">
           <span>Total expenses ({getMonth()})</span>
           <span>Monthly</span>
@@ -77,7 +70,7 @@ export function Dashboard() {
         {expenses.length ? (
           <div
             key={expense?.id}
-            className="bg-white rounded-xl p-4 shadow flex justify-between items-start mb-3"
+            className="bg-white dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-3"
           >
             <div>
               <p className="font-semibold text-base">{expense?.title}</p>
@@ -87,24 +80,17 @@ export function Dashboard() {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-gray-800">
+              <p className="text-lg font-bold text-gray-800 dark:text-white">
                 {formatCurrency(expense?.amount, user.currency)}
               </p>
-              <div className="flex justify-end gap-2 mt-2">
-                <button className="text-blue-500 hover:text-blue-700">
-                  <FaEdit />
-                </button>
-                <button className="text-red-500 hover:text-red-700">
-                  <FaTrash />
-                </button>
-              </div>
+              <div className="flex justify-end gap-2 mt-2"></div>
             </div>
           </div>
         ) : (
           <div className="bg-gray-100 text-center text-sm text-gray-500 p-4 rounded-xl">
             <p>You don’t have any expense for this month</p>
             <button className="mt-2 text-blue-500">
-              <Link to="/expenses/new">+ Add Expense</Link>
+              <Link to="/expenses/new">+ Add an expense</Link>
             </button>
           </div>
         )}
@@ -125,31 +111,7 @@ export function Dashboard() {
             </button>
           </div>
         ) : (
-          <div
-            key={budget?.id}
-            className="bg-white rounded-xl p-4 shadow flex justify-between items-start mb-3"
-          >
-            <div>
-              <p className="font-semibold text-base">{budget?.title}</p>
-              <p className="text-sm text-gray-500">{budget?.category}</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {formatRelativeDate(budget?.updatedAt)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-bold text-gray-800">
-                {formatCurrency(budget?.amount, user.currency)}
-              </p>
-              <div className="flex justify-end gap-2 mt-2">
-                <button className="text-blue-500 hover:text-blue-700">
-                  <FaEdit />
-                </button>
-                <button className="text-red-500 hover:text-red-700">
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          </div>
+          <BudgetBox budget={budget} />
         )}
       </section>
 

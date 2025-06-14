@@ -12,8 +12,14 @@ export function getMonthlyTotal<T extends (Expense | Budget)[]>(
   }, 0);
 }
 
-export function sortItemByRecent<T extends Expense[] | Budget[]>(item: T): Array<T[number]> {
-  return [...item].sort((a, b) => {
-    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  });
-}
+export const CATEGORY_OPTIONS = [
+  "Food",
+  "Transport",
+  "Shopping",
+  "Health",
+  "Entertainment",
+  "Utilities",
+  "Holiday",
+  "Miscellaneous",
+  "Others",
+];

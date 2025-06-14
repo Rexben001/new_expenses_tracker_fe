@@ -3,14 +3,15 @@ import { getBudgets, getExpenses, getUser } from "../services/api";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
-import { getMonthlyTotal, sortItemByRecent } from "../services/item";
+import { getMonthlyTotal } from "../services/item";
 
 export type User = {
   userName?: string;
   currency?: string;
   email?: string;
+  colorMode?: string
 };
-export function ItemContextProvider(props: { children: React.ReactNode }) {
+export function ItemContextProvider(props: Readonly<{ children: React.ReactNode }>) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [user, setUser] = useState<User>({});
@@ -79,10 +80,6 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
 
   const currentMonthExpensesTotal = getMonthlyTotal(expenses);
 
-  const recentExpenses = sortItemByRecent(expenses);
-
-  const recentBudgets = sortItemByRecent(budgets);
-
   const currency = user?.currency ?? "EUR";
 
   const value = useMemo(
@@ -94,23 +91,13 @@ export function ItemContextProvider(props: { children: React.ReactNode }) {
       loading,
       setLoading,
       currentMonthExpensesTotal,
-      recentExpenses,
-      recentBudgets,
       fetchExpenses,
       fetchBudgets,
       user,
       currency,
+      fetchUser,
     }),
-    [
-      budgets,
-      expenses,
-      loading,
-      currentMonthExpensesTotal,
-      recentExpenses,
-      recentBudgets,
-      user,
-      currency,
-    ]
+    [budgets, expenses, loading, currentMonthExpensesTotal, user, currency]
   );
 
   return (

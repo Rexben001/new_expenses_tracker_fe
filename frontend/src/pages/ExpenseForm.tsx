@@ -1,34 +1,20 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
-import { createExpense, updateExpense } from "../services/api";
+import { createExpense, getExpenses, updateExpense } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
-
-const CATEGORY_OPTIONS = [
-  "Food & Drinks",
-  "Transport",
-  "Shopping",
-  "Health",
-  "Entertainment",
-  "Utilities",
-];
+import { CATEGORY_OPTIONS } from "../services/item";
+import type { BUDGET_STATE } from "../types/locationState";
 
 export function ExpenseForm() {
-  const { currency } = useItemContext();
+  const { currency, budgets } = useItemContext();
 
   const { expenseId } = useParams();
   const isEditMode = Boolean(expenseId);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const state = location.state as {
-    category?: string;
-    amount?: number;
-    title?: string;
-    updatedAt?: string;
-    currency?: string;
-    id?: string;
-  };
+  const state = location.state as BUDGET_STATE;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -37,6 +23,7 @@ export function ExpenseForm() {
     updatedAt: "",
     description: "",
     currency,
+    budgetId: "",
   });
 
   useEffect(() => {
@@ -48,6 +35,7 @@ export function ExpenseForm() {
         updatedAt: state?.updatedAt ?? "",
         description: "",
         currency: "EUR",
+        budgetId: "",
       });
     }
   }, [expenseId, isEditMode, state]);
@@ -58,37 +46,41 @@ export function ExpenseForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const id = state?.id ?? formData.budgetId;
+    console.log({ id });
 
     if (isEditMode)
-      updateExpense(
+      await updateExpense(
         expenseId!,
         {
           ...formData,
           amount: Number(formData.amount),
         },
-        state?.id
+        id
       );
     else
-      createExpense(
-        { ...formData, amount: Number(formData.amount) },
-        state?.id
-      );
+      await createExpense({ ...formData, amount: Number(formData.amount) }, id);
 
-    if (state.id) navigate("/budgets");
-    else
+    getExpenses();
+
+    if (id) {
+      navigate(`/budgets/${id}`, {
+        state: { refresh: true },
+      });
+    } else
       navigate("/expenses", {
         state: { refresh: true },
       });
   };
 
   return (
-    <div className="min-h-screen bg-white px-4 pt-6 pb-12 max-w-md mx-auto">
+    <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="text-gray-600 hover:text-black"
+          className="text-gray-600 dark:text-white  hover:text-black"
         >
           <FiChevronLeft className="text-2xl" />
         </button>
@@ -99,7 +91,7 @@ export function ExpenseForm() {
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">
+          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
             Expense Name
           </label>
           <input
@@ -112,7 +104,9 @@ export function ExpenseForm() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Amount</label>
+          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
+            Amount
+          </label>
           <input
             name="amount"
             type="number"
@@ -124,7 +118,9 @@ export function ExpenseForm() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Category</label>
+          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
+            Category
+          </label>
           <select
             name="category"
             value={formData.category}
@@ -141,9 +137,33 @@ export function ExpenseForm() {
             ))}
           </select>
         </div>
+        <div>
+          <label className="text-sm dark:text-white  dark:text-white  text-gray-500 mb-1 block">
+            Budget
+          </label>
+          <select
+            name="budgetId"
+            value={formData.budgetId}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Select Budget
+            </option>
+            {budgets?.length
+              ? budgets.map(({ id, title }) => (
+                  <option key={id} value={id}>
+                    {title}
+                  </option>
+                ))
+              : null}
+          </select>
+        </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Date</label>
+          <label className="text-sm dark:text-white  dark:text-white  text-gray-500 mb-1 block">
+            Date
+          </label>
           <input
             name="updatedAt"
             type="date"

@@ -1,22 +1,30 @@
 import { FooterNav } from "../components/FooterNav";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useItemContext } from "../hooks/useItemContext";
-import { getMonth, getTimeOfTheDay } from "../services/formatDate";
-import { formatCurrency } from "../services/formatCurrency";
+import { getTimeOfTheDay } from "../services/formatDate";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { updateUser } from "../services/api";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
 
 export function Profile() {
-  const avatarUrl = "https://i.pravatar.cc/100";
+  const { user, loading, fetchUser } = useItemContext();
 
-  const { user, loading, currentMonthExpensesTotal } = useItemContext();
+  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
   const [formData, setFormData] = useState({
-    userName: user.userName || user.email,
-    currency: user.currency,
+    userName: user?.userName,
+    currency: user?.currency,
+    colorMode: user?.colorMode,
   });
+
+  useEffect(() => {
+    setFormData({
+      userName: user?.userName,
+      currency: user?.currency,
+      colorMode: user?.colorMode,
+    });
+  }, [user?.colorMode, user?.currency, user?.userName]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -24,17 +32,30 @@ export function Profile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    updateUser(formData);
-    window.location.reload();
+    await updateUser(formData);
+
+    await fetchUser();
   };
+
+  console.log({
+    formData,
+    user,
+  });
+
+  // const [darkMode, setDarkMode] = useState(false);
+
+  // useEffect(() => {
+  //   // Apply or remove dark mode class
+  //   document.documentElement.classList.toggle("dark", darkMode);
+  // }, [darkMode]);
 
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="flex flex-col space-y-4 min-h-screen bg-white px-4 pt-6 pb-24 max-w-md mx-auto">
+    <div className="flex flex-col space-y-4 min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
@@ -47,23 +68,15 @@ export function Profile() {
             <p className="font-medium">{user?.userName}</p>
           </div>
         </div>
-      </header>
 
-      <div className="bg-gradient-to-r from-blue-500 to-blue-400 text-white p-4 rounded-xl shadow">
-        <div className="flex justify-between text-sm">
-          <span>Total expenses ({getMonth()})</span>
-          <span>Monthly</span>
-        </div>
-        <div className="text-3xl font-semibold mt-2">
-          {formatCurrency(currentMonthExpensesTotal, user.currency)}
-        </div>
-      </div>
+        {/* <button onClick={() => setDarkMode(!darkMode)}>🌒</button> */}
+      </header>
 
       <section>
         <div className="flex justify-between items-center mb-2">
           <form className="space-y-6 w-full" onSubmit={handleSubmit}>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 UserName
               </label>
               <input
@@ -76,7 +89,7 @@ export function Profile() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Currency
               </label>
               <select
@@ -95,9 +108,29 @@ export function Profile() {
                 ))}
               </select>
             </div>
+            {/* <div>
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
+                Color Mode
+              </label>
+              <select
+                name="colorMode"
+                value={formData.colorMode}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Color Mode
+                </option>
+                {["Dark", "Light"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div> */}
 
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Email Address
               </label>
               <input
@@ -123,3 +156,10 @@ export function Profile() {
     </div>
   );
 }
+
+/**
+ * FIX
+ * delete multiple expenses
+ * Dark Mode
+ * Change the avatars to icons
+ */

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export function FooterNav({ page }: { page?: string }) {
   const activeClass = "text-blue-600";
-  const inactiveClass = "text-gray-500 hover:text-gray-800";
+  const inactiveClass = "text-gray-500 hover:text-gray-800 dark:text-white";
 
   const currentPage = page || window.location.pathname;
   const currentPageName = currentPage.split("/").pop();
@@ -13,7 +13,6 @@ export function FooterNav({ page }: { page?: string }) {
     return currentPageName === toPageName ? activeClass : inactiveClass;
   };
 
-  
   const NavMenuLink = ({
     to,
     icon: Icon,
@@ -39,7 +38,7 @@ export function FooterNav({ page }: { page?: string }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-inner h-16 flex justify-around items-center text-gray-500 text-sm">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-gray-500 text-sm">
       {links.map(({ to, icon, label }) => (
         <NavMenuLink
           key={to}

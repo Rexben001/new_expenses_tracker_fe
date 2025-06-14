@@ -3,18 +3,10 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
 import { createBudget, updateBudget } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
+import { CATEGORY_OPTIONS } from "../services/item";
+import type { BUDGET_STATE } from "../types/locationState";
 
-const CATEGORY_OPTIONS = [
-  "Food",
-  "Transport",
-  "Shopping",
-  "Health",
-  "Entertainment",
-  "Utilities",
-  "Others",
-];
-
-const PERIOD_OPTIONS = ["monthly", "yearly"];
+const PERIOD_OPTIONS = ["none", "monthly", "yearly"];
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -24,14 +16,7 @@ export function BudgetForm() {
 
   const location = useLocation();
 
-  const state = location.state as {
-    category?: string;
-    amount?: number;
-    title?: string;
-    period?: string;
-    updatedAt?: string;
-    currency?: string;
-  };
+  const state = location.state as BUDGET_STATE;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -63,25 +48,25 @@ export function BudgetForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isEditMode)
-      updateBudget(budgetId!, {
+      await updateBudget(budgetId!, {
         ...formData,
         amount: Number(formData.amount),
       });
-    else createBudget({ ...formData, amount: Number(formData.amount) });
+    else await createBudget({ ...formData, amount: Number(formData.amount) });
 
     navigate("/budgets", { state: { refresh: true } });
   };
 
   return (
-    <div className="min-h-screen bg-white px-4 pt-6 pb-12 max-w-md mx-auto">
+    <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="text-gray-600 hover:text-black"
+          className="text-gray-600 dark:text-white  hover:text-black"
         >
           <FiChevronLeft className="text-2xl" />
         </button>

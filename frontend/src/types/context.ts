@@ -9,12 +9,11 @@ interface IItemContext {
   setBudgets(budgets: Budget[]): void;
   setExpenses(expenses: Expense[]): void;
   currentMonthExpensesTotal: number;
-  recentExpenses: Expense[];
-  recentBudgets: Budget[];
   loading: boolean;
   setLoading(loading: boolean): void;
-  fetchExpenses(): void;
-  fetchBudgets(): void;
+  fetchExpenses(): Promise<void>;
+  fetchBudgets(): Promise<void>;
+  fetchUser(): Promise<void>;
   user: User;
   currency?: string;
 }
