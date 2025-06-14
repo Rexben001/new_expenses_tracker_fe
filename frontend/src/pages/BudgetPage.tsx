@@ -12,7 +12,7 @@ import { ItemFilterPopup } from "../components/FilterComponent";
 export function BudgetPage() {
   const location = useLocation();
 
-  const { loading, fetchBudgets } = useItemContext();
+  const { loading, fetchBudgets, currency } = useItemContext();
 
   const [query, setQuery] = useState("");
 
@@ -82,7 +82,7 @@ export function BudgetPage() {
 
       {filteredBudgets.length ? (
         filteredBudgets.map((budget) => (
-          <BudgetBox key={budget.id} budget={budget} />
+          <BudgetBox key={budget.id} budget={budget} currency={currency} />
         ))
       ) : (
         <AddNewItem

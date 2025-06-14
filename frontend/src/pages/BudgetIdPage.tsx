@@ -26,7 +26,7 @@ export function BudgetIdPage() {
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
-  const { setLoading, loading, budgets } = useItemContext();
+  const { setLoading, loading, budgets, currency } = useItemContext();
 
   const navigate = useNavigate();
 
@@ -115,7 +115,7 @@ export function BudgetIdPage() {
         />
       )}
 
-      {budget && <BudgetBox budget={budget} />}
+      {budget && <BudgetBox budget={budget} currency={currency} />}
 
       {filteredExpenses.length ? (
         <p className="mx-4 bold mb-3">
@@ -126,7 +126,7 @@ export function BudgetIdPage() {
 
       {filteredExpenses.length ? (
         filteredExpenses.map(
-          ({ id, title, category, amount, updatedAt, currency }) => (
+          ({ id, title, category, amount, updatedAt }) => (
             <div key={id} className="mx-5">
               <ExpenseBox
                 key={id}
@@ -135,7 +135,7 @@ export function BudgetIdPage() {
                 category={category}
                 amount={amount || 0}
                 updatedAt={updatedAt || ""}
-                currency={currency}
+                currency={currency!}
                 removeExpense={removeExpense}
                 budgetId={budgetId}
               />

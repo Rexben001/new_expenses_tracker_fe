@@ -1,6 +1,7 @@
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { formatRelativeDate } from "../services/formatDate";
+import { formatCurrency } from "../services/formatCurrency";
 
 type ExpenseBox = {
   id: string;
@@ -38,7 +39,7 @@ export const ExpenseBox = ({
       </div>
       <div className="text-right">
         <p className="text-lg font-bold text-gray-800 dark:text-white">
-          ${amount}
+          {formatCurrency(amount, currency)}
         </p>
         <div className="flex justify-end gap-2 mt-2">
           <button className="text-blue-500 hover:text-blue-700">

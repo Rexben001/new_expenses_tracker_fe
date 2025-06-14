@@ -9,9 +9,11 @@ export type User = {
   userName?: string;
   currency?: string;
   email?: string;
-  colorMode?: string
+  colorMode?: "Dark" | "White";
 };
-export function ItemContextProvider(props: Readonly<{ children: React.ReactNode }>) {
+export function ItemContextProvider(
+  props: Readonly<{ children: React.ReactNode }>
+) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [user, setUser] = useState<User>({});

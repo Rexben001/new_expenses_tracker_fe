@@ -8,6 +8,7 @@ import { getExpenses } from "../services/api";
 
 export const BudgetBox = ({
   budget,
+  currency,
 }: {
   budget:
     | Budget
@@ -20,6 +21,7 @@ export const BudgetBox = ({
         currency?: string;
         id: string;
       };
+  currency?: string;
 }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -50,7 +52,7 @@ export const BudgetBox = ({
 
   const spent = calculateRemaining();
 
-  const { id, title, category, period, updatedAt, amount, currency } = budget;
+  const { id, title, category, period, updatedAt, amount } = budget;
 
   return (
     <div
@@ -81,11 +83,11 @@ export const BudgetBox = ({
 
       <div className="text-right">
         <p className="text-lg font-bold text-gray-800 dark:text-white">
-          {formatCurrency(budget?.amount, budget?.currency || "EUR")}
+          {formatCurrency(budget?.amount, currency)}
         </p>
         <p className="text-sm text-gray-500 dark:text-white">
           {" "}
-          {formatCurrency(spent, budget?.currency || "EUR")}
+          {formatCurrency(spent, currency)}
         </p>
       </div>
     </div>

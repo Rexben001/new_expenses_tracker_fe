@@ -13,8 +13,14 @@ import { logoutUrl } from "../services/getLoginUrl";
 import { BudgetBox } from "../components/BudgetBox";
 
 export function Dashboard() {
-  const { budgets, expenses, currentMonthExpensesTotal, loading, user } =
-    useItemContext();
+  const {
+    budgets,
+    expenses,
+    currentMonthExpensesTotal,
+    loading,
+    user,
+    currency,
+  } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
@@ -111,7 +117,7 @@ export function Dashboard() {
             </button>
           </div>
         ) : (
-          <BudgetBox budget={budget} />
+          <BudgetBox budget={budget} currency={currency} />
         )}
       </section>
 

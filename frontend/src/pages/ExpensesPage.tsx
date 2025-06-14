@@ -11,7 +11,7 @@ import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
 
 export function ExpensesPage() {
-  const { loading, fetchExpenses } = useItemContext();
+  const { loading, fetchExpenses, currency } = useItemContext();
 
   const location = useLocation();
 
@@ -86,20 +86,18 @@ export function ExpensesPage() {
       )}
 
       {filteredExpenses?.length ? (
-        filteredExpenses.map(
-          ({ id, title, category, amount, updatedAt, currency }) => (
-            <ExpenseBox
-              key={id}
-              id={id}
-              title={title}
-              category={category}
-              amount={amount}
-              updatedAt={updatedAt}
-              currency={currency}
-              removeExpense={removeExpense}
-            />
-          )
-        )
+        filteredExpenses.map(({ id, title, category, amount, updatedAt }) => (
+          <ExpenseBox
+            key={id}
+            id={id}
+            title={title}
+            category={category}
+            amount={amount}
+            updatedAt={updatedAt}
+            currency={currency!}
+            removeExpense={removeExpense}
+          />
+        ))
       ) : (
         <AddNewItem
           url="/expenses/new"

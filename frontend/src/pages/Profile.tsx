@@ -40,17 +40,13 @@ export function Profile() {
     await fetchUser();
   };
 
-  console.log({
-    formData,
-    user,
-  });
-
-  // const [darkMode, setDarkMode] = useState(false);
-
-  // useEffect(() => {
-  //   // Apply or remove dark mode class
-  //   document.documentElement.classList.toggle("dark", darkMode);
-  // }, [darkMode]);
+  useEffect(() => {
+    // Apply or remove dark mode class
+    document.documentElement.classList.toggle(
+      "dark",
+      user?.colorMode === "Dark"
+    );
+  }, [user]);
 
   if (loading) return <LoadingScreen />;
 
@@ -69,7 +65,7 @@ export function Profile() {
           </div>
         </div>
 
-        {/* <button onClick={() => setDarkMode(!darkMode)}>🌒</button> */}
+        <button onClick={() => setDarkMode(!darkMode)}>🌒</button>
       </header>
 
       <section>
@@ -108,7 +104,7 @@ export function Profile() {
                 ))}
               </select>
             </div>
-            {/* <div>
+            <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Color Mode
               </label>
@@ -127,7 +123,7 @@ export function Profile() {
                   </option>
                 ))}
               </select>
-            </div> */}
+            </div>
 
             <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
