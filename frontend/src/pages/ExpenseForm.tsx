@@ -76,9 +76,9 @@ export function ExpenseForm() {
 
   const goBack = () => {
     if (state.id) {
-      navigate(`budgets/${state.id}`);
+      navigate(`/budgets/${state.id}`);
     } else {
-      navigate("expenses");
+      navigate("/expenses");
     }
   };
 
