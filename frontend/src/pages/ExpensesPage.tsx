@@ -26,8 +26,8 @@ export function ExpensesPage() {
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
-  const removeExpense = async (id: string) => {
-    await deleteExpense(id);
+  const removeExpense = async (id: string, budgetId?: string) => {
+    await deleteExpense(id, budgetId);
     await fetchExpenses();
   };
 
@@ -86,18 +86,21 @@ export function ExpensesPage() {
       )}
 
       {filteredExpenses?.length ? (
-        filteredExpenses.map(({ id, title, category, amount, updatedAt }) => (
-          <ExpenseBox
-            key={id}
-            id={id}
-            title={title}
-            category={category}
-            amount={amount}
-            updatedAt={updatedAt}
-            currency={currency!}
-            removeExpense={removeExpense}
-          />
-        ))
+        filteredExpenses.map(
+          ({ id, title, category, amount, updatedAt, budgetId }) => (
+            <ExpenseBox
+              key={id}
+              id={id}
+              title={title}
+              category={category}
+              amount={amount}
+              updatedAt={updatedAt}
+              currency={currency!}
+              budgetId={budgetId}
+              removeExpense={removeExpense}
+            />
+          )
+        )
       ) : (
         <AddNewItem
           url="/expenses/new"
