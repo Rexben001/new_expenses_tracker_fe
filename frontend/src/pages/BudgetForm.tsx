@@ -144,6 +144,7 @@ export function BudgetForm() {
           <input
             name="updatedAt"
             type="date"
+            required
             value={formData.updatedAt}
             onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
