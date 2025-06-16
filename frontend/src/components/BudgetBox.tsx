@@ -31,6 +31,8 @@ export const BudgetBox = ({
 
   const { fetchBudgets } = useItemContext();
 
+  const [showDetails, setShowDetails] = useState(false);
+
   const fetchExpenses = async () => {
     try {
       const expenses = await getExpenses(budget.id);
@@ -90,7 +92,6 @@ export const BudgetBox = ({
           </div>
           <div className="flex flex-col items-end ml-4">
             <div className="flex gap-3 mb-4">
-              {/* Edit Icon */}
               <button
                 className="text-blue-500 hover:text-blue-700"
                 onClick={async (e) => {
@@ -110,7 +111,6 @@ export const BudgetBox = ({
                 <FiEdit2 />
               </button>
 
-              {/* Delete Icon */}
               <button
                 className="text-red-500 hover:text-red-700"
                 onClick={async (e) => {
@@ -129,34 +129,35 @@ export const BudgetBox = ({
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 h-2 rounded-full mt-3 mb-3">
-          <div
-            className={progressBarClass}
-            style={{ width: `${totalWidth}%` }}
-          />
-        </div>
+        {showDetails && (
+          <>
+            <div className="w-full bg-gray-200 h-2 rounded-full mt-3 mb-3">
+              <div
+                className={progressBarClass}
+                style={{ width: `${totalWidth}%` }}
+              />
+            </div>
 
-        {/* Spent and Remaining */}
-        <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
-          <div>
-            <p>Spent</p>
-            <p className="font-bold text-black dark:text-white">
-              {formatCurrency(spent, currency)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p>Remaining</p>
-            <p className="font-bold text-black dark:text-white">
-              {formatCurrency(amount! - spent, currency)}
-            </p>
-          </div>
-        </div>
+            <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+              <div>
+                <p>Spent</p>
+                <p className="font-bold text-black dark:text-white">
+                  {formatCurrency(spent, currency)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p>Remaining</p>
+                <p className="font-bold text-black dark:text-white">
+                  {formatCurrency(amount! - spent, currency)}
+                </p>
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* View Expenses link */}
-        {showExpense && (
+        {showDetails && showExpense && (
           <div
-            className="mt-4 flex justify-end items-center text-sm text-black dark:text-white hover:underline"
+            className="mt-4 flex justify-end items-center text-sm text-black dark:text-white hover:underline font-bold"
             onClick={() => {
               navigate(`/budgets/${id}`, {
                 state: {
@@ -186,6 +187,30 @@ export const BudgetBox = ({
             </svg>
           </div>
         )}
+
+        <div className="mt-2 flex justify-center">
+          <button
+            onClick={() => setShowDetails((prev) => !prev)}
+            className="flex items-center text-sm text-blue-400 hover:underline"
+          >
+            {showDetails ? "See less" : "See more"}
+            <svg
+              className={`w-4 h-4 ml-1 transition-transform duration-200 ${
+                showDetails ? "rotate-180" : "rotate-0"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -83,11 +83,7 @@ export function ExpenseForm() {
   };
 
   const goBack = () => {
-    if (state.id) {
-      navigate(`/budgets/${state.id}`);
-    } else {
-      navigate("/expenses");
-    }
+    navigate(-1);
   };
 
   return (
@@ -106,7 +102,7 @@ export function ExpenseForm() {
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
-          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
+          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
             Expense Name
           </label>
           <input
@@ -119,7 +115,7 @@ export function ExpenseForm() {
         </div>
 
         <div>
-          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
+          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
             Amount
           </label>
           <input
@@ -160,6 +156,7 @@ export function ExpenseForm() {
             name="budgetId"
             value={formData.budgetId}
             onChange={handleChange}
+            required
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" disabled>

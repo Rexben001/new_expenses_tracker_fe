@@ -58,3 +58,9 @@ export function getTimeOfTheDay() {
 
   return timeOfDay;
 }
+
+export function getYear() {
+  const date = parseISO(new Date().toISOString());
+
+  return format(date, "yyyy");
+}

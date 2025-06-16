@@ -5,6 +5,7 @@ import {
   formatRelativeDate,
   getMonth,
   getTimeOfTheDay,
+  getYear,
 } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -34,13 +35,19 @@ export function Dashboard() {
 
   const [total, setTotal] = useState(currentMonthExpensesTotal);
 
+  const [type, setType] = useState(getMonth());
+
   useEffect(() => {
-    const total =
-      duration === "monthly"
-        ? currentMonthExpensesTotal
-        : currentYearExpensesTotal;
+    const isMonthly = duration === "monthly";
+
+    const total = isMonthly
+      ? currentMonthExpensesTotal
+      : currentYearExpensesTotal;
 
     setTotal(total);
+
+    const type = isMonthly ? getMonth : getYear();
+    setType(type);
   }, [currentMonthExpensesTotal, currentYearExpensesTotal, duration, total]);
 
   if (loading) return <LoadingScreen />;
@@ -60,7 +67,7 @@ export function Dashboard() {
           </div>
         </div>
         <button
-          className="text-gray-500 hover:text-black"
+          className="text-gray-500 hover:text-black dark:text-white"
           onClick={() => {
             removeToken();
             window.location.href = logoutUrl;
@@ -72,7 +79,7 @@ export function Dashboard() {
 
       <div className="bg-gradient-to-r from-blue-500 to-blue-400 dark:from-indigo-50 dark:to-indigo-100 dark:text-blue-600  text-white p-4 rounded-xl shadow">
         <div className="flex justify-between text-sm">
-          <span>Total expenses ({getMonth()})</span>
+          <span>Total expenses ({type})</span>
           <span>
             <select onChange={(e) => setDuration(e.target.value)}>
               <option key="monthly" value="monthly">
