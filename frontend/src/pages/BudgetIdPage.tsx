@@ -67,13 +67,15 @@ export function BudgetIdPage() {
     setLoading(false);
   };
 
-  if (loading) return <LoadingScreen />;
-
   const resetFilter = () => {
     setMonth("");
     setYear("");
     setShowPopup(false);
   };
+
+  if (loading) return <LoadingScreen />;
+
+  if (!budget?.title) return navigate("/budgets");
 
   return (
     <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
