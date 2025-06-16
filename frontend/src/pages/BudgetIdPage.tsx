@@ -115,7 +115,9 @@ export function BudgetIdPage() {
         />
       )}
 
-      {budget && <BudgetBox budget={budget} currency={currency} />}
+      {budget && (
+        <BudgetBox budget={budget} currency={currency} showExpense={false} />
+      )}
 
       {filteredExpenses.length ? (
         <p className="mx-4 bold mb-3">

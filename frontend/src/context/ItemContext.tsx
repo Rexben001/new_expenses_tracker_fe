@@ -3,7 +3,7 @@ import { getBudgets, getExpenses, getUser } from "../services/api";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
-import { getMonthlyTotal } from "../services/item";
+import { getMonthlyTotal, getYearlyTotally } from "../services/item";
 
 export type User = {
   userName?: string;
@@ -81,6 +81,7 @@ export function ItemContextProvider(
   };
 
   const currentMonthExpensesTotal = getMonthlyTotal(expenses);
+  const currentYearExpensesTotal = getYearlyTotally(expenses);
 
   const currency = user?.currency ?? "EUR";
 
@@ -98,8 +99,17 @@ export function ItemContextProvider(
       user,
       currency,
       fetchUser,
+      currentYearExpensesTotal,
     }),
-    [budgets, expenses, loading, currentMonthExpensesTotal, user, currency]
+    [
+      budgets,
+      expenses,
+      loading,
+      currentMonthExpensesTotal,
+      user,
+      currency,
+      currentYearExpensesTotal,
+    ]
   );
 
   return (

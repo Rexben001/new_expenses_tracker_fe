@@ -82,7 +82,12 @@ export function BudgetPage() {
 
       {filteredBudgets.length ? (
         filteredBudgets.map((budget) => (
-          <BudgetBox key={budget.id} budget={budget} currency={currency} />
+          <BudgetBox
+            key={budget.id}
+            budget={budget}
+            currency={currency}
+            showExpense={true}
+          />
         ))
       ) : (
         <AddNewItem

@@ -11,6 +11,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
 import { BudgetBox } from "../components/BudgetBox";
+import { useEffect, useState } from "react";
 
 export function Dashboard() {
   const {
@@ -20,6 +21,7 @@ export function Dashboard() {
     loading,
     user,
     currency,
+    currentYearExpensesTotal,
   } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
@@ -27,6 +29,19 @@ export function Dashboard() {
   const expense = expenses[0];
 
   const budget = budgets[0];
+
+  const [duration, setDuration] = useState("monthly");
+
+  const [total, setTotal] = useState(currentMonthExpensesTotal);
+
+  useEffect(() => {
+    const total =
+      duration === "monthly"
+        ? currentMonthExpensesTotal
+        : currentYearExpensesTotal;
+
+    setTotal(total);
+  }, [currentMonthExpensesTotal, currentYearExpensesTotal, duration, total]);
 
   if (loading) return <LoadingScreen />;
 
@@ -58,10 +73,19 @@ export function Dashboard() {
       <div className="bg-gradient-to-r from-blue-500 to-blue-400 dark:from-indigo-50 dark:to-indigo-100 dark:text-blue-600  text-white p-4 rounded-xl shadow">
         <div className="flex justify-between text-sm">
           <span>Total expenses ({getMonth()})</span>
-          <span>Monthly</span>
+          <span>
+            <select onChange={(e) => setDuration(e.target.value)}>
+              <option key="monthly" value="monthly">
+                Monthly
+              </option>
+              <option key="yearly" value="yearly">
+                Yearly
+              </option>
+            </select>
+          </span>
         </div>
         <div className="text-3xl font-semibold mt-2">
-          {formatCurrency(currentMonthExpensesTotal || 0, user.currency)}
+          {formatCurrency(total || 0, user.currency)}
         </div>
       </div>
 
@@ -117,7 +141,7 @@ export function Dashboard() {
             </button>
           </div>
         ) : (
-          <BudgetBox budget={budget} currency={currency} />
+          <BudgetBox budget={budget} currency={currency} showExpense={true} />
         )}
       </section>
 

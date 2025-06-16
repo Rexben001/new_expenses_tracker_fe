@@ -16,6 +16,7 @@ interface IItemContext {
   fetchUser(): Promise<void>;
   user: User;
   currency?: string;
+  currentYearExpensesTotal: number;
 }
 
 export const ItemContext = createContext<IItemContext>({} as IItemContext);

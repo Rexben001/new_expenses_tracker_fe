@@ -1,14 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../services/formatCurrency";
-import { formatRelativeDate } from "../services/formatDate";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { useEffect, useState } from "react";
-import { getExpenses } from "../services/api";
+import { deleteBudget, getExpenses } from "../services/api";
+import { formatRelativeDate } from "../services/formatDate";
+import { useItemContext } from "../hooks/useItemContext";
+import { FiEdit2, FiTrash } from "react-icons/fi";
 
 export const BudgetBox = ({
   budget,
   currency,
+  showExpense,
 }: {
   budget:
     | Budget
@@ -22,8 +25,11 @@ export const BudgetBox = ({
         id: string;
       };
   currency?: string;
+  showExpense?: boolean;
 }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+
+  const { fetchBudgets } = useItemContext();
 
   const fetchExpenses = async () => {
     try {
@@ -50,45 +56,136 @@ export const BudgetBox = ({
     return budgetAmount! - totalExpenses;
   };
 
-  const spent = calculateRemaining();
+  const remaining = calculateRemaining();
+
+  const spent = budget.amount! - remaining;
 
   const { id, title, category, period, updatedAt, amount } = budget;
+
+  const percent = (spent / amount!) * 100;
+
+  const totalWidth = percent > 100 ? 100 : percent;
+
+  const progressBarClass =
+    percent > 90
+      ? "bg-red-500 h-2 rounded-full"
+      : "bg-blue-500 h-2 rounded-full";
 
   return (
     <div
       key={budget.id}
-      className="bg-white dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4"
-      onClick={() => {
-        navigate(`/budgets/${id}`, {
-          state: {
-            title,
-            category,
-            period,
-            updatedAt,
-            amount,
-            currency,
-          },
-        });
-      }}
+      className="bg-white dark:bg-gray-900 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer"
     >
-      <div>
-        <p className="font-semibold text-base">{budget?.title}</p>
-        <p className="text-sm text-gray-500">Amount Remaining</p>
-        <p className="text-sm text-gray-500">{budget?.category}</p>
-        {/* <p className="text-xs text-gray-400 mt-1">{budget?.period}</p> */}
-        <p className="text-xs text-gray-400 mt-1">
-          {formatRelativeDate(budget?.updatedAt)}
-        </p>
-      </div>
+      {/* Left Content */}
+      <div className="flex-1">
+        <div className="flex justify-between">
+          <div>
+            <p className="font-bold text-lg mb-1">{budget?.title}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {budget?.category}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {formatRelativeDate(budget?.updatedAt)}
+            </p>
+          </div>
+          <div className="flex flex-col items-end ml-4">
+            <div className="flex gap-3 mb-4">
+              {/* Edit Icon */}
+              <button
+                className="text-blue-500 hover:text-blue-700"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  navigate(`/budgets/${id}/edit`, {
+                    state: {
+                      category,
+                      amount,
+                      title,
+                      updatedAt,
+                      currency,
+                      id,
+                    },
+                  });
+                }}
+              >
+                <FiEdit2 />
+              </button>
 
-      <div className="text-right">
-        <p className="text-lg font-bold text-gray-800 dark:text-white">
-          {formatCurrency(budget?.amount, currency)}
-        </p>
-        <p className="text-sm text-gray-500 dark:text-white">
-          {" "}
-          {formatCurrency(spent, currency)}
-        </p>
+              {/* Delete Icon */}
+              <button
+                className="text-red-500 hover:text-red-700"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await deleteBudget(budget.id);
+                  await fetchBudgets();
+                }}
+              >
+                <FiTrash />
+              </button>
+            </div>
+
+            <p className="text-xl font-bold text-black dark:text-white">
+              {formatCurrency(amount, currency)}
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 h-2 rounded-full mt-3 mb-3">
+          <div
+            className={progressBarClass}
+            style={{ width: `${totalWidth}%` }}
+          />
+        </div>
+
+        {/* Spent and Remaining */}
+        <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+          <div>
+            <p>Spent</p>
+            <p className="font-bold text-black dark:text-white">
+              {formatCurrency(spent, currency)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p>Remaining</p>
+            <p className="font-bold text-black dark:text-white">
+              {formatCurrency(amount! - spent, currency)}
+            </p>
+          </div>
+        </div>
+
+        {/* View Expenses link */}
+        {showExpense && (
+          <div
+            className="mt-4 flex justify-end items-center text-sm text-black dark:text-white hover:underline"
+            onClick={() => {
+              navigate(`/budgets/${id}`, {
+                state: {
+                  title,
+                  category,
+                  period,
+                  updatedAt,
+                  amount,
+                  currency,
+                },
+              });
+            }}
+          >
+            <p className="mr-1">View expenses</p>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );

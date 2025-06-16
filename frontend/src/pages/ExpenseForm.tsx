@@ -56,11 +56,19 @@ export function ExpenseForm() {
         {
           ...formData,
           amount: Number(formData.amount),
+          ...(id && { budgetId: id }),
         },
         id
       );
     else
-      await createExpense({ ...formData, amount: Number(formData.amount) }, id);
+      await createExpense(
+        {
+          ...formData,
+          amount: Number(formData.amount),
+          ...(id && { budgetId: id }),
+        },
+        id
+      );
 
     await fetchExpenses();
 
@@ -125,7 +133,7 @@ export function ExpenseForm() {
         </div>
 
         <div>
-          <label className="text-sm dark:text-white  text-gray-500 dark:text-white  mb-1 block">
+          <label className="text-sm dark:text-white  text-gray-500  mb-1 block">
             Category
           </label>
           <select
@@ -145,7 +153,7 @@ export function ExpenseForm() {
           </select>
         </div>
         <div>
-          <label className="text-sm dark:text-white  dark:text-white  text-gray-500 mb-1 block">
+          <label className="text-sm dark:text-white   text-gray-500 mb-1 block">
             Budget
           </label>
           <select
