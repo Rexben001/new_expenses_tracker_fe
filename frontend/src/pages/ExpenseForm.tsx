@@ -35,7 +35,7 @@ export function ExpenseForm() {
         updatedAt: state?.updatedAt ?? "",
         description: "",
         currency: "EUR",
-        budgetId: "",
+        budgetId: state?.id ?? "",
       });
     }
   }, [expenseId, isEditMode, state]);
@@ -48,19 +48,21 @@ export function ExpenseForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = state?.id ?? formData.budgetId;
+    const id = formData.budgetId ?? state?.id;
 
-    if (isEditMode)
+    if (isEditMode) {
+      const oldBudgetId = state?.id !== formData.budgetId && state?.id;
       await updateExpense(
         expenseId!,
         {
           ...formData,
           amount: Number(formData.amount),
+          ...(oldBudgetId && { oldBudgetId }),
           ...(id && { budgetId: id }),
         },
         id
       );
-    else
+    } else
       await createExpense(
         {
           ...formData,
