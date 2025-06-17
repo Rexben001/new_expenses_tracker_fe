@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { FiFilter, FiSearch, FiPlus, FiChevronLeft } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { deleteExpense, getExpense } from "../services/api";
+import { deleteExpense, duplicateExpense, getExpense } from "../services/api";
 import { AddNewItem } from "../components/NoItem";
 import { ExpenseBox } from "../components/ExpenseBox";
 import type { Expense } from "../types/expenses";
@@ -62,9 +62,12 @@ export function BudgetIdPage() {
 
   const removeExpense = async (id: string, budgetId?: string) => {
     await deleteExpense(id, budgetId);
-    setLoading(true);
     await fetchBudgetExpenses();
-    setLoading(false);
+  };
+
+  const duplicateOldExpense = async (id: string, budgetId?: string) => {
+    await duplicateExpense(id, budgetId);
+    await fetchBudgetExpenses();
   };
 
   const resetFilter = () => {
@@ -141,6 +144,7 @@ export function BudgetIdPage() {
               currency={currency!}
               removeExpense={removeExpense}
               budgetId={budgetId}
+              duplicateExpense={duplicateOldExpense}
             />
           </div>
         ))

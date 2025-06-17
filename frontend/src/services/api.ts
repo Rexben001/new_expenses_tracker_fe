@@ -95,6 +95,13 @@ export function createExpense(body: unknown, budgetId?: string) {
   });
 }
 
+export function duplicateExpense(id: string, budgetId?: string) {
+  return fetchApi({
+    method: "POST",
+    path: getExpensesPath(id, budgetId, "true"),
+  });
+}
+
 export function updateExpense(id: string, body: unknown, budgetId?: string) {
   return fetchApi({
     method: "PUT",
@@ -125,10 +132,12 @@ export async function updateUser(body: unknown) {
   });
 }
 
-const getExpensesPath = (id?: string, budgetId?: string) => {
+const getExpensesPath = (id?: string, budgetId?: string, duplicates = "") => {
   let path = "expenses";
 
   if (id) path += `/${id}`;
+
+  if (duplicates) path += "/duplicates";
 
   if (budgetId) path += `?budgetId=${budgetId}`;
 

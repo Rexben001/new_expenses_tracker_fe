@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
-import { deleteExpense } from "../services/api";
+import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
 import { FiFilter, FiSearch, FiPlus } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
@@ -42,13 +42,19 @@ export function ExpensesPage() {
     window.history.replaceState({}, document.title);
   }, []);
 
-  if (loading) return <LoadingScreen />;
+  const duplicateOldExpense = async (id: string, budgetId?: string) => {
+    await duplicateExpense(id, budgetId);
+    await fetchExpenses();
+  };
 
   const resetFilter = () => {
     setMonth("");
     setYear("");
     setShowPopup(false);
   };
+
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
@@ -98,6 +104,7 @@ export function ExpensesPage() {
               currency={currency!}
               budgetId={budgetId}
               removeExpense={removeExpense}
+              duplicateExpense={duplicateOldExpense}
             />
           )
         )
