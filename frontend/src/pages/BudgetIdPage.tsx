@@ -11,6 +11,7 @@ import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { BudgetBox } from "../components/BudgetBox";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
+import { resetFilter } from "../services/utils";
 
 export function BudgetIdPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -70,12 +71,6 @@ export function BudgetIdPage() {
     await fetchBudgetExpenses();
   };
 
-  const resetFilter = () => {
-    setMonth("");
-    setYear("");
-    setShowPopup(false);
-  };
-
   if (loading) return <LoadingScreen />;
 
   if (!budget?.title) return navigate("/budgets");
@@ -116,7 +111,9 @@ export function BudgetIdPage() {
           setMonth={setMonth}
           year={year}
           setYear={setYear}
-          resetFilter={resetFilter}
+          resetFilter={() => {
+            resetFilter({ setMonth, setYear, setShowPopup });
+          }}
         />
       )}
 

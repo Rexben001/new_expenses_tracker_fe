@@ -9,6 +9,7 @@ import { AddNewItem } from "../components/NoItem";
 import { useEffect, useState } from "react";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
+import { resetFilter } from "../services/utils";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency } = useItemContext();
@@ -47,12 +48,6 @@ export function ExpensesPage() {
     await fetchExpenses();
   };
 
-  const resetFilter = () => {
-    setMonth("");
-    setYear("");
-    setShowPopup(false);
-  };
-
   if (loading) return <LoadingScreen />;
 
   return (
@@ -87,7 +82,9 @@ export function ExpensesPage() {
           setMonth={setMonth}
           year={year}
           setYear={setYear}
-          resetFilter={resetFilter}
+          resetFilter={() => {
+            resetFilter({ setMonth, setYear, setShowPopup });
+          }}
         />
       )}
 
