@@ -13,6 +13,8 @@ import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
 import { resetFilter } from "../services/utils";
 import { FooterNav } from "../components/FooterNav";
+import { formatCurrency } from "../services/formatCurrency";
+import { getTotal } from "../services/item";
 
 export function BudgetIdPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -35,6 +37,8 @@ export function BudgetIdPage() {
   const { budgetId } = useParams();
 
   const location = useLocation();
+
+  const [total, setTotal] = useState(0);
 
   const state = location.state as BUDGET_STATE;
 
@@ -77,6 +81,11 @@ export function BudgetIdPage() {
       navigate("/budgets");
     }
   }, [budget, navigate]);
+
+  useEffect(() => {
+    const total = getTotal(filteredExpenses);
+    setTotal(total);
+  }, [filteredExpenses]);
 
   if (loading) return <LoadingScreen />;
 
@@ -121,6 +130,13 @@ export function BudgetIdPage() {
           }}
         />
       )}
+
+      <p className="my-1.5 text-blue-500">
+        Total Expenses:{"  "}
+        <span className="font-bold text-black dark:text-white">
+          {formatCurrency(total, currency)}
+        </span>
+      </p>
 
       {budget && (
         <BudgetBox budget={budget} currency={currency} showExpense={false} />

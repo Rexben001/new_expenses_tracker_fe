@@ -109,13 +109,3 @@ export function BudgetPage() {
     </div>
   );
 }
-
-/**
- * TODO
- * search budgets
- * validate inputs
- * Handle not found values
- * Handle errors, display errors
- * Get expenses should get all expenses including the ones that belong to a budget, just add a budget name/color code to the expense
- * Fix logout
- */

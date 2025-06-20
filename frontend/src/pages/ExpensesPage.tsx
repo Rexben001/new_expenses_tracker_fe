@@ -98,7 +98,7 @@ export function ExpensesPage() {
       )}
       <p className="my-1.5 text-blue-500">
         Total Expenses:{"  "}
-        <span className="font-bold text-white">
+        <span className="font-bold text-black dark:text-white">
           {formatCurrency(total, currency)}
         </span>
       </p>
