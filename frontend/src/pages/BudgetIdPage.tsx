@@ -12,6 +12,7 @@ import { BudgetBox } from "../components/BudgetBox";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
 import { resetFilter } from "../services/utils";
+import { FooterNav } from "../components/FooterNav";
 
 export function BudgetIdPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -76,7 +77,7 @@ export function BudgetIdPage() {
   if (!budget?.title) return navigate("/budgets");
 
   return (
-    <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
+    <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => navigate("/budgets")}
@@ -156,12 +157,14 @@ export function BudgetIdPage() {
 
       <Link
         to="/expenses/new"
-        className="fixed bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700"
+        className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
         aria-label="Add an expense"
         state={{ id: budgetId }}
       >
         <FiPlus className="text-2xl" />
       </Link>
+
+      <FooterNav page="budgets" />
     </div>
   );
 }

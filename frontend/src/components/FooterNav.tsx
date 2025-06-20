@@ -38,7 +38,7 @@ export function FooterNav({ page }: { page?: string }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-gray-500 text-sm">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-gray-500 text-sm max-w-md mx-auto w-full">
       {links.map(({ to, icon, label }) => (
         <NavMenuLink
           key={to}

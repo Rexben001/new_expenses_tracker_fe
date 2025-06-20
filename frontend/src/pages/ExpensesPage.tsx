@@ -60,7 +60,7 @@ export function ExpensesPage() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
+    <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold">
           All Expenses{" "}
@@ -130,7 +130,7 @@ export function ExpensesPage() {
 
       <Link
         to="/expenses/new"
-        className="fixed bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700"
+        className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
         aria-label="Add an expense"
       >
         <FiPlus className="text-2xl" />
