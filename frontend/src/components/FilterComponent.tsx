@@ -20,7 +20,7 @@ export const ItemFilterPopup = ({
         <select
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="w-full py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-black dark:bg-gray-800 dark:text-white"
         >
           <option value="">All</option>
           {Array.from({ length: 12 }, (_, i) => (
