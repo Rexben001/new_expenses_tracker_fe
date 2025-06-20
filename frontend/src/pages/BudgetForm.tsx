@@ -121,7 +121,7 @@ export function BudgetForm() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Category</label>
+          <label className="text-sm text-gray-500 mb-1 block">Period</label>
           <select
             name="period"
             value={formData.period}

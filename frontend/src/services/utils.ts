@@ -1,5 +1,3 @@
-import { deleteExpense, duplicateExpense } from "./api";
-
 export const resetFilter = ({
   setMonth,
   setYear,

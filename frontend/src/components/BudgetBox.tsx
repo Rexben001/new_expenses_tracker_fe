@@ -171,9 +171,9 @@ export const BudgetBox = ({
               });
             }}
           >
-            <p className="mr-1">View expenses</p>
+            <p className="mr-1 text-blue-500">View expenses</p>
             <svg
-              className="w-4 h-4"
+              className="w-4 h-4 text-blue-500"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}

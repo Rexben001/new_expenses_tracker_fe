@@ -14,7 +14,7 @@ export const ItemFilterPopup = ({
   resetFilter,
 }: ItemFilterPopupProps) => {
   return (
-    <div className="flex justify-between items-center bg-white  dark:bg-gray-900 dark:text-white p-1 mb-1">
+    <div className="flex justify-between items-center bg-white  dark:bg-gray-900 dark:text-white p-1 mb-3">
       <div className="dark:shadow-amber-50">
         <label>Month:</label>
         <select
@@ -47,7 +47,7 @@ export const ItemFilterPopup = ({
       </div>
 
       <button
-        className="mt-2 bg-amber-700 text-white px-2.5 py-2 rounded"
+        className="mt-2 bg-red-800 text-white px-2.5 py-2 rounded-1.5xl"
         onClick={() => resetFilter()}
         hidden={!month && !year}
       >

@@ -22,6 +22,12 @@ export function getYearlyTotally<T extends (Expense | Budget)[]>(
   }, 0);
 }
 
+export function getTotal<T extends (Expense | Budget)[]>(items: T) {
+  return items.reduce((sum, item) => {
+    return sum + item.amount;
+  }, 0);
+}
+
 export const CATEGORY_OPTIONS = [
   "Food",
   "Transport",

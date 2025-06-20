@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import { resetFilter } from "../services/utils";
+import { getTotal } from "../services/item";
+import { formatCurrency } from "../services/formatCurrency";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency } = useItemContext();
@@ -22,6 +24,8 @@ export function ExpensesPage() {
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+
+  const [total, setTotal] = useState(0);
 
   const _filterExpenses = useExpenseFilter(month, year);
 
@@ -42,6 +46,11 @@ export function ExpensesPage() {
   useEffect(() => {
     window.history.replaceState({}, document.title);
   }, []);
+
+  useEffect(() => {
+    const total = getTotal(filteredExpenses);
+    setTotal(total);
+  }, [filteredExpenses]);
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
     await duplicateExpense(id, budgetId);
@@ -87,6 +96,12 @@ export function ExpensesPage() {
           }}
         />
       )}
+      <p className="my-1.5 text-blue-500">
+        Total Expenses:{"  "}
+        <span className="font-bold text-white">
+          {formatCurrency(total, currency)}
+        </span>
+      </p>
 
       {filteredExpenses?.length ? (
         filteredExpenses.map(
