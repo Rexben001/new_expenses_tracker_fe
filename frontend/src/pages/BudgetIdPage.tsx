@@ -72,9 +72,13 @@ export function BudgetIdPage() {
     await fetchBudgetExpenses();
   };
 
-  if (loading) return <LoadingScreen />;
+  useEffect(() => {
+    if (!budget?.title) {
+      navigate("/budgets");
+    }
+  }, [budget, navigate]);
 
-  if (!budget?.title) return navigate("/budgets");
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
