@@ -103,7 +103,7 @@ export function BudgetPage() {
         <div className="max-w-md mx-auto pointer-events-auto px-4">
           <Link
             to="/budgets/new"
-            className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
             aria-label="Add an expense"
           >
             <FiPlus className="text-2xl" />
