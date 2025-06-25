@@ -25,6 +25,7 @@ export function ExpenseForm() {
     currency,
     budgetId: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isEditMode) {
@@ -48,6 +49,7 @@ export function ExpenseForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const id = formData.budgetId ?? state?.id;
 
     if (isEditMode) {
@@ -175,7 +177,7 @@ export function ExpenseForm() {
         </div>
 
         <div>
-          <label className="text-sm dark:text-white  dark:text-white  text-gray-500 mb-1 block">
+          <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
             Date
           </label>
           <input
@@ -190,6 +192,7 @@ export function ExpenseForm() {
 
         <button
           type="submit"
+          disabled={isSubmitting}
           className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
         >
           {isEditMode ? "Update Expense" : "Add Expense"}

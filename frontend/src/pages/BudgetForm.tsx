@@ -28,11 +28,13 @@ export function BudgetForm() {
     currency,
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (isEditMode) {
       setFormData({
         title: state?.title ?? "",
-        amount: Number(state?.amount || 0),
+        amount: Number(state?.amount ?? 0),
         category: state?.category ?? "",
         updatedAt: state?.updatedAt ?? "",
         period: state?.period ?? "",
@@ -50,6 +52,7 @@ export function BudgetForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     if (isEditMode)
       await updateBudget(budgetId!, {
@@ -153,6 +156,7 @@ export function BudgetForm() {
 
         <button
           type="submit"
+          disabled={isSubmitting}
           className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
         >
           {isEditMode ? "Update Budget" : "Add Budget"}

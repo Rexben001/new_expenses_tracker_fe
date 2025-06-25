@@ -7,23 +7,15 @@ import { deleteBudget, getExpenses } from "../services/api";
 import { formatRelativeDate } from "../services/formatDate";
 import { useItemContext } from "../hooks/useItemContext";
 import { FiEdit2, FiTrash } from "react-icons/fi";
+import { ProgressBar } from "./ProgressBar";
+import { calculateRemaining } from "../services/item";
 
 export const BudgetBox = ({
   budget,
   currency,
   showExpense,
 }: {
-  budget:
-    | Budget
-    | {
-        category?: string;
-        amount?: number;
-        title?: string;
-        period?: string;
-        updatedAt?: string;
-        currency?: string;
-        id: string;
-      };
+  budget: Budget;
   currency?: string;
   showExpense?: boolean;
 }) => {
@@ -47,31 +39,10 @@ export const BudgetBox = ({
   }, []);
 
   const navigate = useNavigate();
-  const calculateRemaining = () => {
-    const budgetAmount = budget?.amount;
-
-    const totalExpenses = expenses.reduce(
-      (sum, expense) => sum + expense.amount,
-      0
-    );
-
-    return budgetAmount! - totalExpenses;
-  };
-
-  const remaining = calculateRemaining();
-
-  const spent = budget.amount! - remaining;
 
   const { id, title, category, period, updatedAt, amount } = budget;
 
-  const percent = (spent / amount!) * 100;
-
-  const totalWidth = percent > 100 ? 100 : percent;
-
-  const progressBarClass =
-    percent > 90
-      ? "bg-red-500 h-2 rounded-full"
-      : "bg-blue-500 h-2 rounded-full";
+  const remaining = calculateRemaining(budget.amount, expenses);
 
   return (
     <div
@@ -130,29 +101,19 @@ export const BudgetBox = ({
         </div>
 
         {showDetails && (
-          <>
-            <div className="w-full bg-gray-200 h-2 rounded-full mt-3 mb-3">
-              <div
-                className={progressBarClass}
-                style={{ width: `${totalWidth}%` }}
-              />
-            </div>
-
-            <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
-              <div>
-                <p>Spent</p>
-                <p className="font-bold text-black dark:text-white">
-                  {formatCurrency(spent, currency)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p>Remaining</p>
-                <p className="font-bold text-black dark:text-white">
-                  {formatCurrency(amount! - spent, currency)}
-                </p>
-              </div>
-            </div>
-          </>
+          <ProgressBar
+            budget={{
+              ...budget,
+              title: budget.title ?? "",
+              category: budget.category ?? "",
+              amount: budget.amount ?? 0,
+              period: budget.period ?? "",
+              updatedAt: budget.updatedAt ?? "",
+              currency: budget.currency ?? "",
+            }}
+            remaining={remaining}
+            currency={currency!}
+          />
         )}
 
         {showDetails && showExpense && (

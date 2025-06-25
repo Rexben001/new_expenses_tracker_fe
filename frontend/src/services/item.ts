@@ -28,6 +28,17 @@ export function getTotal<T extends (Expense | Budget)[]>(items: T) {
   }, 0);
 }
 
+export const calculateRemaining = (amount: number, expenses: Expense[]) => {
+  const budgetAmount = amount;
+
+  const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + expense.amount,
+    0
+  );
+
+  return budgetAmount! - totalExpenses;
+};
+
 export const CATEGORY_OPTIONS = [
   "Food",
   "Transport",

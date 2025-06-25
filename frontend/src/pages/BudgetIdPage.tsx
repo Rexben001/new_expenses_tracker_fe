@@ -8,13 +8,13 @@ import type { Expense } from "../types/expenses";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
-import { BudgetBox } from "../components/BudgetBox";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
 import { resetFilter } from "../services/utils";
 import { FooterNav } from "../components/FooterNav";
 import { formatCurrency } from "../services/formatCurrency";
-import { getTotal } from "../services/item";
+import { calculateRemaining, getTotal } from "../services/item";
+import { ProgressBar } from "../components/ProgressBar";
 
 export function BudgetIdPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -87,67 +87,95 @@ export function BudgetIdPage() {
     setTotal(total);
   }, [filteredExpenses]);
 
+  const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
+
   if (loading) return <LoadingScreen />;
+
+  const displayTitle = () => {
+    const title = budget?.title;
+
+    const hasBudget = title?.includes("budget");
+
+    return hasBudget ? title : `${title} Budget`;
+  };
 
   return (
     <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => navigate("/budgets")}
-          className="text-gray-600 dark:text-white  hover:text-black"
-        >
-          <FiChevronLeft className="text-2xl" />
-        </button>
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => navigate("/budgets")}
+            className="text-gray-600 dark:text-white  hover:text-black"
+          >
+            <FiChevronLeft className="text-2xl" />
+          </button>
 
-        <h1 className="text-xl font-bold"> Budget</h1>
-        <button
-          className="text-gray-500 dark:text-white hover:text-gray-800"
-          onClick={() => setShowPopup(!showPopup)}
-        >
-          <FiFilter className="text-xl" />
-        </button>
-      </div>
+          <h1 className="text-xl font-bold"> {displayTitle()}</h1>
+          <button
+            className="text-gray-500 dark:text-white hover:text-gray-800"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <FiFilter className="text-xl" />
+          </button>
+        </div>
 
-      <div className="mb-4 relative">
-        <input
-          type="text"
-          placeholder="Search expenses by name or by category"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
-      </div>
+        <div className="mb-4 relative">
+          <input
+            type="text"
+            placeholder="Search expenses by name or by category"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+        </div>
 
-      {showPopup && (
-        <ItemFilterPopup
-          month={month}
-          setMonth={setMonth}
-          year={year}
-          setYear={setYear}
-          resetFilter={() => {
-            resetFilter({ setMonth, setYear, setShowPopup });
-          }}
-        />
-      )}
+        {showPopup && (
+          <ItemFilterPopup
+            month={month}
+            setMonth={setMonth}
+            year={year}
+            setYear={setYear}
+            resetFilter={() => {
+              resetFilter({ setMonth, setYear, setShowPopup });
+            }}
+          />
+        )}
 
-      <p className="my-1.5 text-blue-500">
-        Total Expenses:{"  "}
-        <span className="font-bold text-black dark:text-white">
-          {formatCurrency(total, currency)}
-        </span>
-      </p>
-
-      {budget && (
-        <BudgetBox budget={budget} currency={currency} showExpense={false} />
-      )}
-
-      {filteredExpenses.length ? (
-        <p className="mx-4 bold mb-3">
-          Expenses{" "}
-          <span className="text-blue-500">({filteredExpenses.length})</span>
+        <p className="my-1.5 text-blue-500">
+          Total Expenses:{"  "}
+          <span className="font-bold text-black dark:text-white">
+            {formatCurrency(total, currency)}
+          </span>
         </p>
-      ) : null}
+        {budget && (
+          <div className="bg-white dark:bg-gray-900 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
+            <div className="flex-1">
+              <p>Overall Budget Progress</p>
+              <ProgressBar
+                budget={{
+                  ...budget,
+                  title: budget.title ?? "",
+                  category: budget.category ?? "",
+                  amount: budget.amount ?? 0,
+                  period: budget.period ?? "",
+                  updatedAt: budget.updatedAt ?? "",
+                  currency: budget.currency ?? "",
+                }}
+                remaining={remaining}
+                currency={currency!}
+              />
+            </div>
+          </div>
+        )}
+
+        {filteredExpenses.length ? (
+          <p className="mx-4 bold mb-3">
+            Expenses{" "}
+            <span className="text-blue-500">({filteredExpenses.length})</span>
+          </p>
+        ) : null}
+      </div>
 
       {filteredExpenses.length ? (
         filteredExpenses.map(({ id, title, category, amount, updatedAt }) => (
@@ -175,14 +203,18 @@ export function BudgetIdPage() {
         />
       )}
 
-      <Link
-        to="/expenses/new"
-        className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-        aria-label="Add an expense"
-        state={{ id: budgetId }}
-      >
-        <FiPlus className="text-2xl" />
-      </Link>
+      <div className="fixed bottom-20 right-0 z-20 pointer-events-none">
+        <div className="max-w-md mx-auto pointer-events-auto px-4">
+          <Link
+            to="/expenses/new"
+            className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+            aria-label="Add an expense"
+            state={{ id: budgetId }}
+          >
+            <FiPlus className="text-2xl" />
+          </Link>
+        </div>
+      </div>
 
       <FooterNav page="budgets" />
     </div>

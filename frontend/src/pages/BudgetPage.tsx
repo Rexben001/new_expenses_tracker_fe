@@ -46,39 +46,41 @@ export function BudgetPage() {
 
   return (
     <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">
-          All Budgets{" "}
-          <span className="text-blue-500">({filteredBudgets.length})</span>
-        </h1>
-        <button
-          className="text-gray-500 dark:text-white hover:text-gray-800"
-          onClick={() => setShowPopup(!showPopup)}
-        >
-          <FiFilter className="text-xl" />
-        </button>
-      </div>
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">
+            All Budgets{" "}
+            <span className="text-blue-500">({filteredBudgets.length})</span>
+          </h1>
+          <button
+            className="text-gray-500 dark:text-white hover:text-gray-800"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <FiFilter className="text-xl" />
+          </button>
+        </div>
 
-      <div className="mb-4 relative">
-        <input
-          type="text"
-          placeholder="Search budgets by name or by category"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
-      </div>
+        <div className="mb-4 relative">
+          <input
+            type="text"
+            placeholder="Search budgets by name or by category"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+        </div>
 
-      {showPopup && (
-        <ItemFilterPopup
-          month={month}
-          setMonth={setMonth}
-          year={year}
-          setYear={setYear}
-          resetFilter={resetFilter}
-        />
-      )}
+        {showPopup && (
+          <ItemFilterPopup
+            month={month}
+            setMonth={setMonth}
+            year={year}
+            setYear={setYear}
+            resetFilter={resetFilter}
+          />
+        )}
+      </div>
 
       {filteredBudgets.length ? (
         filteredBudgets.map((budget) => (
@@ -97,13 +99,17 @@ export function BudgetPage() {
         />
       )}
 
-      <Link
-        to="/budgets/new"
-        className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-        aria-label="Add an expense"
-      >
-        <FiPlus className="text-2xl" />
-      </Link>
+      <div className="fixed bottom-20 right-0 z-20 pointer-events-none">
+        <div className="max-w-md mx-auto pointer-events-auto px-4">
+          <Link
+            to="/budgets/new"
+            className="absolute bottom-20 right-6 bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+            aria-label="Add an expense"
+          >
+            <FiPlus className="text-2xl" />
+          </Link>
+        </div>
+      </div>
 
       <FooterNav page="budgets" />
     </div>
