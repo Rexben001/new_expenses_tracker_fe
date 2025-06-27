@@ -36,7 +36,7 @@ export const calculateRemaining = (amount: number, expenses: Expense[]) => {
     0
   );
 
-  return budgetAmount! - totalExpenses;
+  return budgetAmount - totalExpenses;
 };
 
 export const CATEGORY_OPTIONS = [
@@ -44,6 +44,7 @@ export const CATEGORY_OPTIONS = [
   "Transport",
   "Shopping",
   "Health",
+  "Insurance",
   "Entertainment",
   "Utilities",
   "Holiday",

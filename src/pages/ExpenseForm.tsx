@@ -5,6 +5,7 @@ import { createExpense, updateExpense } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
+import { getMonthAndYear } from "../services/formatDate";
 
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
@@ -167,9 +168,9 @@ export function ExpenseForm() {
               Select Budget
             </option>
             {budgets?.length
-              ? budgets.map(({ id, title }) => (
+              ? budgets.map(({ id, title, updatedAt }) => (
                   <option key={id} value={id}>
-                    {title}
+                    {title} - {getMonthAndYear(updatedAt)}
                   </option>
                 ))
               : null}

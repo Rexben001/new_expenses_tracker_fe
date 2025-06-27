@@ -64,3 +64,9 @@ export function getYear() {
 
   return format(date, "yyyy");
 }
+
+export function getMonthAndYear(date: string) {
+  const parseDate = new Date(date);
+
+  return format(parseDate, "MMM yyyy");
+}
