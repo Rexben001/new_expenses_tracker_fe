@@ -99,8 +99,8 @@ export function BudgetPage() {
         />
       )}
 
-      <div className="fixed bottom-20 right-0 z-20 pointer-events-none">
-        <div className="max-w-md mx-auto pointer-events-auto px-4">
+      <div className="fixed bottom-24 inset-x-0 z-50">
+        <div className="max-w-md mx-auto px-4 flex justify-end">
           <Link
             to="/budgets/new"
             className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
