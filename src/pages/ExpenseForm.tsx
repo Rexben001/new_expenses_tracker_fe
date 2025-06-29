@@ -32,7 +32,7 @@ export function ExpenseForm() {
     if (isEditMode) {
       setFormData({
         title: state?.title ?? "",
-        amount: Number(state?.amount || 0),
+        amount: Number(state?.amount ?? 0),
         category: state?.category ?? "",
         updatedAt: state?.updatedAt ?? "",
         description: "",
@@ -126,6 +126,7 @@ export function ExpenseForm() {
           <input
             name="amount"
             type="number"
+            min={1}
             value={formData.amount}
             onChange={handleChange}
             placeholder="Enter amount"
@@ -187,7 +188,7 @@ export function ExpenseForm() {
             value={formData.updatedAt}
             onChange={handleChange}
             required
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border rounded-lg pr-10 text-white bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
           />
         </div>
 

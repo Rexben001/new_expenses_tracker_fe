@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { useBudgetFilter, useBudgetSearch } from "../hooks/useBudgetsSearch";
 import { BudgetBox } from "../components/BudgetBox";
 import { ItemFilterPopup } from "../components/FilterComponent";
+import { getTotal } from "../services/item";
+import { formatCurrency } from "../services/formatCurrency";
 
 export function BudgetPage() {
   const location = useLocation();
@@ -15,6 +17,8 @@ export function BudgetPage() {
   const { loading, fetchBudgets, currency } = useItemContext();
 
   const [query, setQuery] = useState("");
+
+  const [total, setTotal] = useState(0);
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -24,6 +28,11 @@ export function BudgetPage() {
   const _filterBudgets = useBudgetFilter(month, year);
 
   const filteredBudgets = useBudgetSearch(query, _filterBudgets);
+
+  useEffect(() => {
+    const total = getTotal(filteredBudgets);
+    setTotal(total);
+  }, [filteredBudgets]);
 
   useEffect(() => {
     if (location.state?.refresh) {
@@ -80,6 +89,13 @@ export function BudgetPage() {
             resetFilter={resetFilter}
           />
         )}
+
+        <p className="my-1.5 text-blue-500">
+          Total Budgets:{"  "}
+          <span className="font-bold text-black dark:text-white">
+            {formatCurrency(total, currency)}
+          </span>
+        </p>
       </div>
 
       {filteredBudgets.length ? (
