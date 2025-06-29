@@ -126,7 +126,6 @@ export function ExpenseForm() {
           <input
             name="amount"
             type="number"
-            min={1}
             value={formData.amount}
             onChange={handleChange}
             placeholder="Enter amount"
