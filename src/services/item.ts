@@ -47,6 +47,7 @@ export const CATEGORY_OPTIONS = [
   "Insurance",
   "Entertainment",
   "Utilities",
+  "Toiletries",
   "Holiday",
   "Miscellaneous",
   "Others",

@@ -69,6 +69,13 @@ export function deleteBudget(id: string) {
   });
 }
 
+export function duplicateBudget(id: string) {
+  return fetchApi({
+    method: "POST",
+    path: `budgets/${id}/duplicates`,
+  });
+}
+
 export function getExpenses(budgetId?: string) {
   let path = "expenses";
 
