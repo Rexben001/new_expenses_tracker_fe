@@ -118,6 +118,7 @@ export const BudgetBox = ({
                       e.stopPropagation();
                       await deleteBudget(budget.id);
                       await fetchBudgets();
+                      setShowMenu(false);
                     }}
                   >
                     Delete
@@ -130,6 +131,7 @@ export const BudgetBox = ({
                       e.stopPropagation();
                       await duplicateBudget(budget.id);
                       await fetchBudgets();
+                      setShowMenu(false);
                     }}
                   >
                     Copy All
@@ -142,6 +144,7 @@ export const BudgetBox = ({
                       e.stopPropagation();
                       await duplicateBudget(budget.id, true);
                       await fetchBudgets();
+                      setShowMenu(false);
                     }}
                   >
                     Copy Budget Only
