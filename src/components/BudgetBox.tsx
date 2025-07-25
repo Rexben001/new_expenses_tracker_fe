@@ -132,7 +132,19 @@ export const BudgetBox = ({
                       await fetchBudgets();
                     }}
                   >
-                    Duplicate
+                    Copy All
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await duplicateBudget(budget.id, true);
+                      await fetchBudgets();
+                    }}
+                  >
+                    Copy Budget Only
                   </button>
                 </li>
               </ul>

@@ -69,10 +69,13 @@ export function deleteBudget(id: string) {
   });
 }
 
-export function duplicateBudget(id: string) {
+export function duplicateBudget(id: string, isOnly?: boolean) {
+  const path = isOnly
+    ? `budgets/${id}/duplicates?only=true`
+    : `budgets/${id}/duplicates`;
   return fetchApi({
     method: "POST",
-    path: `budgets/${id}/duplicates`,
+    path,
   });
 }
 
