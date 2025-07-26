@@ -25,6 +25,7 @@ export function useExpenseSearch(query: string, otherExpenses: Expense[]) {
 export function useExpenseFilter(
   month: string,
   year: string,
+  budgetStartDay: number = 1,
   otherExpenses?: Expense[]
 ) {
   const { expenses } = useItemContext();
@@ -32,7 +33,7 @@ export function useExpenseFilter(
   const _expenses = otherExpenses ?? expenses;
 
   const results = useMemo(() => {
-    return filterByDate(_expenses, month, year);
+    return filterByDate(_expenses, month, year, Number(budgetStartDay));
   }, [_expenses, month, year]);
 
   return results as Expense[];

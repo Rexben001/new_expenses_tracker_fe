@@ -20,12 +20,16 @@ export function useBudgetSearch(query: string, budgets: Budget[]) {
   return results;
 }
 
-export function useBudgetFilter(month: string, year: string) {
+export function useBudgetFilter(
+  month: string,
+  year: string,
+  budgetStartDay: number = 1
+) {
   const { budgets } = useItemContext();
 
   const results = useMemo(() => {
-    return filterByDate(budgets, month, year);
-  }, [budgets, month, year]);
+    return filterByDate(budgets, month, year, Number(budgetStartDay));
+  }, [budgets, month, year, budgetStartDay]);
 
   return results as Budget[];
 }

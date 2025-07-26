@@ -13,6 +13,7 @@ import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
 import { BudgetBox } from "../components/BudgetBox";
 import { useEffect, useState } from "react";
+import { getMonthlyTotal } from "../services/item";
 
 export function Dashboard() {
   const {
@@ -41,14 +42,21 @@ export function Dashboard() {
     const isMonthly = duration === "monthly";
 
     const total = isMonthly
-      ? currentMonthExpensesTotal
+      ? getMonthlyTotal(expenses, user?.budgetStartDay ?? 1)
       : currentYearExpensesTotal;
 
     setTotal(total);
 
     const type = isMonthly ? getMonth : getYear();
     setType(type);
-  }, [currentMonthExpensesTotal, currentYearExpensesTotal, duration, total]);
+  }, [
+    currentMonthExpensesTotal,
+    currentYearExpensesTotal,
+    duration,
+    expenses,
+    total,
+    user?.budgetStartDay,
+  ]);
 
   if (loading) return <LoadingScreen />;
 

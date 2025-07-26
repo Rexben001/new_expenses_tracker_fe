@@ -10,6 +10,8 @@ export type User = {
   currency?: string;
   email?: string;
   colorMode?: "Dark" | "White";
+  timePeriod?: "Monthly" | "Yearly";
+  budgetStartDay?: number;
 };
 export function ItemContextProvider(
   props: Readonly<{ children: React.ReactNode }>
@@ -80,7 +82,10 @@ export function ItemContextProvider(
     setLoading(false);
   };
 
-  const currentMonthExpensesTotal = getMonthlyTotal(expenses);
+  const currentMonthExpensesTotal = getMonthlyTotal(
+    expenses,
+    user?.budgetStartDay ?? 1
+  );
   const currentYearExpensesTotal = getYearlyTotally(expenses);
 
   const currency = user?.currency ?? "EUR";

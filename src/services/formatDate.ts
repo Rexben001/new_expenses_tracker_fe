@@ -45,7 +45,7 @@ export function formatRelativeDate(date?: string): string {
 export function getMonth() {
   const date = parseISO(new Date().toISOString());
 
-  return format(date, "MMMM"); // 👉 "June"
+  return format(date, "MMMM");
 }
 
 export function getTimeOfTheDay() {

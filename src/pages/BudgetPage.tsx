@@ -14,7 +14,7 @@ import { formatCurrency } from "../services/formatCurrency";
 export function BudgetPage() {
   const location = useLocation();
 
-  const { loading, fetchBudgets, currency } = useItemContext();
+  const { loading, fetchBudgets, currency, user } = useItemContext();
 
   const [query, setQuery] = useState("");
 
@@ -25,9 +25,25 @@ export function BudgetPage() {
 
   const [showPopup, setShowPopup] = useState(false);
 
-  const _filterBudgets = useBudgetFilter(month, year);
+  const _filterBudgets = useBudgetFilter(
+    month,
+    year,
+    user?.budgetStartDay ?? 1
+  );
 
   const filteredBudgets = useBudgetSearch(query, _filterBudgets);
+
+  useEffect(() => {
+    const period = user?.timePeriod ?? "Yearly";
+    const isMonthly = period === "Monthly";
+
+    if (isMonthly) {
+      setMonth((new Date().getMonth() + 1).toString());
+      setYear(new Date().getFullYear().toString());
+    } else {
+      setYear(new Date().getFullYear().toString());
+    }
+  }, [user?.timePeriod]);
 
   useEffect(() => {
     const total = getTotal(filteredBudgets);

@@ -1,4 +1,3 @@
-// components/LoadingScreen.tsx
 import { FiLoader } from "react-icons/fi";
 
 export function LoadingScreen({

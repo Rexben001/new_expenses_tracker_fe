@@ -22,5 +22,5 @@ export function removeToken() {
 
 export function handleUnauthorized() {
   removeToken();
-  window.location.href = loginUrl; // or redirect to Cognito Hosted UI
+  window.location.href = loginUrl;
 }

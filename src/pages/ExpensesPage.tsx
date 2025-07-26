@@ -14,7 +14,7 @@ import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 
 export function ExpensesPage() {
-  const { loading, fetchExpenses, currency } = useItemContext();
+  const { loading, fetchExpenses, currency, user } = useItemContext();
 
   const location = useLocation();
 
@@ -27,7 +27,7 @@ export function ExpensesPage() {
 
   const [total, setTotal] = useState(0);
 
-  const _filterExpenses = useExpenseFilter(month, year);
+  const _filterExpenses = useExpenseFilter(month, year, user.budgetStartDay);
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
@@ -35,6 +35,18 @@ export function ExpensesPage() {
     await deleteExpense(id, budgetId);
     await fetchExpenses();
   };
+
+  useEffect(() => {
+    const period = user?.timePeriod ?? "Yearly";
+    const isMonthly = period === "Monthly";
+
+    if (isMonthly) {
+      setMonth((new Date().getMonth() + 1).toString());
+      setYear(new Date().getFullYear().toString());
+    } else {
+      setYear(new Date().getFullYear().toString());
+    }
+  }, [user?.timePeriod]);
 
   useEffect(() => {
     if (location.state?.refresh) {

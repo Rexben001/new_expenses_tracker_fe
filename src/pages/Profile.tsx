@@ -16,6 +16,8 @@ export function Profile() {
     userName: user?.userName,
     currency: user?.currency,
     colorMode: user?.colorMode,
+    timePeriod: user?.timePeriod,
+    budgetStartDay: user?.budgetStartDay,
   });
 
   useEffect(() => {
@@ -23,8 +25,16 @@ export function Profile() {
       userName: user?.userName,
       currency: user?.currency,
       colorMode: user?.colorMode,
+      timePeriod: user?.timePeriod,
+      budgetStartDay: user?.budgetStartDay,
     });
-  }, [user?.colorMode, user?.currency, user?.userName]);
+  }, [
+    user?.budgetStartDay,
+    user?.colorMode,
+    user?.currency,
+    user?.timePeriod,
+    user?.userName,
+  ]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -100,7 +110,7 @@ export function Profile() {
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="" disabled>
-                  Select period
+                  Select Currency
                 </option>
                 {CURRENCY_OPTIONS.map((option) => (
                   <option key={option} value={option}>
@@ -109,6 +119,48 @@ export function Profile() {
                 ))}
               </select>
             </div>
+
+            <div>
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
+                Filter Period
+              </label>
+              <select
+                name="timePeriod"
+                value={formData.timePeriod}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select filter period
+                </option>
+                {["Monthly", "Yearly"].map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
+                Budget Start Day
+              </label>
+              <select
+                name="budgetStartDay"
+                value={formData.budgetStartDay}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Month Start Day
+                </option>
+                {Array.from({ length: 30 }, (_, i) => i + 1).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Color Mode
