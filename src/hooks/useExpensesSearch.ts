@@ -9,8 +9,8 @@ export function useExpenseSearch(query: string, otherExpenses: Expense[]) {
 
   const fuse = useMemo(() => {
     return new Fuse(_expenses, {
-      keys: ["title", "category"], // searchable fields
-      threshold: 0.3, // lower = stricter matching
+      keys: ["title", "category", "amount"],
+      threshold: 0.3,
     });
   }, [_expenses]);
 

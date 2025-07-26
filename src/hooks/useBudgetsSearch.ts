@@ -7,7 +7,7 @@ import type { Budget } from "../types/budgets";
 export function useBudgetSearch(query: string, budgets: Budget[]) {
   const fuse = useMemo(() => {
     return new Fuse(budgets, {
-      keys: ["title", "category"], // searchable fields
+      keys: ["title", "category", "amount"], // searchable fields
       threshold: 0.3, // lower = stricter matching
     });
   }, [budgets]);
