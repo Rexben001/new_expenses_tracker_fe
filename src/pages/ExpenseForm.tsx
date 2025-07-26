@@ -39,6 +39,16 @@ export function ExpenseForm() {
         currency: "EUR",
         budgetId: state?.id ?? "",
       });
+    } else if (state?.id) {
+      setFormData({
+        title: "",
+        amount: 0,
+        category: "",
+        updatedAt: "",
+        description: "",
+        currency: "EUR",
+        budgetId: state?.id ?? "",
+      });
     }
   }, [expenseId, isEditMode, state]);
 
@@ -159,7 +169,7 @@ export function ExpenseForm() {
           </label>
           <select
             name="budgetId"
-            value={formData.budgetId}
+            value={formData.budgetId?.toString() ?? ""}
             onChange={handleChange}
             required
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -169,7 +179,7 @@ export function ExpenseForm() {
             </option>
             {budgets?.length
               ? budgets.map(({ id, title, updatedAt }) => (
-                  <option key={id} value={id}>
+                  <option key={id} value={id.toString()}>
                     {title} - {getMonthAndYear(updatedAt)}
                   </option>
                 ))
