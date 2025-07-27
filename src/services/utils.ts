@@ -1,13 +1,13 @@
 export const resetFilter = ({
-  setMonth,
+  setMonths,
   setYear,
   setShowPopup,
 }: {
-  setMonth: (month: string) => void;
+  setMonths: (months: string[]) => void;
   setYear: (year: string) => void;
   setShowPopup: (popup: boolean) => void;
 }) => {
-  setMonth("");
+  setMonths([]);
   setYear("");
   setShowPopup(false);
 };

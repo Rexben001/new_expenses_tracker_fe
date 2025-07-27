@@ -14,6 +14,7 @@ import { logoutUrl } from "../services/getLoginUrl";
 import { BudgetBox } from "../components/BudgetBox";
 import { useEffect, useState } from "react";
 import { getMonthlyTotal } from "../services/item";
+import { CategoryComponent } from "../components/Cateegory";
 
 export function Dashboard() {
   const {
@@ -119,7 +120,7 @@ export function Dashboard() {
           >
             <div>
               <p className="font-semibold text-base">{expense?.title}</p>
-              <p className="text-sm text-gray-500">{expense?.category}</p>
+              {<CategoryComponent category={expense?.category} />}
               <p className="text-xs text-gray-400 mt-1">
                 {formatRelativeDate(expense?.updatedAt)}
               </p>

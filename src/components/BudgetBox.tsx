@@ -9,6 +9,7 @@ import { useItemContext } from "../hooks/useItemContext";
 import { ProgressBar } from "./ProgressBar";
 import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
+import { CategoryComponent } from "./Cateegory";
 
 export const BudgetBox = ({
   budget,
@@ -81,9 +82,8 @@ export const BudgetBox = ({
         <div className="flex justify-between">
           <div>
             <p className="font-bold text-lg mb-1">{budget?.title}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              {budget?.category}
-            </p>
+            {<CategoryComponent category={budget?.category ?? ""} />}
+
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {formatRelativeDate(budget?.updatedAt)}
             </p>
@@ -129,9 +129,9 @@ export const BudgetBox = ({
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                     onClick={async (e) => {
                       e.stopPropagation();
+                      setShowMenu(false);
                       await duplicateBudget(budget.id);
                       await fetchBudgets();
-                      setShowMenu(false);
                     }}
                   >
                     Copy All
@@ -142,9 +142,9 @@ export const BudgetBox = ({
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                     onClick={async (e) => {
                       e.stopPropagation();
+                      setShowMenu(false);
                       await duplicateBudget(budget.id, true);
                       await fetchBudgets();
-                      setShowMenu(false);
                     }}
                   >
                     Copy Budget Only

@@ -21,15 +21,15 @@ export function useBudgetSearch(query: string, budgets: Budget[]) {
 }
 
 export function useBudgetFilter(
-  month: string,
+  months: string[],
   year: string,
   budgetStartDay: number = 1
 ) {
   const { budgets } = useItemContext();
 
   const results = useMemo(() => {
-    return filterByDate(budgets, month, year, Number(budgetStartDay));
-  }, [budgets, month, year, budgetStartDay]);
+    return filterByDate(budgets, months, year, Number(budgetStartDay));
+  }, [budgets, months, year, budgetStartDay]);
 
   return results as Budget[];
 }

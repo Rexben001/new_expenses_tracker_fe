@@ -23,7 +23,7 @@ export function useExpenseSearch(query: string, otherExpenses: Expense[]) {
 }
 
 export function useExpenseFilter(
-  month: string,
+  months: string[],
   year: string,
   budgetStartDay: number = 1,
   otherExpenses?: Expense[]
@@ -33,8 +33,8 @@ export function useExpenseFilter(
   const _expenses = otherExpenses ?? expenses;
 
   const results = useMemo(() => {
-    return filterByDate(_expenses, month, year, Number(budgetStartDay));
-  }, [_expenses, month, year]);
+    return filterByDate(_expenses, months, year, Number(budgetStartDay));
+  }, [_expenses, budgetStartDay, months, year]);
 
   return results as Expense[];
 }

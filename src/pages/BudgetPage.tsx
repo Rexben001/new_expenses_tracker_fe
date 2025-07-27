@@ -20,13 +20,13 @@ export function BudgetPage() {
 
   const [total, setTotal] = useState(0);
 
-  const [month, setMonth] = useState("");
+  const [months, setMonths] = useState<string[]>([]);
   const [year, setYear] = useState("");
 
   const [showPopup, setShowPopup] = useState(false);
 
   const _filterBudgets = useBudgetFilter(
-    month,
+    months,
     year,
     user?.budgetStartDay ?? 1
   );
@@ -38,7 +38,7 @@ export function BudgetPage() {
     const isMonthly = period === "Monthly";
 
     if (isMonthly) {
-      setMonth((new Date().getMonth() + 1).toString());
+      setMonths([(new Date().getMonth() + 1).toString()]);
       setYear(new Date().getFullYear().toString());
     } else {
       setYear(new Date().getFullYear().toString());
@@ -64,7 +64,7 @@ export function BudgetPage() {
   if (loading) return <LoadingScreen />;
 
   const resetFilter = () => {
-    setMonth("");
+    setMonths([]);
     setYear("");
     setShowPopup(false);
   };
@@ -98,8 +98,8 @@ export function BudgetPage() {
 
         {showPopup && (
           <ItemFilterPopup
-            month={month}
-            setMonth={setMonth}
+            months={months}
+            setMonths={setMonths}
             year={year}
             setYear={setYear}
             resetFilter={resetFilter}

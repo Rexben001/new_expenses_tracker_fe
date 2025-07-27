@@ -3,6 +3,7 @@ import { formatRelativeDate } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { HiDotsVertical } from "react-icons/hi";
 import { useEffect, useRef, useState } from "react";
+import { CategoryComponent } from "./Cateegory";
 
 type ExpenseBox = {
   id: string;
@@ -61,7 +62,7 @@ export const ExpenseBox = ({
     >
       <div>
         <p className="font-semibold text-base">{title}</p>
-        <p className="text-sm text-gray-500">{category}</p>
+        {<CategoryComponent category={category} />}
         <p className="text-xs text-gray-400 mt-1">
           {" "}
           {formatRelativeDate(updatedAt)}
