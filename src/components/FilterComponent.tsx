@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Select from "react-select";
 
 type ItemFilterPopupProps = {
@@ -16,6 +17,43 @@ const monthOptions = months.map((month) => ({
   }),
 }));
 
+const SelectStyles = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "transparent",
+    borderColor: state.isFocused ? "#3b82f6" : "#d1d5db", // blue-500 or gray-300
+    boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
+    minHeight: "36px",
+    fontSize: "0.875rem",
+  }),
+  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "white",
+    zIndex: 9999,
+  }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#e5e7eb" : "white", // gray-100
+    color: "#111827", // gray-900
+    fontSize: "0.875rem",
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "#e5e7eb", // gray-100
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "#111827",
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    ":hover": {
+      backgroundColor: "#9ca3af", // gray-400
+      color: "white",
+    },
+  }),
+};
 export const ItemFilterPopup = ({
   months,
   year,
@@ -24,70 +62,62 @@ export const ItemFilterPopup = ({
   resetFilter,
 }: ItemFilterPopupProps) => {
   return (
-    <div className="flex flex-wrap md:flex-nowrap items-end gap-2 bg-white dark:bg-gray-900 dark:text-white px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700">
-      <div className="flex-1 min-w-[200px]">
-        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
-          Months
-        </label>
-        <Select
-          isMulti
-          name="months"
-          options={monthOptions}
-          onChange={(selected) => {
-            const selectedMonths = selected.map(
-              (o: { value: string; label: string }) => String(o.value)
-            );
-            setMonths(selectedMonths);
-          }}
-          value={monthOptions.filter((opt) => months.includes(opt.value))}
-          className="text-sm"
-          classNamePrefix="select"
-          closeMenuOnSelect={false}
-          styles={{
-            valueContainer: (base) => ({
-              ...base,
-              padding: "0 6px",
-            }),
-            multiValue: (base) => ({
-              ...base,
-              fontSize: "12px",
-            }),
-            indicatorsContainer: (base) => ({
-              ...base,
-              height: "30px",
-            }),
-          }}
-        />
-      </div>
+    <div className="w-full max-w-screen-xl mx-auto overflow-x-auto">
+      <div className="flex flex-wrap md:flex-nowrap items-end gap-2 bg-white dark:bg-gray-900 dark:text-white px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 w-full">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+            Months
+          </label>
+          <Select
+            isMulti
+            name="months"
+            options={monthOptions}
+            onChange={(selected) => {
+              const selectedMonths = selected.map(
+                (o: { value: string; label: string }) => String(o.value)
+              );
+              setMonths(selectedMonths);
+            }}
+            value={monthOptions.filter((opt) => months.includes(opt.value))}
+            className="text-sm"
+            classNamePrefix="react-select"
+            closeMenuOnSelect={false}
+            menuPortalTarget={
+              typeof window !== "undefined" ? document.body : null
+            }
+            styles={SelectStyles}
+          />
+        </div>
 
-      {/* Year Select */}
-      <div className="min-w-[120px]">
-        <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
-          Year
-        </label>
-        <select
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          className="w-full py-2 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-        >
-          <option value="">All</option>
-          {[2030, 2029, 2028, 2027, 2026, 2025, 2024, 2023, 2022].map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* Year Select */}
+        <div className="min-w-[120px]">
+          <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+            Year
+          </label>
+          <select
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="w-full py-2 px-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="">All</option>
+            {[2030, 2029, 2028, 2027, 2026, 2025, 2024, 2023, 2022].map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Reset Button */}
-      {(months.length > 0 || year) && (
-        <button
-          className="h-fit bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm"
-          onClick={resetFilter}
-        >
-          Clear
-        </button>
-      )}
+        {/* Reset Button */}
+        {(months.length > 0 || year) && (
+          <button
+            className="h-fit bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm"
+            onClick={resetFilter}
+          >
+            Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 };
