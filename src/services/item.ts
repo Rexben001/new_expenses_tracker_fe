@@ -1,10 +1,4 @@
-import {
-  parseISO,
-  isSameMonth,
-  isSameYear,
-  isWithinInterval,
-  subDays,
-} from "date-fns";
+import { parseISO, isSameYear, isWithinInterval, addMonths } from "date-fns";
 import type { Expense } from "../types/expenses";
 import type { Budget } from "../types/budgets";
 
@@ -13,16 +7,39 @@ export function getMonthlyTotal<T extends (Expense | Budget)[]>(
   budgetStartDay: number = 1
 ): number {
   const now = new Date();
+
+  // Determine the start of the current budget period
+  let start: Date;
+  if (now.getDate() >= budgetStartDay) {
+    // If today is ON or AFTER the budget start day, start this month
+    start = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      budgetStartDay,
+      0,
+      0,
+      0
+    );
+  } else {
+    // Otherwise, start last month
+    start = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      budgetStartDay,
+      0,
+      0,
+      0
+    );
+  }
+
+  // End is one month after the start
+  const end = addMonths(start, 1);
+
+  console.log({ start, end });
+
   return items.reduce((sum, item) => {
     const date = parseISO(item.updatedAt);
-    const isInPeriod =
-      budgetStartDay === 1
-        ? isSameMonth(date, now)
-        : isWithinInterval(date, {
-            start: subDays(now, 30),
-            end: now,
-          });
-
+    const isInPeriod = isWithinInterval(date, { start, end });
     return isInPeriod ? sum + item.amount : sum;
   }, 0);
 }
