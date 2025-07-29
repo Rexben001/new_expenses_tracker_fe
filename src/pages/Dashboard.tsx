@@ -11,29 +11,23 @@ import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
-import { BudgetBox } from "../components/BudgetBox";
 import { useEffect, useState } from "react";
 import { getMonthlyTotal } from "../services/item";
 import { CategoryComponent } from "../components/Cateegory";
-import { useExpenseFilter } from "../hooks/useExpensesSearch";
 import { ExpenseChart } from "../components/ExpensesChart";
 
 export function Dashboard() {
   const {
-    budgets,
     expenses,
     currentMonthExpensesTotal,
     loading,
     user,
-    currency,
     currentYearExpensesTotal,
   } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
   const expense = expenses[0];
-
-  const budget = budgets[0];
 
   const [duration, setDuration] = useState("monthly");
 
@@ -60,8 +54,6 @@ export function Dashboard() {
     total,
     user?.budgetStartDay,
   ]);
-
-  const _filterExpenses = useExpenseFilter(["7"], "2025", user.budgetStartDay);
 
   if (loading) return <LoadingScreen />;
 
@@ -145,7 +137,7 @@ export function Dashboard() {
           </div>
         )}
       </section>
-{/* 
+      {/* 
       <section>
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold">Recent Budgets</h3>

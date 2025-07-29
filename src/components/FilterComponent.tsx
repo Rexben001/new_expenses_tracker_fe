@@ -18,7 +18,7 @@ const monthOptions = months.map((month) => ({
 }));
 
 const SelectStyles = {
-  control: (base, state) => ({
+  control: (base: any, state: { isFocused: any; }) => ({
     ...base,
     backgroundColor: "transparent",
     borderColor: state.isFocused ? "#3b82f6" : "#d1d5db", // blue-500 or gray-300
@@ -26,27 +26,27 @@ const SelectStyles = {
     minHeight: "36px",
     fontSize: "0.875rem",
   }),
-  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-  menu: (base) => ({
+  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+  menu: (base: any) => ({
     ...base,
     backgroundColor: "white",
     zIndex: 9999,
   }),
-  option: (base, state) => ({
+  option: (base: any, state: { isFocused: any; }) => ({
     ...base,
     backgroundColor: state.isFocused ? "#e5e7eb" : "white", // gray-100
     color: "#111827", // gray-900
     fontSize: "0.875rem",
   }),
-  multiValue: (base) => ({
+  multiValue: (base: any) => ({
     ...base,
     backgroundColor: "#e5e7eb", // gray-100
   }),
-  multiValueLabel: (base) => ({
+  multiValueLabel: (base: any) => ({
     ...base,
     color: "#111827",
   }),
-  multiValueRemove: (base) => ({
+  multiValueRemove: (base: any) => ({
     ...base,
     ":hover": {
       backgroundColor: "#9ca3af", // gray-400
