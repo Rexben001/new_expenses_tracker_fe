@@ -1,4 +1,4 @@
-import { FaHome, FaList, FaWallet, FaUser } from "react-icons/fa";
+import { FaHome, FaList, FaWallet, FaTools } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export function FooterNav({ page }: { page?: string }) {
@@ -34,7 +34,7 @@ export function FooterNav({ page }: { page?: string }) {
     { to: "/", icon: FaHome, label: "Home" },
     { to: "/expenses", icon: FaList, label: "Expenses" },
     { to: "/budgets", icon: FaWallet, label: "Budgets" },
-    { to: "/profile", icon: FaUser, label: "Profile" },
+    { to: "/settings", icon: FaTools, label: "Settings" },
   ];
 
   return (

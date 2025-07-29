@@ -10,7 +10,6 @@ export type User = {
   currency?: string;
   email?: string;
   colorMode?: "Dark" | "White";
-  timePeriod?: "Monthly" | "Yearly";
   budgetStartDay?: number;
 };
 export function ItemContextProvider(

@@ -15,6 +15,8 @@ import { BudgetBox } from "../components/BudgetBox";
 import { useEffect, useState } from "react";
 import { getMonthlyTotal } from "../services/item";
 import { CategoryComponent } from "../components/Cateegory";
+import { useExpenseFilter } from "../hooks/useExpensesSearch";
+import { ExpenseChart } from "../components/ExpensesChart";
 
 export function Dashboard() {
   const {
@@ -58,6 +60,8 @@ export function Dashboard() {
     total,
     user?.budgetStartDay,
   ]);
+
+  const _filterExpenses = useExpenseFilter(["7"], "2025", user.budgetStartDay);
 
   if (loading) return <LoadingScreen />;
 
@@ -141,7 +145,7 @@ export function Dashboard() {
           </div>
         )}
       </section>
-
+{/* 
       <section>
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold">Recent Budgets</h3>
@@ -159,8 +163,9 @@ export function Dashboard() {
         ) : (
           <BudgetBox budget={budget} currency={currency} showExpense={true} />
         )}
-      </section>
+      </section> */}
 
+      <ExpenseChart />
       <FooterNav />
     </div>
   );

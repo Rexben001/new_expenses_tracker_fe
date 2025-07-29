@@ -14,7 +14,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Profile />} />
           <Route path="/expenses/new" element={<ExpenseForm />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/expenses/new" element={<ExpenseForm />} />

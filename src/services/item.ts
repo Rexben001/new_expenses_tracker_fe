@@ -35,8 +35,6 @@ export function getMonthlyTotal<T extends (Expense | Budget)[]>(
   // End is one month after the start
   const end = addMonths(start, 1);
 
-  console.log({ start, end });
-
   return items.reduce((sum, item) => {
     const date = parseISO(item.updatedAt);
     const isInPeriod = isWithinInterval(date, { start, end });

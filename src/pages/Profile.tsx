@@ -16,7 +16,6 @@ export function Profile() {
     userName: user?.userName,
     currency: user?.currency,
     colorMode: user?.colorMode,
-    timePeriod: user?.timePeriod,
     budgetStartDay: user?.budgetStartDay,
   });
 
@@ -25,16 +24,9 @@ export function Profile() {
       userName: user?.userName,
       currency: user?.currency,
       colorMode: user?.colorMode,
-      timePeriod: user?.timePeriod,
       budgetStartDay: user?.budgetStartDay,
     });
-  }, [
-    user?.budgetStartDay,
-    user?.colorMode,
-    user?.currency,
-    user?.timePeriod,
-    user?.userName,
-  ]);
+  }, [user?.budgetStartDay, user?.colorMode, user?.currency, user?.userName]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -119,27 +111,6 @@ export function Profile() {
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
-                Filter Period
-              </label>
-              <select
-                name="timePeriod"
-                value={formData.timePeriod}
-                onChange={handleChange}
-                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="" disabled>
-                  Select filter period
-                </option>
-                {["Monthly", "Yearly"].map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div>
               <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
                 Budget Start Day
@@ -199,7 +170,7 @@ export function Profile() {
               type="submit"
               className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
             >
-              Update Profile
+              Update Settings
             </button>
           </form>
         </div>

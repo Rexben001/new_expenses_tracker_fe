@@ -17,6 +17,9 @@ import { calculateRemaining, getTotal } from "../services/item";
 import { ProgressBar } from "../components/ProgressBar";
 
 export function BudgetIdPage() {
+  const defaultMonth = String(new Date().getMonth() + 1);
+  const defaultYear = String(new Date().getFullYear());
+
   const { user } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -25,8 +28,8 @@ export function BudgetIdPage() {
 
   const [showPopup, setShowPopup] = useState(false);
 
-  const [months, setMonths] = useState<string[]>([]);
-  const [year, setYear] = useState("");
+  const [months, setMonths] = useState<string[]>([defaultMonth]);
+  const [year, setYear] = useState(defaultYear);
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -68,18 +71,6 @@ export function BudgetIdPage() {
     }
     setLoading(false);
   }, [budgetId, setLoading]);
-
-  useEffect(() => {
-    const period = user?.timePeriod ?? "Yearly";
-    const isMonthly = period === "Monthly";
-
-    if (isMonthly) {
-      setMonths([(new Date().getMonth() + 1).toString()]);
-      setYear(new Date().getFullYear().toString());
-    } else {
-      setYear(new Date().getFullYear().toString());
-    }
-  }, [user?.timePeriod]);
 
   useEffect(() => {
     fetchBudgetExpenses();
