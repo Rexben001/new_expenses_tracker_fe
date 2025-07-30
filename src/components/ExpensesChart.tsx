@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { useExpenseFilter } from "../hooks/useExpensesSearch";
 import { useItemContext } from "../hooks/useItemContext";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const COLORS = [
   "#3B82F6", // blue-500
@@ -88,32 +88,28 @@ export function ExpenseChart() {
   }, [filteredExpensesBar]);
 
   // Pie labels
-  const renderLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) / 2;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const renderLabel = useCallback(
+    ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+      const RADIAN = Math.PI / 180;
+      const radius = innerRadius + (outerRadius - innerRadius) / 2;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={percent > 0.05 ? 12 : 9}
-      >
-        {percent > 0.05 ? `${(percent * 100).toFixed(1)}%` : ""}
-      </text>
-    );
-  };
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={12}
+        >
+          {percent > 0.05 ? `${(percent * 100).toFixed(1)}%` : ""}
+        </text>
+      );
+    },
+    []
+  );
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-4">
@@ -192,6 +188,7 @@ export function ExpenseChart() {
                   dataKey="value"
                   label={renderLabel}
                   labelLine={false}
+                  isAnimationActive={false}
                 >
                   {pieData.map((_, index) => (
                     <Cell
