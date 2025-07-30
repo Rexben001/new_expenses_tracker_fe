@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
-import { FiFilter, FiSearch, FiPlus } from "react-icons/fi";
+import { FiFilter, FiPlus } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
@@ -12,6 +12,7 @@ import { ItemFilterPopup } from "../components/FilterComponent";
 import { resetFilter } from "../services/utils";
 import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
+import { SearchBox } from "../components/SearchBox";
 
 export function ExpensesPage() {
   const defaultMonth = String(new Date().getMonth() + 1);
@@ -78,16 +79,7 @@ export function ExpensesPage() {
           </button>
         </div>
 
-        <div className="mb-4 relative">
-          <input
-            type="text"
-            placeholder="Search expenses by name or by category"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full px-10 py-2 border rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
-        </div>
+        <SearchBox query={query} setQuery={setQuery} />
 
         {showPopup && (
           <ItemFilterPopup

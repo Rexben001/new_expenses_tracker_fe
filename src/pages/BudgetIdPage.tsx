@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { FiFilter, FiSearch, FiPlus, FiChevronLeft } from "react-icons/fi";
+import { FiFilter, FiPlus, FiChevronLeft } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { deleteExpense, duplicateExpense, getExpense } from "../services/api";
 import { AddNewItem } from "../components/NoItem";
@@ -15,6 +15,7 @@ import { FooterNav } from "../components/FooterNav";
 import { formatCurrency } from "../services/formatCurrency";
 import { calculateRemaining, getTotal } from "../services/item";
 import { ProgressBar } from "../components/ProgressBar";
+import { SearchBox } from "../components/SearchBox";
 
 export function BudgetIdPage() {
   const defaultMonth = String(new Date().getMonth() + 1);
@@ -129,16 +130,7 @@ export function BudgetIdPage() {
           </button>
         </div>
 
-        <div className="mb-4 relative w-full overflow-x-hidden">
-          <input
-            type="text"
-            placeholder="Search expenses by name or by category"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="block w-full px-9 py-2 border rounded-full text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-hidden"
-          />
-          <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
-        </div>
+        <SearchBox query={query} setQuery={setQuery} />
 
         {showPopup && (
           <div className="w-full overflow-x-hidden">
