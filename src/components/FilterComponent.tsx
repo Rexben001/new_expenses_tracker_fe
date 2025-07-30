@@ -18,29 +18,38 @@ const monthOptions = months.map((month) => ({
 }));
 
 const SelectStyles = {
-  control: (base: any, state: { isFocused: any; }) => ({
+  control: (base: any, state: { isFocused: any }) => ({
     ...base,
     backgroundColor: "transparent",
-    borderColor: state.isFocused ? "#3b82f6" : "#d1d5db", // blue-500 or gray-300
+    borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
     boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
     minHeight: "36px",
     fontSize: "0.875rem",
   }),
-  menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+  menuPortal: (base: any) => ({
+    ...base,
+    zIndex: 9999,
+  }),
   menu: (base: any) => ({
     ...base,
     backgroundColor: "white",
     zIndex: 9999,
+    width: "100%", // 👈 keep same width as control
+    maxWidth: "300px", // 👈 optional hard cap
   }),
-  option: (base: any, state: { isFocused: any; }) => ({
+  menuList: (base: any) => ({
     ...base,
-    backgroundColor: state.isFocused ? "#e5e7eb" : "white", // gray-100
-    color: "#111827", // gray-900
+    maxHeight: "200px", // avoid super tall menus
+  }),
+  option: (base: any, state: { isFocused: any }) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#e5e7eb" : "white",
+    color: "#111827",
     fontSize: "0.875rem",
   }),
   multiValue: (base: any) => ({
     ...base,
-    backgroundColor: "#e5e7eb", // gray-100
+    backgroundColor: "#e5e7eb",
   }),
   multiValueLabel: (base: any) => ({
     ...base,
@@ -49,11 +58,12 @@ const SelectStyles = {
   multiValueRemove: (base: any) => ({
     ...base,
     ":hover": {
-      backgroundColor: "#9ca3af", // gray-400
+      backgroundColor: "#9ca3af",
       color: "white",
     },
   }),
 };
+
 export const ItemFilterPopup = ({
   months,
   year,
@@ -62,7 +72,7 @@ export const ItemFilterPopup = ({
   resetFilter,
 }: ItemFilterPopupProps) => {
   return (
-    <div className="w-full max-w-screen-xl mx-auto overflow-x-auto">
+    <div className="w-full max-w-screen-xl mx-auto overflow-x-hidden">
       <div className="flex flex-wrap md:flex-nowrap items-end gap-2 bg-white dark:bg-gray-900 dark:text-white px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 w-full">
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
