@@ -24,7 +24,7 @@ const SelectStyles = {
     borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
     boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
     minHeight: "36px",
-    fontSize: "0.875rem",
+    fontSize: "16px",
   }),
   menuPortal: (base: any) => ({
     ...base,
@@ -45,7 +45,7 @@ const SelectStyles = {
     ...base,
     backgroundColor: state.isFocused ? "#e5e7eb" : "white",
     color: "#111827",
-    fontSize: "0.875rem",
+    fontSize: "16px",
   }),
   multiValue: (base: any) => ({
     ...base,
