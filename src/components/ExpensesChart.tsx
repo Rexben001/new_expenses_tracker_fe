@@ -108,8 +108,9 @@ export function ExpenseChart() {
           textAnchor="middle"
           dominantBaseline="middle"
           fontSize={12}
+          opacity={percent > 0.05 ? 1 : 0.4} // faint if small
         >
-          {percent > 0.05 ? `${(percent * 100).toFixed(1)}%` : ""}
+          {`${(percent * 100).toFixed(1)}%`}
         </text>
       );
     },
