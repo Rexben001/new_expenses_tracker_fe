@@ -34,8 +34,8 @@ const SelectStyles = {
     ...base,
     backgroundColor: "white",
     zIndex: 9999,
-    width: "100%", // 👈 keep same width as control
-    maxWidth: "300px", // 👈 optional hard cap
+    width: "100%", // 👈 keeps width same as control
+    maxWidth: "100%", // 👈 prevent overflow
   }),
   menuList: (base: any) => ({
     ...base,

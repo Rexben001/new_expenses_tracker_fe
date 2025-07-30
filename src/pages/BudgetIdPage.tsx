@@ -110,8 +110,8 @@ export function BudgetIdPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+    <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto overflow-x-hidden">
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2 overflow-x-hidden">
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => navigate("/budgets")}
@@ -129,7 +129,7 @@ export function BudgetIdPage() {
           </button>
         </div>
 
-        <div className="mb-4 relative">
+        <div className="mb-4 relative w-full overflow-x-hidden">
           <input
             type="text"
             placeholder="Search expenses by name or by category"
@@ -141,15 +141,17 @@ export function BudgetIdPage() {
         </div>
 
         {showPopup && (
-          <ItemFilterPopup
-            months={months}
-            setMonths={setMonths}
-            year={year}
-            setYear={setYear}
-            resetFilter={() => {
-              resetFilter({ setMonths, setYear, setShowPopup });
-            }}
-          />
+          <div className="w-full overflow-x-hidden">
+            <ItemFilterPopup
+              months={months}
+              setMonths={setMonths}
+              year={year}
+              setYear={setYear}
+              resetFilter={() => {
+                resetFilter({ setMonths, setYear, setShowPopup });
+              }}
+            />
+          </div>
         )}
 
         <p className="my-1.5 text-blue-500">
