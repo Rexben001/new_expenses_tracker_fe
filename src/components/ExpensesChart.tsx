@@ -108,7 +108,7 @@ export function ExpenseChart() {
         fill="white"
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={12}
+        fontSize={percent > 0.05 ? 12 : 9}
       >
         {percent > 0.05 ? `${(percent * 100).toFixed(1)}%` : ""}
       </text>

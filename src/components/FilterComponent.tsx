@@ -95,6 +95,8 @@ export const ItemFilterPopup = ({
             menuPortalTarget={
               typeof window !== "undefined" ? document.body : null
             }
+            menuPosition="fixed"
+            menuPlacement="auto"
             styles={SelectStyles}
           />
         </div>
