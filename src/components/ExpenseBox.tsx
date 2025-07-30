@@ -3,7 +3,7 @@ import { formatRelativeDate } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { HiDotsVertical } from "react-icons/hi";
 import { useEffect, useRef, useState } from "react";
-import { CategoryComponent } from "./Cateegory";
+import { CategoryComponent } from "./Category";
 
 type ExpenseBox = {
   id: string;

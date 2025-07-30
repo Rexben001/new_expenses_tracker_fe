@@ -15,19 +15,19 @@ import { useExpenseFilter } from "../hooks/useExpensesSearch";
 import { useItemContext } from "../hooks/useItemContext";
 import { useCallback, useMemo, useState } from "react";
 
-const COLORS = [
-  "#3B82F6", // blue-500
-  "#EF4444", // red-500
-  "#10B981", // green-500
-  "#F59E0B", // amber-500
-  "#8B5CF6", // violet-500
-  "#EC4899", // pink-500
-  "#6366F1", // indigo-500
-  "#14B8A6", // teal-500
-  "#F97316", // orange-500
-  "#84CC16", // lime-500
-  "#06B6D4", // cyan-500
-];
+const COLOR_CODES: Record<string, string> = {
+  Food: "#FCA5A5", // red-300
+  Transport: "#93C5FD", // blue-300
+  Entertainment: "#6EE7B7", // green-300
+  Utilities: "#FCD34D", // yellow-300
+  Health: "#C4B5FD", // purple-300
+  Shopping: "#F9A8D4", // pink-300
+  Insurance: "#D1D5DB", // gray-300
+  Miscellaneous: "#FDBA74", // orange-300
+  Toiletries: "#5EEAD4", // teal-300
+  Holiday: "#A5B4FC", // indigo-300
+  Other: "#E5E7EB", // gray-200
+};
 
 export function ExpenseChart() {
   const defaultMonth = String(new Date().getMonth() + 1);
@@ -190,10 +190,10 @@ export function ExpenseChart() {
                   labelLine={false}
                   isAnimationActive={false}
                 >
-                  {pieData.map((_, index) => (
+                  {pieData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={COLOR_CODES[entry.name] || "#9CA3AF"} // fallback gray
                     />
                   ))}
                 </Pie>

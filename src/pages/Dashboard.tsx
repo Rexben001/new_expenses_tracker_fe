@@ -13,7 +13,7 @@ import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
 import { useEffect, useState } from "react";
 import { getMonthlyTotal } from "../services/item";
-import { CategoryComponent } from "../components/Cateegory";
+import { CategoryComponent } from "../components/Category";
 import { ExpenseChart } from "../components/ExpensesChart";
 
 export function Dashboard() {

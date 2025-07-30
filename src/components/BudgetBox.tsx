@@ -9,7 +9,7 @@ import { useItemContext } from "../hooks/useItemContext";
 import { ProgressBar } from "./ProgressBar";
 import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
-import { CategoryComponent } from "./Cateegory";
+import { CategoryComponent } from "./Category";
 
 export const BudgetBox = ({
   budget,
