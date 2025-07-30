@@ -72,20 +72,25 @@ export function ExpenseChart() {
     const monthlyTotals: { month: string; total: number }[] = Array.from(
       { length: 12 },
       (_, i) => ({
-        month: new Date(0, i).toLocaleString("default", { month: "short" }),
+        month: new Date(2025, i).toLocaleString("default", { month: "short" }),
         total: 0,
       })
     );
 
     filteredExpensesBar.forEach((exp) => {
       if (!exp.updatedAt) return;
-      const d = new Date(exp.updatedAt);
-      const expMonth = d.getMonth();
-      monthlyTotals[expMonth].total += exp.amount;
+
+      const [yyyy, mm, dd] = exp.updatedAt.split("-").map(Number);
+      const d = new Date(yyyy, mm - 1, dd); // JS months are 0-based
+
+      if (String(d.getFullYear()) === year) {
+        const expMonth = d.getMonth(); // 0-based
+        monthlyTotals[expMonth].total += exp.amount;
+      }
     });
 
     return monthlyTotals;
-  }, [filteredExpensesBar]);
+  }, [filteredExpensesBar, year]);
 
   // Pie labels
   const renderLabel = useCallback(
