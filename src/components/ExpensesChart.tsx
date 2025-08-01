@@ -182,7 +182,7 @@ export function ExpenseChart() {
       {chartType === "pie" ? (
         pieData.length > 0 ? (
           <>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={350}>
               <PieChart>
                 <Pie
                   data={pieData}
