@@ -3,57 +3,39 @@ import { Link } from "react-router-dom";
 import { useItemContext } from "../hooks/useItemContext";
 import {
   formatRelativeDate,
-  getMonth,
   getTimeOfTheDay,
   getYear,
+  getMonth,
 } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { removeToken } from "../services/isLoggedIn";
 import { logoutUrl } from "../services/getLoginUrl";
-import { useEffect, useState } from "react";
 import { getMonthlyTotal } from "../services/item";
 import { CategoryComponent } from "../components/Category";
 import { ExpenseChart } from "../components/ExpensesChart";
+import { FiTrendingDown, FiPieChart, FiTrendingUp } from "react-icons/fi";
 
 export function Dashboard() {
-  const {
-    expenses,
-    currentMonthExpensesTotal,
-    loading,
-    user,
-    currentYearExpensesTotal,
-  } = useItemContext();
+  const { expenses, budgets, loading, user, currency } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
   const expense = expenses[0];
+  const total = getMonthlyTotal(expenses, user?.budgetStartDay ?? 1);
 
-  const [duration, setDuration] = useState("monthly");
+  const totalBudget = getMonthlyTotal(budgets, user?.budgetStartDay ?? 1);
 
-  const [total, setTotal] = useState(currentMonthExpensesTotal);
+  const remaining = totalBudget - total;
 
-  const [type, setType] = useState(getMonth());
+  const percent = (total / totalBudget) * 100;
 
-  useEffect(() => {
-    const isMonthly = duration === "monthly";
+  const totalWidth = percent > 100 ? 100 : percent;
 
-    const total = isMonthly
-      ? getMonthlyTotal(expenses, user?.budgetStartDay ?? 1)
-      : currentYearExpensesTotal;
-
-    setTotal(total);
-
-    const type = isMonthly ? getMonth : getYear();
-    setType(type);
-  }, [
-    currentMonthExpensesTotal,
-    currentYearExpensesTotal,
-    duration,
-    expenses,
-    total,
-    user?.budgetStartDay,
-  ]);
+  const progressBarClass =
+    percent > 90
+      ? "bg-red-500 h-1.5 rounded-full"
+      : "bg-blue-500 h-1.5 rounded-full";
 
   if (loading) return <LoadingScreen />;
 
@@ -82,22 +64,53 @@ export function Dashboard() {
         </button>
       </header>
 
-      <div className="bg-gradient-to-r from-blue-500 to-blue-400 dark:from-indigo-50 dark:to-indigo-100 dark:text-blue-600  text-white p-4 rounded-xl shadow">
-        <div className="flex justify-between text-sm">
-          <span>Total expenses ({type})</span>
-          <span>
-            <select onChange={(e) => setDuration(e.target.value)}>
-              <option key="monthly" value="monthly">
-                Monthly
-              </option>
-              <option key="yearly" value="yearly">
-                Yearly
-              </option>
-            </select>
-          </span>
+      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-indigo-200 dark:to-indigo-300 dark:text-blue-800 text-white px-4 py-3 rounded-xl shadow">
+        <span className="absolute top-1.5 right-3 text-[11px] font-medium bg-white/20 dark:bg-blue-600 dark:text-white px-2 py-0.5 rounded-full">
+          {getMonth()} {getYear()}
+        </span>
+
+        {/* Stat Row */}
+        <div className="flex justify-between items-center text-sm gap-4 pt-4">
+          {/* Budget */}
+          <div className="flex items-center gap-2 flex-1">
+            <FiPieChart className="text-lg opacity-80" />
+            <div>
+              <p className="text-xs opacity-80">Budget</p>
+              <span className="font-bold">
+                {formatCurrency(totalBudget || 0, currency)}
+              </span>
+            </div>
+          </div>
+
+          {/* Expenses */}
+          <div className="flex items-center gap-2 flex-1">
+            <FiTrendingDown className="text-lg opacity-80" />
+            <div>
+              <p className="text-xs opacity-80">Expenses</p>
+              <span className="font-bold">
+                {formatCurrency(total || 0, currency)}
+              </span>
+            </div>
+          </div>
+
+          {/* Remaining */}
+          <div className="flex items-center gap-2 flex-1">
+            <FiTrendingUp className="text-lg opacity-80" />
+            <div>
+              <p className="text-xs opacity-80">Remaining</p>
+              <span className="font-bold">
+                {formatCurrency(remaining || 0, currency)}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="text-3xl font-semibold mt-2">
-          {formatCurrency(total || 0, user.currency)}
+
+        {/* Mini Progress Bar */}
+        <div className="w-full bg-white/30 dark:bg-gray-300 rounded-full h-1 mt-3">
+          <div
+            className={progressBarClass}
+            style={{ width: `${totalWidth}%` }}
+          />
         </div>
       </div>
 

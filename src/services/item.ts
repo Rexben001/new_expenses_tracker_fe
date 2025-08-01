@@ -42,6 +42,8 @@ export function getMonthlyTotal<T extends (Expense | Budget)[]>(
   }, 0);
 }
 
+
+
 export function getYearlyTotally<T extends (Expense | Budget)[]>(
   items: T
 ): number {

@@ -4,6 +4,7 @@ import { useItemContext } from "../hooks/useItemContext";
 import { getTimeOfTheDay } from "../services/formatDate";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { updateUser } from "../services/api";
+import { FiMoon, FiSun } from "react-icons/fi";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
 
@@ -11,6 +12,8 @@ export function Profile() {
   const { user, loading, fetchUser } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
+
+  const [isDark, setIsDark] = useState(true);
 
   const [formData, setFormData] = useState({
     userName: user?.userName,
@@ -45,6 +48,8 @@ export function Profile() {
   const toggleDarkMode = () => {
     const isDark = document.documentElement.classList.contains("dark");
 
+    setIsDark(!isDark);
+
     if (isDark) {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("color-theme", "light");
@@ -70,9 +75,30 @@ export function Profile() {
           </div>
         </div>
 
-        <button id="toggleMode" onClick={() => toggleDarkMode()}>
-          🌒{" "}
-        </button>
+        {/* <button
+          onClick={toggleDarkMode}
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-yellow-500 dark:text-blue-400 shadow hover:scale-110 transition-transform"
+          aria-label="Toggle Dark Mode"
+        >
+          {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
+        </button> */}
+
+        <div
+          onClick={toggleDarkMode}
+          className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
+        >
+          {/* Toggle Knob */}
+          <div
+            className={`w-6 h-6 flex items-center justify-center rounded-full shadow-md transform transition-transform duration-300
+          ${
+            isDark
+              ? "translate-x-6 bg-gray-800 text-yellow-400"
+              : "translate-x-0 bg-yellow-400 text-white"
+          }`}
+          >
+            {isDark ? <FiMoon size={14} /> : <FiSun size={14} />}
+          </div>
+        </div>
       </header>
 
       <section>
