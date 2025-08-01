@@ -15,11 +15,14 @@ type CategoryType = keyof typeof COLOR_CODES;
 
 export const CategoryComponent = ({
   category,
+  isUpcoming = false,
 }: {
   category: CategoryType | string;
+  isUpcoming?: boolean;
 }) => {
-  const color =
-    COLOR_CODES[category as CategoryType] || "bg-gray-100 dark:bg-gray-800";
+  const color = isUpcoming
+    ? "text-gray-250 dark:text-gray-500"
+    : COLOR_CODES[category as CategoryType] || "bg-gray-100 dark:bg-gray-800";
   return (
     <p
       className={`inline-block w-fit text-sm ${color} border-0 border-gray-300 dark:border-gray-600 rounded-full px-2 py-0.5 bg-gray-100 dark:bg-gray-800`}

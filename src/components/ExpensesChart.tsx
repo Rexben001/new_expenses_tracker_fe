@@ -52,15 +52,17 @@ export function ExpenseChart() {
     user.budgetStartDay
   );
 
-  // Pie data
+  // Pie data// Pie data
   const { pieData, total } = useMemo(() => {
-    const grouped = filteredExpensesPie.reduce((acc, exp) => {
-      if (!acc[exp.category]) {
-        acc[exp.category] = { name: exp.category, value: 0 };
-      }
-      acc[exp.category].value += exp.amount;
-      return acc;
-    }, {} as Record<string, { name: string; value: number }>);
+    const grouped = filteredExpensesPie
+      .filter((exp) => !exp.upcoming) // 🚫 filter here
+      .reduce((acc, exp) => {
+        if (!acc[exp.category]) {
+          acc[exp.category] = { name: exp.category, value: 0 };
+        }
+        acc[exp.category].value += exp.amount;
+        return acc;
+      }, {} as Record<string, { name: string; value: number }>);
 
     const pieData = Object.values(grouped);
     const total = pieData.reduce((sum, d) => sum + d.value, 0);
@@ -72,22 +74,25 @@ export function ExpenseChart() {
     const monthlyTotals: { month: string; total: number }[] = Array.from(
       { length: 12 },
       (_, i) => ({
-        month: new Date(2025, i).toLocaleString("default", { month: "short" }),
+        month: new Date(Number(year), i).toLocaleString("default", {
+          month: "short",
+        }),
         total: 0,
       })
     );
 
-    filteredExpensesBar.forEach((exp) => {
-      if (!exp.updatedAt) return;
+    filteredExpensesBar
+      .filter((exp) => !exp.upcoming) // 🚫 filter here
+      .forEach((exp) => {
+        if (!exp.updatedAt) return;
+        const [yyyy, mm, dd] = exp.updatedAt.split("-").map(Number);
+        const d = new Date(yyyy, mm - 1, dd);
 
-      const [yyyy, mm, dd] = exp.updatedAt.split("-").map(Number);
-      const d = new Date(yyyy, mm - 1, dd); // JS months are 0-based
-
-      if (String(d.getFullYear()) === year) {
-        const expMonth = d.getMonth(); // 0-based
-        monthlyTotals[expMonth].total += exp.amount;
-      }
-    });
+        if (String(d.getFullYear()) === year) {
+          const expMonth = d.getMonth();
+          monthlyTotals[expMonth].total += exp.amount;
+        }
+      });
 
     return monthlyTotals;
   }, [filteredExpensesBar, year]);

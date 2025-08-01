@@ -62,27 +62,41 @@ export const BudgetBox = ({
 
   const navigate = useNavigate();
 
-  const { id, title, category, period, updatedAt, amount } = budget;
+  const { id, title, category, period, updatedAt, amount, upcoming } = budget;
 
   const remaining = calculateRemaining(budget.amount, expenses);
+
+  const bgColor = upcoming
+    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700 cursor-not-allowed"
+    : "bg-white dark:bg-gray-900 dark:shadow-amber-50 text-black dark:text-white";
+
+  const textColor = upcoming
+    ? "text-gray-250 dark:text-gray-500"
+    : "text-black dark:text-white";
 
   return (
     <div
       key={budget.id}
       ref={menuRef}
-      className="bg-white dark:bg-gray-900 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer"
+      className={`rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer 
+    ${bgColor}`}
       onClick={(e) => {
         e.stopPropagation();
         setShowMenu(false);
       }}
     >
-      {/* Left Content */}
-
       <div className="flex-1">
         <div className="flex justify-between">
           <div>
-            <p className="font-bold text-lg mb-1">{budget?.title}</p>
-            {<CategoryComponent category={budget?.category ?? ""} />}
+            <p className={`font-bold text-lg mb-1 ${textColor}`}>
+              {budget?.title}
+            </p>
+            {
+              <CategoryComponent
+                category={budget?.category ?? ""}
+                isUpcoming={budget.upcoming}
+              />
+            }
 
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {formatRelativeDate(budget?.updatedAt)}
@@ -104,6 +118,7 @@ export const BudgetBox = ({
                           updatedAt,
                           currency,
                           id,
+                          upcoming,
                         },
                       });
                     }}
@@ -163,11 +178,11 @@ export const BudgetBox = ({
                   setShowMenu(true);
                 }}
               >
-                <HiDotsVertical className="h-5 w-5 text-gray-600 dark:text-white" />
+                <HiDotsVertical className={`h-5 w-5 ${textColor}`} />
               </div>
             </div>
 
-            <p className="text-xl font-bold text-black dark:text-white">
+            <p className={`text-lg font-bold ${textColor}`}>
               {formatCurrency(amount, currency)}
             </p>
           </div>
@@ -191,7 +206,7 @@ export const BudgetBox = ({
 
         {showDetails && showExpense && (
           <div
-            className="mt-4 flex justify-end items-center text-sm text-black dark:text-white hover:underline font-bold"
+            className={`mt-4 flex justify-end items-center text-sm ${textColor} hover:underline font-bold`}
             onClick={() => {
               navigate(`/budgets/${id}`, {
                 state: {

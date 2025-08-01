@@ -13,6 +13,7 @@ type ExpenseBox = {
   currency: string;
   amount: number;
   budgetId?: string;
+  upcoming?: boolean;
   removeExpense: (id: string, budgetId?: string) => Promise<void>;
   duplicateExpense: (id: string, budgetId?: string) => Promise<void>;
 };
@@ -25,6 +26,7 @@ export const ExpenseBox = ({
   amount,
   currency,
   budgetId,
+  upcoming,
   removeExpense,
   duplicateExpense,
 }: ExpenseBox) => {
@@ -50,19 +52,28 @@ export const ExpenseBox = ({
     };
   }, [showMenu]);
 
+  const bgColor = upcoming
+    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700 cursor-not-allowed"
+    : "bg-white dark:bg-gray-900 dark:shadow-amber-50 text-black dark:text-white";
+
+  const textColor = upcoming
+    ? "text-gray-250 dark:text-gray-500"
+    : "text-black dark:text-white";
+
   return (
     <div
       key={id}
       ref={menuRef}
-      className="bg-white  dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4"
+      className={`bg-white  dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4
+        ${bgColor}`}
       onClick={(e) => {
         e.stopPropagation();
         setShowMenu(false);
       }}
     >
       <div>
-        <p className="font-semibold text-base">{title}</p>
-        {<CategoryComponent category={category} />}
+        <p className={`font-semibold text-base ${textColor}`}>{title}</p>
+        {<CategoryComponent category={category} isUpcoming={upcoming} />}
         <p className="text-xs text-gray-400 mt-1">
           {" "}
           {formatRelativeDate(updatedAt)}
@@ -82,6 +93,7 @@ export const ExpenseBox = ({
                       updatedAt,
                       amount,
                       currency,
+                      upcoming,
                       id: budgetId,
                     },
                   });
@@ -123,9 +135,9 @@ export const ExpenseBox = ({
             setShowMenu(true);
           }}
         >
-          <HiDotsVertical className="h-5 w-5 text-gray-600 dark:text-white" />
+          <HiDotsVertical className={`h-5 w-5 ${textColor}`} />
         </div>
-        <p className="text-lg font-bold text-gray-800 dark:text-white">
+        <p className={`text-lg font-bold ${textColor}`}>
           {formatCurrency(amount, currency)}
         </p>
       </div>

@@ -36,26 +36,27 @@ export function getMonthlyTotal<T extends (Expense | Budget)[]>(
   const end = addMonths(start, 1);
 
   return items.reduce((sum, item) => {
+    if (item.upcoming) return sum; // ⬅️ Skip upcoming
     const date = parseISO(item.updatedAt);
     const isInPeriod = isWithinInterval(date, { start, end });
     return isInPeriod ? sum + item.amount : sum;
   }, 0);
 }
 
-
-
 export function getYearlyTotally<T extends (Expense | Budget)[]>(
   items: T
 ): number {
   const now = new Date();
   return items.reduce((sum, item) => {
-    const date = parseISO(item.updatedAt); // Assuming ISO string
+    if (item.upcoming) return sum; // ⬅️ Skip upcoming
+    const date = parseISO(item.updatedAt);
     return isSameYear(date, now) ? sum + item.amount : sum;
   }, 0);
 }
 
-export function getTotal<T extends (Expense | Budget)[]>(items: T) {
+export function getTotal<T extends (Expense | Budget)[]>(items: T): number {
   return items.reduce((sum, item) => {
+    if (item.upcoming) return sum; // ⬅️ Skip upcoming
     return sum + item.amount;
   }, 0);
 }
@@ -63,10 +64,10 @@ export function getTotal<T extends (Expense | Budget)[]>(items: T) {
 export const calculateRemaining = (amount: number, expenses: Expense[]) => {
   const budgetAmount = amount;
 
-  const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
+  const totalExpenses = expenses.reduce((sum, expense) => {
+    if (expense.upcoming) return sum; // ⬅️ Skip upcoming
+    return sum + expense.amount;
+  }, 0);
 
   return budgetAmount - totalExpenses;
 };

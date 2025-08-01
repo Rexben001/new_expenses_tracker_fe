@@ -102,7 +102,7 @@ export function ExpensesPage() {
 
       {filteredExpenses?.length ? (
         filteredExpenses.map(
-          ({ id, title, category, amount, updatedAt, budgetId }) => (
+          ({ id, title, category, amount, updatedAt, budgetId, upcoming }) => (
             <ExpenseBox
               key={id}
               id={id}
@@ -112,6 +112,7 @@ export function ExpensesPage() {
               updatedAt={updatedAt}
               currency={currency!}
               budgetId={budgetId}
+              upcoming={upcoming}
               removeExpense={removeExpense}
               duplicateExpense={duplicateOldExpense}
             />

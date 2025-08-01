@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { FiFilter, FiPlus, FiChevronLeft } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { deleteExpense, duplicateExpense, getExpense } from "../services/api";
@@ -53,12 +53,14 @@ export function BudgetIdPage() {
 
   const state = location.state as BUDGET_STATE;
 
-  const budget = state.title
-    ? {
-        ...state,
-        id: budgetId ?? "",
-      }
-    : budgets.find((budget) => budget.id === budgetId);
+  const budget = useMemo(() => {
+    return state.title
+      ? {
+          ...state,
+          id: budgetId ?? "",
+        }
+      : budgets.find((budget) => budget.id === budgetId);
+  }, [state, budgetId, budgets]);
 
   const fetchBudgetExpenses = useCallback(async () => {
     try {
@@ -165,6 +167,7 @@ export function BudgetIdPage() {
                   period: budget.period ?? "",
                   updatedAt: budget.updatedAt ?? "",
                   currency: budget.currency ?? "",
+                  upcoming: budget.upcoming === "true",
                 }}
                 remaining={remaining}
                 currency={currency!}
@@ -182,22 +185,25 @@ export function BudgetIdPage() {
       </div>
 
       {filteredExpenses.length ? (
-        filteredExpenses.map(({ id, title, category, amount, updatedAt }) => (
-          <div key={id} className="mx-5">
-            <ExpenseBox
-              key={id}
-              id={id}
-              title={title}
-              category={category}
-              amount={amount || 0}
-              updatedAt={updatedAt || ""}
-              currency={currency!}
-              removeExpense={removeExpense}
-              budgetId={budgetId}
-              duplicateExpense={duplicateOldExpense}
-            />
-          </div>
-        ))
+        filteredExpenses.map(
+          ({ id, title, category, amount, updatedAt, upcoming }) => (
+            <div key={id} className="mx-5">
+              <ExpenseBox
+                key={id}
+                id={id}
+                title={title}
+                category={category}
+                amount={amount || 0}
+                updatedAt={updatedAt || ""}
+                currency={currency!}
+                removeExpense={removeExpense}
+                budgetId={budgetId}
+                duplicateExpense={duplicateOldExpense}
+                upcoming={upcoming}
+              />
+            </div>
+          )
+        )
       ) : (
         <AddNewItem
           url="/expenses/new"

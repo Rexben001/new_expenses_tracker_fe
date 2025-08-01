@@ -6,7 +6,7 @@ import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
 
-const PERIOD_OPTIONS = ["none", "monthly", "yearly"];
+// const PERIOD_OPTIONS = ["none", "monthly", "yearly"];
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -24,21 +24,24 @@ export function BudgetForm() {
     category: "",
     updatedAt: "",
     description: "",
-    period: "",
+    period: "monthly",
+    upcoming: "false",
     currency,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log({ state });
     if (isEditMode) {
       setFormData({
         title: state?.title ?? "",
         amount: Number(state?.amount ?? 0),
         category: state?.category ?? "",
         updatedAt: state?.updatedAt ?? "",
-        period: state?.period ?? "",
+        period: state?.period ?? "monthly",
         description: "",
+        upcoming: state?.upcoming ?? "false",
         currency: "EUR",
       });
     }
@@ -58,8 +61,14 @@ export function BudgetForm() {
       await updateBudget(budgetId!, {
         ...formData,
         amount: Number(formData.amount),
+        upcoming: formData.upcoming === "true",
       });
-    else await createBudget({ ...formData, amount: Number(formData.amount) });
+    else
+      await createBudget({
+        ...formData,
+        amount: Number(formData.amount),
+        upcoming: formData.upcoming === "true",
+      });
 
     navigate("/budgets", { state: { refresh: true } });
   };
@@ -123,7 +132,7 @@ export function BudgetForm() {
           </select>
         </div>
 
-        <div>
+        {/* <div>
           <label className="text-sm text-gray-500 mb-1 block">Period</label>
           <select
             name="period"
@@ -140,7 +149,7 @@ export function BudgetForm() {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         <div>
           <label className="text-sm text-gray-500 mb-1 block">Date</label>
@@ -152,6 +161,24 @@ export function BudgetForm() {
             onChange={handleChange}
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+        <div>
+          <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
+          <select
+            name="upcoming"
+            value={formData.upcoming}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Select upcoming status
+            </option>
+            {["true", "false"].map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button

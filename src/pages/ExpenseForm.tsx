@@ -25,6 +25,7 @@ export function ExpenseForm() {
     description: "",
     currency,
     budgetId: "",
+    upcoming: "false",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,6 +39,7 @@ export function ExpenseForm() {
         description: "",
         currency: "EUR",
         budgetId: state?.id ?? "",
+        upcoming: state?.upcoming ?? "false",
       });
     } else if (state?.id) {
       setFormData({
@@ -48,6 +50,7 @@ export function ExpenseForm() {
         description: "",
         currency: "EUR",
         budgetId: state?.id ?? "",
+        upcoming: state?.upcoming ?? "false",
       });
     }
   }, [expenseId, isEditMode, state]);
@@ -72,6 +75,7 @@ export function ExpenseForm() {
           amount: Number(formData.amount),
           ...(oldBudgetId && { oldBudgetId }),
           ...(id && { budgetId: id }),
+          upcoming: formData.upcoming === "true",
         },
         id
       );
@@ -81,6 +85,7 @@ export function ExpenseForm() {
           ...formData,
           amount: Number(formData.amount),
           ...(id && { budgetId: id }),
+          upcoming: formData.upcoming === "true",
         },
         id
       );
@@ -199,6 +204,25 @@ export function ExpenseForm() {
             required
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
+          <select
+            name="upcoming"
+            value={formData.upcoming}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              Select upcoming status
+            </option>
+            {["true", "false"].map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button
