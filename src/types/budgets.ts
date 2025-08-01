@@ -6,4 +6,5 @@ export type Budget = {
   category?: string;
   updatedAt: string;
   currency: string;
+  upcoming?: boolean;
 };

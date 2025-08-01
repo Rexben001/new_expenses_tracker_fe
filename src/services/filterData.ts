@@ -15,16 +15,24 @@ export const filterByDate = (
     const selectedMonth = Number(monthStr);
     if (!selectedMonth || selectedMonth < 1 || selectedMonth > 12) return [];
 
-    const start = new Date(
-      selectedYear,
-      selectedMonth - 1,
-      budgetStartDay,
-      0,
-      0,
-      0,
-      0
-    );
-    const end = addMonths(start, 1); // next budget period start
+    let start: Date;
+    if (budgetStartDay === 1) {
+      // Normal calendar month
+      start = new Date(selectedYear, selectedMonth - 1, 1, 0, 0, 0, 0);
+    } else {
+      // Budget period for "August" actually starts on July 26
+      start = new Date(
+        selectedYear,
+        selectedMonth - 2,
+        budgetStartDay,
+        0,
+        0,
+        0,
+        0
+      );
+    }
+
+    const end = addMonths(start, 1);
 
     return items.filter((item) => {
       const date = parseISO(item.updatedAt);
@@ -32,9 +40,5 @@ export const filterByDate = (
     });
   });
 
-  const uniqueResults = Array.from(
-    new Map(results.map((item) => [item.id, item])).values()
-  );
-
-  return uniqueResults;
+  return Array.from(new Map(results.map((item) => [item.id, item])).values());
 };

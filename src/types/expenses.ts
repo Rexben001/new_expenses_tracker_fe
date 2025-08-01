@@ -6,4 +6,5 @@ export type Expense = {
   currency: string;
   amount: number;
   budgetId?: string
+  upcoming?: boolean;
 };
