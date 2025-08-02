@@ -151,7 +151,6 @@ export const ExpenseBox = ({
                 onClick={() => {
                   duplicateExpense(id, budgetId);
                   setShowMenu(false);
-                  window.location.reload();
                 }}
               >
                 Duplicate

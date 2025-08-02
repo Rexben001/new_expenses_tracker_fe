@@ -178,6 +178,8 @@ export const BudgetBox = ({
                       setShowMenu(false);
                       await duplicateBudget(budget.id);
                       await fetchBudgets();
+
+                      // window.location.reload();
                     }}
                   >
                     Copy All
@@ -191,6 +193,7 @@ export const BudgetBox = ({
                       setShowMenu(false);
                       await duplicateBudget(budget.id, true);
                       await fetchBudgets();
+                      // window.location.reload();
                     }}
                   >
                     Copy Budget Only
