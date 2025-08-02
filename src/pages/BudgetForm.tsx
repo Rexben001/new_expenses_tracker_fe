@@ -32,7 +32,6 @@ export function BudgetForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    console.log({ state });
     if (isEditMode) {
       setFormData({
         title: state?.title ?? "",

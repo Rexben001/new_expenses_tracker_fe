@@ -3,13 +3,19 @@ import { formatCurrency } from "../services/formatCurrency";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { useEffect, useRef, useState } from "react";
-import { deleteBudget, duplicateBudget, getExpenses } from "../services/api";
+import {
+  deleteBudget,
+  duplicateBudget,
+  getExpenses,
+  updateBudget,
+} from "../services/api";
 import { formatRelativeDate } from "../services/formatDate";
 import { useItemContext } from "../hooks/useItemContext";
 import { ProgressBar } from "./ProgressBar";
 import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
 import { CategoryComponent } from "./Category";
+import { UpcomingBox } from "./UpcomingBox";
 
 export const BudgetBox = ({
   budget,
@@ -73,6 +79,31 @@ export const BudgetBox = ({
   const textColor = upcoming
     ? "text-gray-250 dark:text-gray-500"
     : "text-black dark:text-white";
+
+  const updateItem = async () => {
+    await updateBudget(id, {
+      amount,
+      id,
+      upcoming: false,
+      title,
+      category,
+      updatedAt,
+      currency,
+    });
+    window.location.reload();
+  };
+
+  if (upcoming) {
+    return (
+      <UpcomingBox
+        amount={amount}
+        title={title}
+        updatedAt={updatedAt}
+        updateItem={updateItem}
+        currency={currency}
+      />
+    );
+  }
 
   return (
     <div

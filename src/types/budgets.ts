@@ -3,7 +3,7 @@ export type Budget = {
   title: string;
   amount: number;
   period: string;
-  category?: string;
+  category: string;
   updatedAt: string;
   currency: string;
   upcoming?: boolean;

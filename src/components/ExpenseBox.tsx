@@ -4,6 +4,8 @@ import { formatCurrency } from "../services/formatCurrency";
 import { HiDotsVertical } from "react-icons/hi";
 import { useEffect, useRef, useState } from "react";
 import { CategoryComponent } from "./Category";
+import { UpcomingBox } from "./UpcomingBox";
+import { updateExpense } from "../services/api";
 
 type ExpenseBox = {
   id: string;
@@ -59,6 +61,36 @@ export const ExpenseBox = ({
   const textColor = upcoming
     ? "text-gray-250 dark:text-gray-500"
     : "text-black dark:text-white";
+
+  const updateItem = async () => {
+    await updateExpense(
+      id,
+      {
+        amount,
+        id,
+        upcoming: false,
+        title,
+        category,
+        updatedAt,
+        currency,
+        budgetId,
+      },
+      budgetId
+    );
+    window.location.reload();
+  };
+
+  if (upcoming) {
+    return (
+      <UpcomingBox
+        amount={amount}
+        title={title}
+        updatedAt={updatedAt}
+        updateItem={updateItem}
+        currency={currency}
+      />
+    );
+  }
 
   return (
     <div
@@ -119,6 +151,7 @@ export const ExpenseBox = ({
                 onClick={() => {
                   duplicateExpense(id, budgetId);
                   setShowMenu(false);
+                  window.location.reload();
                 }}
               >
                 Duplicate

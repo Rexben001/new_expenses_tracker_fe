@@ -75,14 +75,6 @@ export function Profile() {
           </div>
         </div>
 
-        {/* <button
-          onClick={toggleDarkMode}
-          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-yellow-500 dark:text-blue-400 shadow hover:scale-110 transition-transform"
-          aria-label="Toggle Dark Mode"
-        >
-          {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
-        </button> */}
-
         <div
           onClick={toggleDarkMode}
           className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
