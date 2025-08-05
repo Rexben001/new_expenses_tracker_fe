@@ -14,6 +14,7 @@ import {
 import { useExpenseFilter } from "../hooks/useExpensesSearch";
 import { useItemContext } from "../hooks/useItemContext";
 import { useCallback, useMemo, useState } from "react";
+import { getDate, getMonth, getYear, parseISO, subMonths } from "date-fns";
 
 const COLOR_CODES: Record<string, string> = {
   Food: "#FCA5A5", // red-300
@@ -80,22 +81,33 @@ export function ExpenseChart() {
         total: 0,
       })
     );
+    console.log({
+      filteredExpensesBar,
+    });
 
     filteredExpensesBar
-      .filter((exp) => !exp.upcoming) // 🚫 filter here
+      .filter((exp) => !exp.upcoming)
       .forEach((exp) => {
         if (!exp.updatedAt) return;
-        const [yyyy, mm, dd] = exp.updatedAt.split("-").map(Number);
-        const d = new Date(yyyy, mm - 1, dd);
 
-        if (String(d.getFullYear()) === year) {
-          const expMonth = d.getMonth();
-          monthlyTotals[expMonth].total += exp.amount;
+        const d = parseISO(exp.updatedAt);
+
+        let monthIndex = getMonth(d); // JS: 0 = Jan
+        let yearOfExpense = getYear(d);
+
+        if (getDate(d) < user.budgetStartDay!) {
+          const shiftedDate = subMonths(d, 1);
+          monthIndex = getMonth(shiftedDate);
+          yearOfExpense = getYear(shiftedDate);
+        }
+
+        if (yearOfExpense === Number(year)) {
+          monthlyTotals[monthIndex + 1].total += exp.amount;
         }
       });
 
     return monthlyTotals;
-  }, [filteredExpensesBar, year]);
+  }, [filteredExpensesBar, user.budgetStartDay, year]);
 
   // Pie labels
   const renderLabel = useCallback(
