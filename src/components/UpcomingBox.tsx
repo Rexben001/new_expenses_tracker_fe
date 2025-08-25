@@ -18,12 +18,12 @@ export const UpcomingBox = ({
     <div className="dark:shadow-amber-50 rounded-xl p-2 px-4 shadow mb-2 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700">
       <div className="flex justify-between items-center text-sm gap-4 pt-1">
         <p
-          className={`font-semibold text-base text-gray-250 dark:text-gray-500"`}
+          className={`font-semibold text-base text-gray-250 dark:text-gray-500`}
         >
           {title}
         </p>
         <p
-          className={`font-semibold text-base text-gray-250 dark:text-gray-500"`}
+          className={`font-semibold text-base text-gray-250 dark:text-gray-500`}
         >
           {formatCurrency(amount, currency)}
         </p>
