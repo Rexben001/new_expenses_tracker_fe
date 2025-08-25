@@ -81,9 +81,6 @@ export function ExpenseChart() {
         total: 0,
       })
     );
-    console.log({
-      filteredExpensesBar,
-    });
 
     filteredExpensesBar
       .filter((exp) => !exp.upcoming)

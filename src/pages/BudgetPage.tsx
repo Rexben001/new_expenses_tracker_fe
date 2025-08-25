@@ -11,14 +11,16 @@ import { ItemFilterPopup } from "../components/FilterComponent";
 import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
+import { getDefaultBudgetMonthYear } from "../services/formatDate";
 
 export function BudgetPage() {
-  const defaultMonth = String(new Date().getMonth() + 1);
-  const defaultYear = String(new Date().getFullYear());
-
   const location = useLocation();
 
   const { loading, fetchBudgets, currency, user } = useItemContext();
+
+  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
+    user?.budgetStartDay ?? 1
+  );
 
   const [query, setQuery] = useState("");
 

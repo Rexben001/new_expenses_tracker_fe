@@ -13,12 +13,14 @@ import { resetFilter } from "../services/utils";
 import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
+import { getDefaultBudgetMonthYear } from "../services/formatDate";
 
 export function ExpensesPage() {
-  const defaultMonth = String(new Date().getMonth() + 1);
-  const defaultYear = String(new Date().getFullYear());
-
   const { loading, fetchExpenses, currency, user } = useItemContext();
+
+  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
+    user?.budgetStartDay ?? 1
+  );
 
   const location = useLocation();
 

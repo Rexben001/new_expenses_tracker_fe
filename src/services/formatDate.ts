@@ -6,6 +6,9 @@ import {
   differenceInCalendarMonths,
   differenceInYears,
   parseISO,
+  subMonths,
+  getMonth as getMonthFn,
+  getYear as getYearFn,
 } from "date-fns";
 
 export function formatRelativeDate(date?: string): string {
@@ -69,4 +72,14 @@ export function getMonthAndYear(date: string) {
   const parseDate = new Date(date);
 
   return format(parseDate, "MMM yyyy");
+}
+
+export function getDefaultBudgetMonthYear(budgetStartDay: number) {
+  const now = new Date();
+  const ref = now.getDate() < budgetStartDay ? subMonths(now, 1) : now;
+
+  return {
+    month: String(getMonthFn(ref) + 1),
+    year: String(getYearFn(ref)),
+  };
 }

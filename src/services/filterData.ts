@@ -1,44 +1,43 @@
-import { parseISO, isWithinInterval, addMonths } from "date-fns";
+import { parseISO, getDate, getMonth, getYear, subMonths } from "date-fns";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
+import { getDefaultBudgetMonthYear } from "./formatDate";
 
-export const filterByDate = (
-  items: Expense[] | Budget[],
-  months: string[],
-  year: string,
-  budgetStartDay: number = 1
-) => {
-  const selectedYear = year ? Number(year) : new Date().getFullYear();
-  if (!months?.length) return items;
+export function filterByDate(
+  items: (Expense | Budget)[],
+  months: string[], // e.g. ["7","8"]
+  year: string, // e.g. "2025"
+  budgetStartDay: number = 1,
+  options?: { includeUpcoming?: boolean } // optional toggle
+) {
+  // Default month/year when not provided
+  const selected = months?.length
+    ? months
+    : [getDefaultBudgetMonthYear(budgetStartDay).month];
+  const selectedYear = year || getDefaultBudgetMonthYear(budgetStartDay).year;
+  const selectedYearNum = Number(selectedYear);
 
-  const results = months.flatMap((monthStr) => {
-    const selectedMonth = Number(monthStr);
-    if (!selectedMonth || selectedMonth < 1 || selectedMonth > 12) return [];
+  // Normalize selected months to numbers 1..12
+  const monthSet = new Set(selected.map((m) => Number(m)));
 
-    let start: Date;
-    if (budgetStartDay === 1) {
-      // Normal calendar month
-      start = new Date(selectedYear, selectedMonth - 1, 1, 0, 0, 0, 0);
-    } else {
-      // Budget period for "August" actually starts on July 26
-      start = new Date(
-        selectedYear,
-        selectedMonth - 2,
-        budgetStartDay,
-        0,
-        0,
-        0,
-        0
-      );
-    }
+  const includeUpcoming = options?.includeUpcoming ?? true;
 
-    const end = addMonths(start, 1);
+  const results = items.filter((item) => {
+    // Skip upcoming if requested
+    if (!includeUpcoming && (item as any).upcoming) return false;
 
-    return items.filter((item) => {
-      const date = parseISO(item.updatedAt);
-      return isWithinInterval(date, { start, end });
-    });
+    if (!item.updatedAt) return false;
+    const raw = parseISO(item.updatedAt);
+
+    // Shift back a month if the day is BEFORE the budget start day
+    const shifted = getDate(raw) < budgetStartDay ? subMonths(raw, 1) : raw;
+
+    const shiftedMonth = getMonth(shifted) + 1; // 1..12
+    const shiftedYear = getYear(shifted);
+
+    return shiftedYear === selectedYearNum && monthSet.has(shiftedMonth);
   });
 
-  return Array.from(new Map(results.map((item) => [item.id, item])).values());
-};
+  // If needed, dedupe by id
+  return Array.from(new Map(results.map((it) => [it.id, it])).values());
+}

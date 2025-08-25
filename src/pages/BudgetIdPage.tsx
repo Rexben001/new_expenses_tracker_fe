@@ -16,12 +16,14 @@ import { formatCurrency } from "../services/formatCurrency";
 import { calculateRemaining, getTotal } from "../services/item";
 import { ProgressBar } from "../components/ProgressBar";
 import { SearchBox } from "../components/SearchBox";
+import { getDefaultBudgetMonthYear } from "../services/formatDate";
 
 export function BudgetIdPage() {
-  const defaultMonth = String(new Date().getMonth() + 1);
-  const defaultYear = String(new Date().getFullYear());
-
   const { user } = useItemContext();
+
+  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
+    user?.budgetStartDay ?? 1
+  );
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
