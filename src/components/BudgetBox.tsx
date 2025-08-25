@@ -93,6 +93,17 @@ export const BudgetBox = ({
     window.location.reload();
   };
 
+  const spent = budget.amount! - remaining;
+
+  const percent = (spent / budget.amount!) * 100;
+
+  const textColorClass =
+    percent > 100
+      ? "text-red-500"
+      : percent > 90
+      ? "text-yellow-500"
+      : "text-green-500";
+
   if (upcoming) {
     return (
       <UpcomingBox
@@ -216,7 +227,7 @@ export const BudgetBox = ({
               </div>
             </div>
 
-            <p className={`text-lg font-bold ${textColor}`}>
+            <p className={`text-lg font-bold ${textColorClass}`}>
               {formatCurrency(amount, currency)}
             </p>
           </div>
