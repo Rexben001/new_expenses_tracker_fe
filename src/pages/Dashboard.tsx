@@ -21,7 +21,7 @@ export function Dashboard() {
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
-  const expense = expenses[0];
+  const expense = expenses.find((expense) => !expense.upcoming);
   const total = getMonthlyTotal(expenses, user?.budgetStartDay ?? 1);
 
   const totalBudget = getMonthlyTotal(budgets, user?.budgetStartDay ?? 1);
