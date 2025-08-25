@@ -24,7 +24,7 @@ export function filterByDate(
 
   const results = items.filter((item) => {
     // Skip upcoming if requested
-    if (!includeUpcoming && (item as any).upcoming) return false;
+    if (!includeUpcoming && item?.upcoming) return false;
 
     if (!item.updatedAt) return false;
     const raw = parseISO(item.updatedAt);

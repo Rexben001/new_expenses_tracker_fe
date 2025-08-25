@@ -122,14 +122,14 @@ export function Dashboard() {
           </button>
         </div>
 
-        {expenses.length ? (
+        {expense ? (
           <div
             key={expense?.id}
             className="bg-white dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-3"
           >
             <div>
               <p className="font-semibold text-base">{expense?.title}</p>
-              {<CategoryComponent category={expense?.category} />}
+              {<CategoryComponent category={expense.category} />}
               <p className="text-xs text-gray-400 mt-1">
                 {formatRelativeDate(expense?.updatedAt)}
               </p>
