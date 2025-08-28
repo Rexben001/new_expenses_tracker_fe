@@ -5,6 +5,8 @@ import { createBudget, updateBudget } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
+import { parseCSV } from "csv-to-array-browser";
+import { parseWorkbook } from "sheet-to-array-browser";
 
 // const PERIOD_OPTIONS = ["none", "monthly", "yearly"];
 
@@ -72,8 +74,27 @@ export function BudgetForm() {
     navigate("/budgets", { state: { refresh: true } });
   };
 
+  const [rows, setRows] = useState(null);
+  const [error, setError] = useState("");
+
+  async function onFile(e) {
+    setError("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await parseWorkbook(file);
+      console.log({ data });
+    } catch (err) {
+      console.error(err);
+      setError(String(err?.message || err));
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
+      <input type="file" onChange={onFile} />
+
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate("/budgets")}
