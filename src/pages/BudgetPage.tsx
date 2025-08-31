@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FiFilter, FiPlus, FiChevronDown } from "react-icons/fi";
+import { FiFilter, FiPlus } from "react-icons/fi";
 import { FooterNav } from "../components/FooterNav";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
