@@ -14,6 +14,7 @@ import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
+import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
@@ -36,6 +37,9 @@ export function ExpensesPage() {
   const _filterExpenses = useExpenseFilter(months, year, user.budgetStartDay);
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
+
+  const upcomingExpenses = filteredExpenses.filter((b) => b.upcoming);
+  const activeExpenses = filteredExpenses.filter((b) => !b.upcoming);
 
   const removeExpense = async (id: string, budgetId?: string) => {
     await deleteExpense(id, budgetId);
@@ -102,8 +106,16 @@ export function ExpensesPage() {
         </p>
       </div>
 
+      <CollapsibleUpcoming
+        upcomingItems={upcomingExpenses}
+        currency={currency!}
+        compType="Expense"
+        removeExpense={removeExpense}
+        duplicateExpense={duplicateOldExpense}
+      />
+
       {filteredExpenses?.length ? (
-        filteredExpenses.map(
+        activeExpenses.map(
           ({ id, title, category, amount, updatedAt, budgetId, upcoming }) => (
             <ExpenseBox
               key={id}

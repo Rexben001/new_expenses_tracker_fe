@@ -37,7 +37,7 @@ export function BudgetForm() {
         title: state?.title ?? "",
         amount: Number(state?.amount ?? 0),
         category: state?.category ?? "",
-        updatedAt: state?.updatedAt ?? "",
+        updatedAt: state?.updatedAt?.split("T")[0] ?? "",
         period: state?.period ?? "monthly",
         description: "",
         upcoming: state?.upcoming ?? "false",

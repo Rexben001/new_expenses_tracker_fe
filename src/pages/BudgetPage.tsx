@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FiFilter, FiPlus } from "react-icons/fi";
+import { FiFilter, FiPlus, FiChevronDown } from "react-icons/fi";
 import { FooterNav } from "../components/FooterNav";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
@@ -12,6 +12,7 @@ import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
+import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 
 export function BudgetPage() {
   const location = useLocation();
@@ -38,6 +39,9 @@ export function BudgetPage() {
   );
 
   const filteredBudgets = useBudgetSearch(query, _filterBudgets);
+
+  const upcomingBudgets = filteredBudgets.filter((b) => b.upcoming);
+  const activeBudgets = filteredBudgets.filter((b) => !b.upcoming);
 
   useEffect(() => {
     const total = getTotal(filteredBudgets);
@@ -99,8 +103,14 @@ export function BudgetPage() {
         </p>
       </div>
 
+      <CollapsibleUpcoming
+        upcomingItems={upcomingBudgets}
+        currency={currency!}
+        compType="Budget"
+      />
+
       {filteredBudgets.length ? (
-        filteredBudgets.map((budget) => (
+        activeBudgets.map((budget) => (
           <BudgetBox
             key={budget.id}
             budget={budget}

@@ -17,6 +17,7 @@ import { calculateRemaining, getTotal } from "../services/item";
 import { ProgressBar } from "../components/ProgressBar";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
+import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 
 export function BudgetIdPage() {
   const { user } = useItemContext();
@@ -42,6 +43,10 @@ export function BudgetIdPage() {
   );
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
+
+  const upcomingExpenses = filteredExpenses.filter((b) => b.upcoming);
+
+  const activeExpenses = filteredExpenses.filter((b) => !b.upcoming);
 
   const { setLoading, loading, budgets, currency } = useItemContext();
 
@@ -186,8 +191,18 @@ export function BudgetIdPage() {
         ) : null}
       </div>
 
+      <div className="mx-3.5">
+        <CollapsibleUpcoming
+          upcomingItems={upcomingExpenses}
+          currency={currency!}
+          compType="Expense"
+          removeExpense={removeExpense}
+          duplicateExpense={duplicateOldExpense}
+        />
+      </div>
+
       {filteredExpenses.length ? (
-        filteredExpenses.map(
+        activeExpenses.map(
           ({ id, title, category, amount, updatedAt, upcoming }) => (
             <div key={id} className="mx-5">
               <ExpenseBox

@@ -54,9 +54,12 @@ export function getYearlyTotally<T extends (Expense | Budget)[]>(
   }, 0);
 }
 
-export function getTotal<T extends (Expense | Budget)[]>(items: T): number {
+export function getTotal<T extends (Expense | Budget)[]>(
+  items: T,
+  removeUpcoming = true
+): number {
   return items.reduce((sum, item) => {
-    if (item.upcoming) return sum; // ⬅️ Skip upcoming
+    if (removeUpcoming && item.upcoming) return sum; // ⬅️ Skip upcoming
     return sum + item.amount;
   }, 0);
 }
