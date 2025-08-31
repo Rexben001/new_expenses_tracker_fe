@@ -71,7 +71,7 @@ export const ExpenseBox = ({
         upcoming: false,
         title,
         category,
-        updatedAt,
+        updatedAt: new Date().toISOString(),
         currency,
         budgetId,
       },

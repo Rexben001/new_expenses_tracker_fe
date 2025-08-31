@@ -22,7 +22,7 @@ export function BudgetForm() {
     title: "",
     amount: 0,
     category: "",
-    updatedAt: "",
+    updatedAt: new Date().toISOString().split("T")[0],
     description: "",
     period: "monthly",
     upcoming: "false",
