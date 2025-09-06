@@ -1,8 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
-import { FiFilter, FiPlus } from "react-icons/fi";
+import { FiFilter } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
@@ -15,6 +15,7 @@ import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
+import FloatingActionButton from "../components/FloatingActionButton";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
@@ -140,7 +141,7 @@ export function ExpensesPage() {
         />
       )}
 
-      <div className="fixed bottom-24 inset-x-0 z-50">
+      {/* <div className="fixed bottom-24 inset-x-0 z-50">
         <div className="max-w-md mx-auto px-4 flex justify-end">
           <Link
             to="/expenses/new"
@@ -150,7 +151,8 @@ export function ExpensesPage() {
             <FiPlus className="text-2xl" />
           </Link>
         </div>
-      </div>
+      </div> */}
+      <FloatingActionButton />
 
       <FooterNav page="expenses" />
     </div>

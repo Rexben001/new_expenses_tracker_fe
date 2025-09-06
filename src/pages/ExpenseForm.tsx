@@ -18,9 +18,9 @@ export function ExpenseForm() {
   const state = location.state as BUDGET_STATE;
 
   const [formData, setFormData] = useState({
-    title: "",
-    amount: 0,
-    category: "",
+    title: state?.title ?? "",
+    amount: state?.amount ?? 0,
+    category: state?.category ?? "",
     updatedAt: new Date().toISOString().split("T")[0],
     description: "",
     currency,
