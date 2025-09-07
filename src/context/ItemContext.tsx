@@ -10,14 +10,20 @@ export type User = {
   currency?: string;
   email?: string;
   colorMode?: "Dark" | "White";
-  budgetStartDay: number;
+  budgetStartDay?: number;
 };
 export function ItemContextProvider(
   props: Readonly<{ children: React.ReactNode }>
 ) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [user, setUser] = useState<User>({});
+  const [user, setUser] = useState<User>({
+    userName: undefined,
+    currency: undefined,
+    email: undefined,
+    colorMode: undefined,
+    budgetStartDay: undefined,
+  });
 
   const [loading, setLoading] = useState(false);
 
