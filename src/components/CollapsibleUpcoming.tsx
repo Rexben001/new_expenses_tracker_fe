@@ -62,6 +62,7 @@ export const CollapsibleUpcoming = ({
             {upcomingItems.map((item) => {
               return compType === "Expense" ? (
                 <ExpenseBoxWrapper
+                  key={item.id}
                   expense={item as Expense}
                   currency={currency}
                   removeExpense={removeExpense!}

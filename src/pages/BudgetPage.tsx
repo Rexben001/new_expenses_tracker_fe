@@ -4,7 +4,7 @@ import { FooterNav } from "../components/FooterNav";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBudgetFilter, useBudgetSearch } from "../hooks/useBudgetsSearch";
 import { BudgetBox } from "../components/BudgetBox";
 import { ItemFilterPopup } from "../components/FilterComponent";
@@ -19,18 +19,27 @@ export function BudgetPage() {
 
   const { loading, fetchBudgets, currency, user } = useItemContext();
 
-  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
-    user?.budgetStartDay ?? 1
-  );
-
   const [query, setQuery] = useState("");
 
   const [total, setTotal] = useState(0);
 
-  const [months, setMonths] = useState<string[]>([defaultMonth]);
-  const [year, setYear] = useState(defaultYear);
+  const [months, setMonths] = useState<string[]>([]);
+  const [year, setYear] = useState("");
 
   const [showPopup, setShowPopup] = useState(false);
+
+  const defaults = useMemo(() => {
+    if (user?.budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(user.budgetStartDay);
+  }, [user?.budgetStartDay]);
+
+  useEffect(() => {
+    if (!defaults) return;
+    setMonths((prev) => (prev.length ? prev : [defaults.month]));
+    setYear((prev) => (prev ? prev : defaults.year));
+  }, [defaults]);
+
+  const ready = !loading && user?.budgetStartDay != null;
 
   const _filterBudgets = useBudgetFilter(
     months,
@@ -59,7 +68,7 @@ export function BudgetPage() {
     window.history.replaceState({}, document.title);
   }, []);
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !ready) return <LoadingScreen />;
 
   const resetFilter = () => {
     setMonths([]);

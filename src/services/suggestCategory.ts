@@ -7,11 +7,11 @@ export function suggestCategory(
 
   const map: Array<[string | RegExp, string]> = [
     [/^albert ?heijn|^ah(\s|$)|ah to go/, "Food"],
-    [/^jumbo|^lidl|^aldi|^dirk|^coop|^plus/, "Food"],
+    [/^jumbo|^lidl|^aldi|^dirk|^coop|^plus|^restaurant|^market/, "Food"],
     [/^kruidvat|^etos/, "Health"],
-    [/^hema|^action/, "Health"],
+    [/^hema|^holland & barrett/, "Health"],
     [/^ikea/, "Others"],
-    [/^bol\.?com|^coolblue|^mediamarkt/, "Utilities"],
+    [/^bol\.?com|^coolblue|^action|^mediamarkt/, "Utilities"],
     [/^ns(\s|$)|^g[vt]b|^ret|^arriva/, "Transport"],
     [/^shell|^total(?:energies)?|^bp|^tinQ|^esso/, "Fuel"],
     [/^gall ?& ?gall|^dirk wijn|^slijterij|alcohol/, "Food"],
@@ -27,6 +27,6 @@ export function suggestCategory(
   }
   if (/train|tram|bus/.test(t)) return "Transport";
   if (/diesel|benzine|e95|e10/.test(t)) return "Fuel";
-  if (/salad|sandwich|coffee|tea|menu|burger|pizza/.test(t)) return "Food";
+  if (/salad|sandwich|coffee|tea|menu|burger|pizza|market/.test(t)) return "Food";
   return null;
 }

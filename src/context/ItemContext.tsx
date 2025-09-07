@@ -10,7 +10,7 @@ export type User = {
   currency?: string;
   email?: string;
   colorMode?: "Dark" | "White";
-  budgetStartDay?: number;
+  budgetStartDay: number;
 };
 export function ItemContextProvider(
   props: Readonly<{ children: React.ReactNode }>

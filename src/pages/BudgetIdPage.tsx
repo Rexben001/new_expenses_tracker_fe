@@ -20,11 +20,7 @@ import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 
 export function BudgetIdPage() {
-  const { user } = useItemContext();
-
-  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
-    user?.budgetStartDay ?? 1
-  );
+  const { setLoading, loading, budgets, currency, user } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -32,8 +28,29 @@ export function BudgetIdPage() {
 
   const [showPopup, setShowPopup] = useState(false);
 
-  const [months, setMonths] = useState<string[]>([defaultMonth]);
-  const [year, setYear] = useState(defaultYear);
+  const [months, setMonths] = useState<string[]>([]);
+  const [year, setYear] = useState("");
+
+  const navigate = useNavigate();
+
+  const { budgetId } = useParams();
+
+  const location = useLocation();
+
+  const [total, setTotal] = useState(0);
+
+  const defaults = useMemo(() => {
+    if (user?.budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(user.budgetStartDay);
+  }, [user?.budgetStartDay]);
+
+  useEffect(() => {
+    if (!defaults) return;
+    setMonths((prev) => (prev.length ? prev : [defaults.month]));
+    setYear((prev) => (prev ? prev : defaults.year));
+  }, [defaults]);
+
+  const ready = !loading && user?.budgetStartDay != null;
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -47,16 +64,6 @@ export function BudgetIdPage() {
   const upcomingExpenses = filteredExpenses.filter((b) => b.upcoming);
 
   const activeExpenses = filteredExpenses.filter((b) => !b.upcoming);
-
-  const { setLoading, loading, budgets, currency } = useItemContext();
-
-  const navigate = useNavigate();
-
-  const { budgetId } = useParams();
-
-  const location = useLocation();
-
-  const [total, setTotal] = useState(0);
 
   const state = location.state as BUDGET_STATE;
 
@@ -109,7 +116,7 @@ export function BudgetIdPage() {
 
   const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !ready) return <LoadingScreen />;
 
   const displayTitle = () => {
     const title = budget?.title;

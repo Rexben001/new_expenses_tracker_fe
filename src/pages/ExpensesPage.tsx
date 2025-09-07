@@ -6,7 +6,7 @@ import { FiFilter } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import { resetFilter } from "../services/utils";
@@ -19,38 +19,40 @@ import FloatingActionButton from "../components/FloatingActionButton";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
-
-  const { month: defaultMonth, year: defaultYear } = getDefaultBudgetMonthYear(
-    user?.budgetStartDay ?? 1
-  );
-
   const location = useLocation();
 
   const [query, setQuery] = useState("");
-
   const [showPopup, setShowPopup] = useState(false);
-
-  const [months, setMonths] = useState<string[]>([defaultMonth]);
-  const [year, setYear] = useState(defaultYear);
-
+  const [months, setMonths] = useState<string[]>([]);
+  const [year, setYear] = useState<string>("");
   const [total, setTotal] = useState(0);
 
-  const _filterExpenses = useExpenseFilter(months, year, user.budgetStartDay);
+  const defaults = useMemo(() => {
+    if (user?.budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(user.budgetStartDay);
+  }, [user?.budgetStartDay]);
+
+  useEffect(() => {
+    if (!defaults) return;
+    setMonths((prev) => (prev.length ? prev : [defaults.month]));
+    setYear((prev) => (prev ? prev : defaults.year));
+  }, [defaults]);
+
+  const ready = !loading && user?.budgetStartDay != null;
+
+  const _filterExpenses = useExpenseFilter(
+    months,
+    year,
+    user?.budgetStartDay ?? 1
+  );
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
   const upcomingExpenses = filteredExpenses.filter((b) => b.upcoming);
   const activeExpenses = filteredExpenses.filter((b) => !b.upcoming);
 
-  const removeExpense = async (id: string, budgetId?: string) => {
-    await deleteExpense(id, budgetId);
-    await fetchExpenses();
-  };
-
   useEffect(() => {
-    if (location.state?.refresh) {
-      fetchExpenses();
-    }
+    if (location.state?.refresh) fetchExpenses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
 
@@ -59,16 +61,20 @@ export function ExpensesPage() {
   }, []);
 
   useEffect(() => {
-    const total = getTotal(filteredExpenses);
-    setTotal(total);
+    setTotal(getTotal(filteredExpenses));
   }, [filteredExpenses]);
+
+  const removeExpense = async (id: string, budgetId?: string) => {
+    await deleteExpense(id, budgetId);
+    await fetchExpenses();
+  };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
     await duplicateExpense(id, budgetId);
     await fetchExpenses();
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !ready) return <LoadingScreen />;
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">

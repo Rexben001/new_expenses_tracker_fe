@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Tesseract from "tesseract.js";
-import { preprocessInBrowser } from "../services/preprocessInBrowser";
+import {
+  normalizeHeicToJpeg,
+  isLikelyFreshCameraCapture,
+  preprocessInBrowserFast,
+} from "../services/receipts/preprocessInBrowser";
 import { suggestCategory } from "../services/suggestCategory";
-import { parseReceipt } from "../services/parseReceipt";
+import { parseReceipt } from "../services/receipts/parseReceipt";
+import { getOcrWorker } from "../services/receipts/ocrWorker";
+import { assertUsableReceipt } from "../services/receipts/ocrGuard";
 
 export default function ScanReceiptRoute() {
   const navigate = useNavigate();
@@ -26,41 +31,46 @@ export default function ScanReceiptRoute() {
     setProgress(0);
 
     try {
-      const processed = await preprocessInBrowser(file);
+      const worker = await getOcrWorker("nld", setProgress);
 
-      const {
-        data: { text },
-      } = await Tesseract.recognize(processed, "eng", {
-        logger: (m) => {
-          if (
-            m.status === "recognizing text" &&
-            typeof m.progress === "number"
-          ) {
-            setProgress(Math.round(m.progress * 100));
-          }
-        },
-      });
+      let newData: Tesseract.Page;
 
-      const parsed = parseReceipt(text);
+      // If freshly captured via picker, skip HEIC conversion and use smaller max width
+      if (isLikelyFreshCameraCapture(file)) {
+        const processed = await preprocessInBrowserFast(file, {
+          maxWidth: 1200,
+        });
+        const { data } = await worker.recognize(processed);
+        newData = data;
+      } else {
+        const safe = await normalizeHeicToJpeg(file);
+        const processed = await preprocessInBrowserFast(safe, {
+          maxWidth: 1400,
+        });
+        const { data } = await worker.recognize(processed);
+        newData = data;
+      }
+
+      const { text, confidence } = newData;
+      assertUsableReceipt(text, { confidence: confidence });
+
+      const { merchant, total, date } = parseReceipt(text);
 
       const category =
-        suggestCategory(parsed.merchant || undefined, text) || undefined;
-
-      console.log({
-        parsed,
-        category,
-      });
+        suggestCategory(merchant || undefined, text) || undefined;
 
       navigate("/expenses/new", {
         replace: true,
         state: {
-          amount: parsed.total ?? "",
-          title: parsed.merchant ?? "",
+          amount: total ?? "",
+          title: merchant ?? "",
           category,
           ocrText: text,
+          updatedAt: date ?? "",
         },
       });
     } catch (e: unknown) {
+      console.log({ e });
       setError(e instanceof Error ? e.message : "OCR failed");
     } finally {
       setIsScanning(false);
@@ -115,3 +125,8 @@ export default function ScanReceiptRoute() {
     </div>
   );
 }
+
+/**
+ * TODO: Support date
+ * Support multiple categories suggestions
+ */
