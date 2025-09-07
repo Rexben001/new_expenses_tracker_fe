@@ -66,7 +66,7 @@ export function Dashboard() {
 
       <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-indigo-200 dark:to-indigo-300 dark:text-blue-800 text-white px-4 py-3 rounded-xl shadow">
         <span className="absolute top-1.5 right-3 text-[11px] font-medium bg-white/20 dark:bg-blue-600 dark:text-white px-2 py-0.5 rounded-full">
-          {getMonth()} {getYear()}
+          {getMonth(user.budgetStartDay)} {getYear()}
         </span>
 
         {/* Stat Row */}

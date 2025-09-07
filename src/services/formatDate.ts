@@ -45,8 +45,14 @@ export function formatRelativeDate(date?: string): string {
   return `${format(date, "MMM d")}`;
 }
 
-export function getMonth() {
+export function getMonth(userBudgetStartDay = 1) {
   const date = parseISO(new Date().toISOString());
+
+  if (userBudgetStartDay > 1) {
+    const previousMonthDate = subMonths(date, 1);
+
+    return `${format(previousMonthDate, "MMM")} - ${format(date, "MMM")}`;
+  }
 
   return format(date, "MMMM");
 }
