@@ -1,6 +1,6 @@
 import { extractReceiptDate } from "./getDate";
 import { getMerchantName } from "./getMerchantName";
-import { pickTotalNL } from "./getTotal";
+import { pickTotalsNL } from "./getTotal";
 
 type Parsed = {
   merchant: string | null;
@@ -11,7 +11,7 @@ type Parsed = {
 
 export function parseReceipt(text: string): Parsed {
   const merchant = getMerchantName({ rawText: text });
-  const total = pickTotalNL(text);
+  const total = pickTotalsNL(text);
   const hit = extractReceiptDate(text);
   let date;
   if (hit) {
@@ -20,5 +20,13 @@ export function parseReceipt(text: string): Parsed {
     date = null;
   }
 
-  return { merchant, total, date, rawText: text };
+  const totalAmt =
+    total.used === "basket" ? total.basketTotal : total.paidTotal;
+
+  return {
+    merchant,
+    total: totalAmt,
+    date,
+    rawText: text,
+  };
 }
