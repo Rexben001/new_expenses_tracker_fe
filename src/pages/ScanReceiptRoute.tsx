@@ -82,7 +82,8 @@ export default function ScanReceiptRoute() {
       <h2 className="text-lg font-semibold">Scan a receipt</h2>
       <p className="text-sm text-gray-600 mb-3">
         Your camera will open. Good lighting and filling the frame help OCR.
-        Make sure to crosscheck the value before saving.
+        Make sure to crosscheck the value before saving. Works best with short
+        receipts
       </p>
 
       <div className="flex items-center gap-3">

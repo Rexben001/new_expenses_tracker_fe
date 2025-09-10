@@ -5,6 +5,8 @@ import { createBudget, updateBudget } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
+import { SuggestionCategories } from "../components/Category";
+import { suggestCategories } from "../services/suggestCategory";
 
 // const PERIOD_OPTIONS = ["none", "monthly", "yearly"];
 
@@ -30,6 +32,7 @@ export function BudgetForm() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (isEditMode) {
@@ -49,6 +52,10 @@ export function BudgetForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    if (e.target.name === "title") {
+      const suggestions = suggestCategories(e.target.value);
+      setSuggestions(suggestions);
+    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -113,7 +120,17 @@ export function BudgetForm() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-500 mb-1 block">Category</label>
+          <div className="inline-flex items-center justify-between  mb-1">
+            <label className="text-sm dark:text-white  text-gray-500 pr-4 block">
+              Category
+            </label>
+            {suggestions.length > 0 && (
+              <SuggestionCategories
+                categories={suggestions}
+                onSelect={(category) => setFormData({ ...formData, category })}
+              />
+            )}
+          </div>{" "}
           <select
             name="category"
             value={formData.category}
