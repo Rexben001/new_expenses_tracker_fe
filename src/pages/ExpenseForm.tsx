@@ -51,7 +51,7 @@ export function ExpenseForm() {
         title: "",
         amount: 0,
         category: "",
-        updatedAt: "",
+        updatedAt: new Date().toISOString().split("T")[0],
         description: "",
         currency: "EUR",
         budgetId: state?.id ?? "",
