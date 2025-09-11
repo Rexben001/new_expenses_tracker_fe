@@ -8,6 +8,7 @@ import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
 import { Profile } from "./pages/Profile";
 import ScanReceiptRoute from "./pages/ScanReceiptRoute";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/budgets/new" element={<BudgetForm />} />
           <Route path="/budgets/:budgetId/edit" element={<BudgetForm />} />
           <Route path="/expenses/scan" element={<ScanReceiptRoute />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </ItemContextProvider>

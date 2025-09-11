@@ -13,8 +13,10 @@ import {
 } from "recharts";
 import { useExpenseFilter } from "../hooks/useExpensesSearch";
 import { useItemContext } from "../hooks/useItemContext";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDate, getMonth, getYear, parseISO, subMonths } from "date-fns";
+import { getDefaultBudgetMonthYear } from "../services/formatDate";
+import { LoadingScreen } from "./LoadingScreen";
 
 const COLOR_CODES: Record<string, string> = {
   Food: "#FCA5A5", // red-300
@@ -31,13 +33,22 @@ const COLOR_CODES: Record<string, string> = {
 };
 
 export function ExpenseChart() {
-  const defaultMonth = String(new Date().getMonth() + 1);
-  const defaultYear = String(new Date().getFullYear());
-  const { user } = useItemContext();
+  const { user, loading } = useItemContext();
 
-  const [month, setMonth] = useState(defaultMonth);
-  const [year, setYear] = useState(defaultYear);
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const [chartType, setChartType] = useState<"pie" | "bar">("pie");
+
+  const defaults = useMemo(() => {
+    if (user?.budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(user.budgetStartDay);
+  }, [user?.budgetStartDay]);
+
+  useEffect(() => {
+    if (!defaults) return;
+    setMonth((prev) => (prev.length ? prev : defaults.month));
+    setYear((prev) => (prev ? prev : defaults.year));
+  }, [defaults]);
 
   // Pie: use selected month
   const filteredExpensesPie = useExpenseFilter(
@@ -106,6 +117,8 @@ export function ExpenseChart() {
     return monthlyTotals;
   }, [filteredExpensesBar, user.budgetStartDay, year]);
 
+  const ready = !loading && user?.budgetStartDay != null;
+
   // Pie labels
   const renderLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -130,6 +143,8 @@ export function ExpenseChart() {
     },
     []
   );
+
+  if (loading || !ready) return <LoadingScreen />;
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-4">

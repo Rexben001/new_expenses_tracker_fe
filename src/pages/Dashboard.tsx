@@ -1,5 +1,5 @@
 import { FooterNav } from "../components/FooterNav";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useItemContext } from "../hooks/useItemContext";
 import {
   formatRelativeDate,
@@ -18,6 +18,8 @@ import { FiTrendingDown, FiPieChart, FiTrendingUp } from "react-icons/fi";
 
 export function Dashboard() {
   const { expenses, budgets, loading, user, currency } = useItemContext();
+
+  const navigate = useNavigate();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
 
@@ -42,7 +44,10 @@ export function Dashboard() {
   return (
     <div className="flex flex-col space-y-4 min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3"
+          onClick={() => navigate("/settings")}
+        >
           <img
             src={avatarUrl}
             alt="User avatar"

@@ -5,6 +5,7 @@ import { getTimeOfTheDay } from "../services/formatDate";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { updateUser } from "../services/api";
 import { FiMoon, FiSun } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
 
@@ -12,6 +13,8 @@ export function Profile() {
   const { user, loading, fetchUser } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user.userName}`;
+
+  const navigate = useNavigate();
 
   const [isDark, setIsDark] = useState(true);
 
@@ -63,7 +66,7 @@ export function Profile() {
   return (
     <div className="flex flex-col space-y-4 min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" onClick={() => navigate("/")}>
           <img
             src={avatarUrl}
             alt="Avatar"
