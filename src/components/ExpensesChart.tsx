@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDate, getMonth, getYear, parseISO, subMonths } from "date-fns";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { LoadingScreen } from "./LoadingScreen";
+import { useBudgetFilter } from "../hooks/useBudgetsSearch";
 
 const COLOR_CODES: Record<string, string> = {
   Food: "#FCA5A5", // red-300
@@ -64,6 +65,12 @@ export function ExpenseChart() {
     user.budgetStartDay
   );
 
+  const filteredBudgetBar = useBudgetFilter(
+    Array.from({ length: 12 }, (_, i) => String(i + 1)),
+    year,
+    user.budgetStartDay
+  );
+
   // Pie data// Pie data
   const { pieData, total } = useMemo(() => {
     const grouped = filteredExpensesPie
@@ -83,15 +90,35 @@ export function ExpenseChart() {
 
   // Bar data
   const barData = useMemo(() => {
-    const monthlyTotals: { month: string; total: number }[] = Array.from(
-      { length: 12 },
-      (_, i) => ({
-        month: new Date(Number(year), i).toLocaleString("default", {
-          month: "short",
-        }),
-        total: 0,
-      })
-    );
+    const monthlyTotals: {
+      month: string;
+      expensesTotal: number;
+      budgetsTotal: number;
+    }[] = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(Number(year), i).toLocaleString("default", {
+        month: "short",
+      }),
+      expensesTotal: 0,
+      budgetsTotal: 0,
+    }));
+
+    filteredBudgetBar
+      .filter((b) => !b.upcoming)
+      .forEach((b) => {
+        if (!b.updatedAt) return;
+        const d = parseISO(b.updatedAt);
+        let monthIndex = getMonth(d); // JS: 0 = Jan
+        let yearOfBudget = getYear(d);
+
+        if (getDate(d) < user.budgetStartDay!) {
+          const shiftedDate = subMonths(d, 1);
+          monthIndex = getMonth(shiftedDate);
+          yearOfBudget = getYear(shiftedDate);
+        }
+        if (yearOfBudget === Number(year)) {
+          monthlyTotals[monthIndex + 1].budgetsTotal += b.amount;
+        }
+      });
 
     filteredExpensesBar
       .filter((exp) => !exp.upcoming)
@@ -110,12 +137,12 @@ export function ExpenseChart() {
         }
 
         if (yearOfExpense === Number(year)) {
-          monthlyTotals[monthIndex + 1].total += exp.amount;
+          monthlyTotals[monthIndex + 1].expensesTotal += exp.amount;
         }
       });
 
     return monthlyTotals;
-  }, [filteredExpensesBar, user.budgetStartDay, year]);
+  }, [filteredExpensesBar, filteredBudgetBar, user.budgetStartDay, year]);
 
   const ready = !loading && user?.budgetStartDay != null;
 
@@ -147,7 +174,7 @@ export function ExpenseChart() {
   if (loading || !ready) return <LoadingScreen />;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow p-4">
+    <div className="bg-white dark:bg-gray-900 rounded-xl shadow px-1 py-4">
       <h2 className="text-lg font-semibold mb-4">Expenses Overview</h2>
 
       {/* Chart Type Toggle */}
@@ -253,13 +280,29 @@ export function ExpenseChart() {
           </p>
         )
       ) : (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={275}>
           <BarChart data={barData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip formatter={(value: number) => `€${value.toFixed(2)}`} />
-            <Bar dataKey="total" fill="#3B82F6" />
+            <Legend verticalAlign="top" height={36} />
+
+            {/* Expenses Bar */}
+            <Bar
+              dataKey="expensesTotal"
+              name="Expenses"
+              fill="#EF4444"
+              radius={[4, 4, 0, 0]}
+            />
+
+            {/* Budgets Bar */}
+            <Bar
+              dataKey="budgetsTotal"
+              name="Budgets"
+              fill="#3B82F6"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       )}
