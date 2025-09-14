@@ -7,7 +7,7 @@ export const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const pt = isNative ? "pt-10" : "pt-0";
   return (
     <div
-      className={`max-w-md mx-auto min-h-screen bg-white dark:bg-gray-900 dark:text-white ${pt} pb-16`}
+      className={`min-h-screen bg-white dark:bg-gray-900 dark:text-white ${pt} pb-16`}
     >
       {children}
       <FooterNav />

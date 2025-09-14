@@ -16,6 +16,7 @@ import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
 import { Wrapper } from "../components/Wrapper";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
@@ -79,7 +80,7 @@ export function ExpensesPage() {
   return (
     <Wrapper>
       <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+        <HeaderComponent>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">
               All Expenses{" "}
@@ -93,7 +94,7 @@ export function ExpensesPage() {
             </button>
           </div>
 
-          <SearchBox query={query} setQuery={setQuery} />
+          <SearchBox query={query} setQuery={setQuery} title="expenses" />
 
           {showPopup && (
             <ItemFilterPopup
@@ -112,62 +113,52 @@ export function ExpensesPage() {
               {formatCurrency(total, currency)}
             </span>
           </p>
-        </div>
+        </HeaderComponent>
 
-        <CollapsibleUpcoming
-          upcomingItems={upcomingExpenses}
-          currency={currency!}
-          compType="Expense"
-          removeExpense={removeExpense}
-          duplicateExpense={duplicateOldExpense}
-        />
-
-        {filteredExpenses?.length ? (
-          activeExpenses.map(
-            ({
-              id,
-              title,
-              category,
-              amount,
-              updatedAt,
-              budgetId,
-              upcoming,
-            }) => (
-              <ExpenseBox
-                key={id}
-                id={id}
-                title={title}
-                category={category}
-                amount={amount}
-                updatedAt={updatedAt}
-                currency={currency!}
-                budgetId={budgetId}
-                upcoming={upcoming}
-                removeExpense={removeExpense}
-                duplicateExpense={duplicateOldExpense}
-              />
-            )
-          )
-        ) : (
-          <AddNewItem
-            url="/expenses/new"
-            type="expenses"
-            text="You don't have any expenses"
+        <div className="mx-1">
+          <CollapsibleUpcoming
+            upcomingItems={upcomingExpenses}
+            currency={currency!}
+            compType="Expense"
+            removeExpense={removeExpense}
+            duplicateExpense={duplicateOldExpense}
           />
-        )}
 
-        {/* <div className="fixed bottom-24 inset-x-0 z-50">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <Link
-            to="/expenses/new"
-            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-            aria-label="Add an expense"
-          >
-            <FiPlus className="text-2xl" />
-          </Link>
+          {filteredExpenses?.length ? (
+            activeExpenses.map(
+              ({
+                id,
+                title,
+                category,
+                amount,
+                updatedAt,
+                budgetId,
+                upcoming,
+              }) => (
+                <ExpenseBox
+                  key={id}
+                  id={id}
+                  title={title}
+                  category={category}
+                  amount={amount}
+                  updatedAt={updatedAt}
+                  currency={currency!}
+                  budgetId={budgetId}
+                  upcoming={upcoming}
+                  removeExpense={removeExpense}
+                  duplicateExpense={duplicateOldExpense}
+                />
+              )
+            )
+          ) : (
+            <AddNewItem
+              url="/expenses/new"
+              type="expenses"
+              text="You don't have any expenses"
+            />
+          )}
+          <FloatingActionButton />
         </div>
-      </div> */}
-        <FloatingActionButton />
       </div>
     </Wrapper>
   );

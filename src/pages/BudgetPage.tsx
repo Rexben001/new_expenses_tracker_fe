@@ -13,6 +13,7 @@ import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { Wrapper } from "../components/Wrapper";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export function BudgetPage() {
   const location = useLocation();
@@ -78,8 +79,8 @@ export function BudgetPage() {
 
   return (
     <Wrapper>
-      <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
+        <HeaderComponent>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">
               All Budgets{" "}
@@ -93,7 +94,7 @@ export function BudgetPage() {
             </button>
           </div>
 
-          <SearchBox query={query} setQuery={setQuery} />
+          <SearchBox query={query} setQuery={setQuery} title="budgets" />
 
           {showPopup && (
             <ItemFilterPopup
@@ -111,40 +112,42 @@ export function BudgetPage() {
               {formatCurrency(total, currency)}
             </span>
           </p>
-        </div>
+        </HeaderComponent>
 
-        <CollapsibleUpcoming
-          upcomingItems={upcomingBudgets}
-          currency={currency!}
-          compType="Budget"
-        />
-
-        {filteredBudgets.length ? (
-          activeBudgets.map((budget) => (
-            <BudgetBox
-              key={budget.id}
-              budget={budget}
-              currency={currency}
-              showExpense={true}
-            />
-          ))
-        ) : (
-          <AddNewItem
-            url="/budgets/new"
-            type="budgets"
-            text="You don't have any budgets"
+        <div className="mx-1">
+          <CollapsibleUpcoming
+            upcomingItems={upcomingBudgets}
+            currency={currency!}
+            compType="Budget"
           />
-        )}
 
-        <div className="fixed bottom-24 inset-x-0 z-50">
-          <div className="max-w-md mx-auto px-4 flex justify-end">
-            <Link
-              to="/budgets/new"
-              className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-              aria-label="Add an expense"
-            >
-              <FiPlus className="text-2xl" />
-            </Link>
+          {filteredBudgets.length ? (
+            activeBudgets.map((budget) => (
+              <BudgetBox
+                key={budget.id}
+                budget={budget}
+                currency={currency}
+                showExpense={true}
+              />
+            ))
+          ) : (
+            <AddNewItem
+              url="/budgets/new"
+              type="budgets"
+              text="You don't have any budgets"
+            />
+          )}
+
+          <div className="fixed bottom-24 inset-x-0 z-50">
+            <div className="max-w-md mx-auto px-4 flex justify-end">
+              <Link
+                to="/budgets/new"
+                className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+                aria-label="Add an expense"
+              >
+                <FiPlus className="text-2xl" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

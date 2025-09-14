@@ -18,6 +18,7 @@ import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { Wrapper } from "../components/Wrapper";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export function BudgetIdPage() {
   const { setLoading, loading, budgets, currency, user } = useItemContext();
@@ -128,8 +129,8 @@ export function BudgetIdPage() {
 
   return (
     <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto overflow-x-hidden">
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2 overflow-x-hidden">
+      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
+        <HeaderComponent>
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => navigate("/budgets")}
@@ -147,7 +148,7 @@ export function BudgetIdPage() {
             </button>
           </div>
 
-          <SearchBox query={query} setQuery={setQuery} />
+          <SearchBox query={query} setQuery={setQuery} title="expenses" />
 
           {showPopup && (
             <div className="w-full overflow-x-hidden">
@@ -197,7 +198,7 @@ export function BudgetIdPage() {
               <span className="text-blue-500">({filteredExpenses.length})</span>
             </p>
           ) : null}
-        </div>
+        </HeaderComponent>
 
         <div className="mx-3.5">
           <CollapsibleUpcoming

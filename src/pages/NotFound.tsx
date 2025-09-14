@@ -2,23 +2,26 @@ import { Link } from "react-router-dom";
 import { FiHome } from "react-icons/fi";
 import { FaList, FaWallet } from "react-icons/fa";
 import { Wrapper } from "../components/Wrapper";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export default function NotFound() {
   return (
     <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto overflow-x-hidden">
+      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
         {/* Sticky header (matches your pages) */}
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">Page Not Found</h1>
-            <Link
-              to="/"
-              className="text-blue-600 dark:text-blue-400 text-sm font-semibold"
-            >
-              Home
-            </Link>
+        <HeaderComponent>
+          <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-xl font-bold">Page Not Found</h1>
+              <Link
+                to="/"
+                className="text-blue-600 dark:text-blue-400 text-sm font-semibold"
+              >
+                Home
+              </Link>
+            </div>
           </div>
-        </div>
+        </HeaderComponent>
 
         {/* Hero / Illustration */}
         <div className="mt-6 flex flex-col items-center text-center">
