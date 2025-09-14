@@ -9,6 +9,7 @@ import { suggestCategory } from "../services/suggestCategory";
 import { parseReceipt } from "../services/receipts/parseReceipt";
 import { getOcrWorker } from "../services/receipts/ocrWorker";
 import { assertUsableReceipt } from "../services/receipts/ocrGuard";
+import { Wrapper } from "../components/Wrapper";
 
 export default function ScanReceiptRoute() {
   const navigate = useNavigate();
@@ -78,53 +79,55 @@ export default function ScanReceiptRoute() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h2 className="text-lg font-semibold">Scan a receipt</h2>
-      <p className="text-sm text-gray-600 mb-3">
-        Your camera will open. Good lighting and filling the frame help OCR.
-        Make sure to crosscheck the value before saving. Works best with short
-        receipts
-      </p>
+    <Wrapper>
+      <div className="max-w-md mx-auto p-4">
+        <h2 className="text-lg font-semibold">Scan a receipt</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Your camera will open. Good lighting and filling the frame help OCR.
+          Make sure to crosscheck the value before saving. Works best with short
+          receipts
+        </p>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={openCamera}
-          disabled={isScanning}
-          className="px-4 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60"
-        >
-          {isScanning ? `Scanning… ${progress}%` : "Open Camera"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={openCamera}
+            disabled={isScanning}
+            className="px-4 py-2 rounded-md bg-blue-600 text-white disabled:opacity-60"
+          >
+            {isScanning ? `Scanning… ${progress}%` : "Open Camera"}
+          </button>
 
-        <label className="px-4 py-2 rounded-md border cursor-pointer">
-          Choose from gallery
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.currentTarget.files?.[0];
-              if (f) handleSelect(f);
-            }}
-          />
-        </label>
+          <label className="px-4 py-2 rounded-md border cursor-pointer">
+            Choose from gallery
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0];
+                if (f) handleSelect(f);
+              }}
+            />
+          </label>
+        </div>
+
+        {error && <div className="text-red-600 mt-3">{error}</div>}
+
+        {/* Hidden camera capture input (auto-triggered) */}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.currentTarget.files?.[0];
+            if (f) handleSelect(f);
+          }}
+        />
       </div>
-
-      {error && <div className="text-red-600 mt-3">{error}</div>}
-
-      {/* Hidden camera capture input (auto-triggered) */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.currentTarget.files?.[0];
-          if (f) handleSelect(f);
-        }}
-      />
-    </div>
+    </Wrapper>
   );
 }
 

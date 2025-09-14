@@ -1,5 +1,4 @@
 import { useLocation } from "react-router-dom";
-import { FooterNav } from "../components/FooterNav";
 import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
 import { FiFilter } from "react-icons/fi";
@@ -16,6 +15,7 @@ import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
+import { Wrapper } from "../components/Wrapper";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
@@ -77,77 +77,86 @@ export function ExpensesPage() {
   if (loading || !ready) return <LoadingScreen />;
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">
-            All Expenses{" "}
-            <span className="text-blue-500">({filteredExpenses.length})</span>
-          </h1>
-          <button
-            className="text-gray-500 dark:text-white hover:text-gray-800"
-            onClick={() => setShowPopup(!showPopup)}
-          >
-            <FiFilter className="text-xl" />
-          </button>
+    <Wrapper>
+      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold">
+              All Expenses{" "}
+              <span className="text-blue-500">({filteredExpenses.length})</span>
+            </h1>
+            <button
+              className="text-gray-500 dark:text-white hover:text-gray-800"
+              onClick={() => setShowPopup(!showPopup)}
+            >
+              <FiFilter className="text-xl" />
+            </button>
+          </div>
+
+          <SearchBox query={query} setQuery={setQuery} />
+
+          {showPopup && (
+            <ItemFilterPopup
+              months={months}
+              setMonths={setMonths}
+              year={year}
+              setYear={setYear}
+              resetFilter={() => {
+                resetFilter({ setMonths, setYear, setShowPopup });
+              }}
+            />
+          )}
+          <p className="my-1.5 text-blue-500">
+            Total Expenses:{"  "}
+            <span className="font-bold text-black dark:text-white">
+              {formatCurrency(total, currency)}
+            </span>
+          </p>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} />
+        <CollapsibleUpcoming
+          upcomingItems={upcomingExpenses}
+          currency={currency!}
+          compType="Expense"
+          removeExpense={removeExpense}
+          duplicateExpense={duplicateOldExpense}
+        />
 
-        {showPopup && (
-          <ItemFilterPopup
-            months={months}
-            setMonths={setMonths}
-            year={year}
-            setYear={setYear}
-            resetFilter={() => {
-              resetFilter({ setMonths, setYear, setShowPopup });
-            }}
+        {filteredExpenses?.length ? (
+          activeExpenses.map(
+            ({
+              id,
+              title,
+              category,
+              amount,
+              updatedAt,
+              budgetId,
+              upcoming,
+            }) => (
+              <ExpenseBox
+                key={id}
+                id={id}
+                title={title}
+                category={category}
+                amount={amount}
+                updatedAt={updatedAt}
+                currency={currency!}
+                budgetId={budgetId}
+                upcoming={upcoming}
+                removeExpense={removeExpense}
+                duplicateExpense={duplicateOldExpense}
+              />
+            )
+          )
+        ) : (
+          <AddNewItem
+            url="/expenses/new"
+            type="expenses"
+            text="You don't have any expenses"
           />
         )}
-        <p className="my-1.5 text-blue-500">
-          Total Expenses:{"  "}
-          <span className="font-bold text-black dark:text-white">
-            {formatCurrency(total, currency)}
-          </span>
-        </p>
-      </div>
 
-      <CollapsibleUpcoming
-        upcomingItems={upcomingExpenses}
-        currency={currency!}
-        compType="Expense"
-        removeExpense={removeExpense}
-        duplicateExpense={duplicateOldExpense}
-      />
-
-      {filteredExpenses?.length ? (
-        activeExpenses.map(
-          ({ id, title, category, amount, updatedAt, budgetId, upcoming }) => (
-            <ExpenseBox
-              key={id}
-              id={id}
-              title={title}
-              category={category}
-              amount={amount}
-              updatedAt={updatedAt}
-              currency={currency!}
-              budgetId={budgetId}
-              upcoming={upcoming}
-              removeExpense={removeExpense}
-              duplicateExpense={duplicateOldExpense}
-            />
-          )
-        )
-      ) : (
-        <AddNewItem
-          url="/expenses/new"
-          type="expenses"
-          text="You don't have any expenses"
-        />
-      )}
-
-      {/* <div className="fixed bottom-24 inset-x-0 z-50">
+        {/* <div className="fixed bottom-24 inset-x-0 z-50">
         <div className="max-w-md mx-auto px-4 flex justify-end">
           <Link
             to="/expenses/new"
@@ -158,9 +167,8 @@ export function ExpensesPage() {
           </Link>
         </div>
       </div> */}
-      <FloatingActionButton />
-
-      <FooterNav page="expenses" />
-    </div>
+        <FloatingActionButton />
+      </div>
+    </Wrapper>
   );
 }

@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import { FiFilter, FiPlus } from "react-icons/fi";
-import { FooterNav } from "../components/FooterNav";
 import { useItemContext } from "../hooks/useItemContext";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
@@ -13,6 +12,7 @@ import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
+import { Wrapper } from "../components/Wrapper";
 
 export function BudgetPage() {
   const location = useLocation();
@@ -77,77 +77,77 @@ export function BudgetPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">
-            All Budgets{" "}
-            <span className="text-blue-500">({filteredBudgets.length})</span>
-          </h1>
-          <button
-            className="text-gray-500 dark:text-white hover:text-gray-800"
-            onClick={() => setShowPopup(!showPopup)}
-          >
-            <FiFilter className="text-xl" />
-          </button>
+    <Wrapper>
+      <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold">
+              All Budgets{" "}
+              <span className="text-blue-500">({filteredBudgets.length})</span>
+            </h1>
+            <button
+              className="text-gray-500 dark:text-white hover:text-gray-800"
+              onClick={() => setShowPopup(!showPopup)}
+            >
+              <FiFilter className="text-xl" />
+            </button>
+          </div>
+
+          <SearchBox query={query} setQuery={setQuery} />
+
+          {showPopup && (
+            <ItemFilterPopup
+              months={months}
+              setMonths={setMonths}
+              year={year}
+              setYear={setYear}
+              resetFilter={resetFilter}
+            />
+          )}
+
+          <p className="my-1.5 text-blue-500">
+            Total Budgets:{"  "}
+            <span className="font-bold text-black dark:text-white">
+              {formatCurrency(total, currency)}
+            </span>
+          </p>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} />
+        <CollapsibleUpcoming
+          upcomingItems={upcomingBudgets}
+          currency={currency!}
+          compType="Budget"
+        />
 
-        {showPopup && (
-          <ItemFilterPopup
-            months={months}
-            setMonths={setMonths}
-            year={year}
-            setYear={setYear}
-            resetFilter={resetFilter}
+        {filteredBudgets.length ? (
+          activeBudgets.map((budget) => (
+            <BudgetBox
+              key={budget.id}
+              budget={budget}
+              currency={currency}
+              showExpense={true}
+            />
+          ))
+        ) : (
+          <AddNewItem
+            url="/budgets/new"
+            type="budgets"
+            text="You don't have any budgets"
           />
         )}
 
-        <p className="my-1.5 text-blue-500">
-          Total Budgets:{"  "}
-          <span className="font-bold text-black dark:text-white">
-            {formatCurrency(total, currency)}
-          </span>
-        </p>
-      </div>
-
-      <CollapsibleUpcoming
-        upcomingItems={upcomingBudgets}
-        currency={currency!}
-        compType="Budget"
-      />
-
-      {filteredBudgets.length ? (
-        activeBudgets.map((budget) => (
-          <BudgetBox
-            key={budget.id}
-            budget={budget}
-            currency={currency}
-            showExpense={true}
-          />
-        ))
-      ) : (
-        <AddNewItem
-          url="/budgets/new"
-          type="budgets"
-          text="You don't have any budgets"
-        />
-      )}
-
-      <div className="fixed bottom-24 inset-x-0 z-50">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <Link
-            to="/budgets/new"
-            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-            aria-label="Add an expense"
-          >
-            <FiPlus className="text-2xl" />
-          </Link>
+        <div className="fixed bottom-24 inset-x-0 z-50">
+          <div className="max-w-md mx-auto px-4 flex justify-end">
+            <Link
+              to="/budgets/new"
+              className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+              aria-label="Add an expense"
+            >
+              <FiPlus className="text-2xl" />
+            </Link>
+          </div>
         </div>
       </div>
-
-      <FooterNav page="budgets" />
-    </div>
+    </Wrapper>
   );
 }

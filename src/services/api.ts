@@ -1,4 +1,5 @@
 import { handleUnauthorized } from "./isLoggedIn";
+import { tokenStore } from "./tokenStore";
 
 export const API_BASE_URL =
   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
@@ -7,13 +8,20 @@ async function fetchApi({
   method,
   path,
   body,
+  useIdToken = true,
 }: {
   path: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
+  useIdToken?: boolean;
 }) {
   try {
-    const token = localStorage.getItem("idToken");
+    const tokenKey = useIdToken ? "idToken" : "accessToken";
+    const token = await tokenStore.get(tokenKey);
+
+    if (!token) {
+      handleUnauthorized();
+    }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...(body ? { body: JSON.stringify(body) } : {}),
@@ -35,7 +43,7 @@ async function fetchApi({
     }
     return response.json();
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data:", String(error));
     throw error;
   }
 }

@@ -8,6 +8,7 @@ import type { BUDGET_STATE } from "../types/locationState";
 import { getMonthAndYear } from "../services/formatDate";
 import { suggestCategories } from "../services/suggestCategory";
 import { SuggestionCategories } from "../components/Category";
+import { Wrapper } from "../components/Wrapper";
 
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
@@ -116,140 +117,144 @@ export function ExpenseForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => goBack()}
-          className="text-gray-600 dark:text-white  hover:text-black"
-        >
-          <FiChevronLeft className="text-2xl" />
-        </button>
-        <h1 className="text-xl font-bold">
-          {isEditMode ? "Edit Expense" : "Create New Expense"}
-        </h1>
-      </div>
-
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        <div>
-          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
-            Expense Name
-          </label>
-          <input
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Enter name"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+    <Wrapper>
+      <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => goBack()}
+            className="text-gray-600 dark:text-white  hover:text-black"
+          >
+            <FiChevronLeft className="text-2xl" />
+          </button>
+          <h1 className="text-xl font-bold">
+            {isEditMode ? "Edit Expense" : "Create New Expense"}
+          </h1>
         </div>
 
-        <div>
-          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
-            Amount
-          </label>
-          <input
-            name="amount"
-            type="number"
-            value={formData.amount}
-            onChange={handleChange}
-            placeholder="Enter amount"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <div className="inline-flex items-center justify-between  mb-1">
-            <label className="text-sm dark:text-white  text-gray-500 pr-4 block">
-              Category
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
+              Expense Name
             </label>
-            {suggestions.length > 0 && (
-              <SuggestionCategories
-                categories={suggestions}
-                onSelect={(category) => setFormData({ ...formData, category })}
-              />
-            )}
+            <input
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter name"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select category
-            </option>
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
+
+          <div>
+            <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
+              Amount
+            </label>
+            <input
+              name="amount"
+              type="number"
+              value={formData.amount}
+              onChange={handleChange}
+              placeholder="Enter amount"
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <div className="inline-flex items-center justify-between  mb-1">
+              <label className="text-sm dark:text-white  text-gray-500 pr-4 block">
+                Category
+              </label>
+              {suggestions.length > 0 && (
+                <SuggestionCategories
+                  categories={suggestions}
+                  onSelect={(category) =>
+                    setFormData({ ...formData, category })
+                  }
+                />
+              )}
+            </div>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select category
               </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm dark:text-white   text-gray-500 mb-1 block">
-            Budget
-          </label>
-          <select
-            name="budgetId"
-            value={formData.budgetId?.toString() ?? ""}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select Budget
-            </option>
-            {budgets?.length
-              ? budgets.map(({ id, title, updatedAt }) => (
-                  <option key={id} value={id.toString()}>
-                    {title} - {getMonthAndYear(updatedAt)}
-                  </option>
-                ))
-              : null}
-          </select>
-        </div>
-
-        <div>
-          <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
-            Date
-          </label>
-          <input
-            name="updatedAt"
-            type="date"
-            value={formData.updatedAt}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
-          <select
-            name="upcoming"
-            value={formData.upcoming}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select upcoming status
-            </option>
-            {["true", "false"].map((option) => (
-              <option key={option} value={option}>
-                {option}
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm dark:text-white   text-gray-500 mb-1 block">
+              Budget
+            </label>
+            <select
+              name="budgetId"
+              value={formData.budgetId?.toString() ?? ""}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select Budget
               </option>
-            ))}
-          </select>
-        </div>
+              {budgets?.length
+                ? budgets.map(({ id, title, updatedAt }) => (
+                    <option key={id} value={id.toString()}>
+                      {title} - {getMonthAndYear(updatedAt)}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
-        >
-          {isEditMode ? "Update Expense" : "Add Expense"}
-        </button>
-      </form>
-    </div>
+          <div>
+            <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
+              Date
+            </label>
+            <input
+              name="updatedAt"
+              type="date"
+              value={formData.updatedAt}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
+            <select
+              name="upcoming"
+              value={formData.upcoming}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select upcoming status
+              </option>
+              {["true", "false"].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
+          >
+            {isEditMode ? "Update Expense" : "Add Expense"}
+          </button>
+        </form>
+      </div>
+    </Wrapper>
   );
 }

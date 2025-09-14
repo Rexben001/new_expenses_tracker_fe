@@ -1,56 +1,36 @@
 import { FaHome, FaList, FaWallet, FaTools } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
-export function FooterNav({ page }: { page?: string }) {
-  const activeClass = "text-blue-600";
-  const inactiveClass = "text-gray-500 hover:text-gray-800 dark:text-white";
-
-  const currentPage = page || window.location.pathname;
-  const currentPageName = currentPage.split("/").pop();
-
-  const getLinkClass = (page: string) => {
-    const toPageName = page.split("/").pop();
-    return currentPageName === toPageName ? activeClass : inactiveClass;
-  };
-
-  const NavMenuLink = ({
-    to,
-    icon: Icon,
-    label,
-    className,
-  }: {
-    to: string;
-    icon: React.ElementType;
-    label: string;
-    className?: string;
-  }) => (
-    <Link to={to} className={`flex flex-col items-center ${className ?? ""}`}>
-      <Icon className="text-lg" />
-      <span className="text-xs">{label}</span>
-    </Link>
-  );
+export function FooterNav() {
+  const active = "text-blue-600";
+  const inactive = "text-gray-500 dark:text-white";
+  const base = "flex flex-col items-center";
 
   const links = [
-    { to: "/", icon: FaHome, label: "Home" },
+    { to: "/", icon: FaHome, label: "Home", end: true }, // end=true so "/" doesn’t match everything
     { to: "/expenses", icon: FaList, label: "Expenses" },
     { to: "/budgets", icon: FaWallet, label: "Budgets" },
     { to: "/settings", icon: FaTools, label: "Settings" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-gray-500 text-sm max-w-md mx-auto w-full">
-      {links.map(({ to, icon, label }) => (
-        <NavMenuLink
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-sm max-w-md mx-auto w-full"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      {links.map(({ to, icon: Icon, label, end }) => (
+        <NavLink
           key={to}
           to={to}
-          icon={icon}
-          label={label}
-          className={getLinkClass(to)}
-        />
+          end={end}
+          className={({ isActive }) =>
+            `${base} ${isActive ? active : inactive}`
+          }
+        >
+          <Icon className="text-lg" />
+          <span className="text-xs">{label}</span>
+        </NavLink>
       ))}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600" />
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600" />
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-600" />
     </nav>
   );
 }

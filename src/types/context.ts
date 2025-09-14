@@ -17,6 +17,7 @@ interface IItemContext {
   user: User;
   currency?: string;
   currentYearExpensesTotal: number;
+  isNative: boolean;
 }
 
 export const ItemContext = createContext<IItemContext>({} as IItemContext);

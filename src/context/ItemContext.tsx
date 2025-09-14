@@ -4,6 +4,7 @@ import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
 import { getMonthlyTotal, getYearlyTotally } from "../services/item";
+import { Capacitor } from "@capacitor/core";
 
 export type User = {
   userName?: string;
@@ -27,21 +28,7 @@ export function ItemContextProvider(
 
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    extractToken();
-  }, []);
-
-  const extractToken = () => {
-    const hash = window.location.hash;
-
-    if (hash.includes("access_token")) {
-      const params = new URLSearchParams(hash.substring(1));
-      const idToken = params.get("id_token");
-      localStorage.setItem("idToken", idToken || "");
-      return true;
-    }
-    return false;
-  };
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     fetchBudgets();
@@ -110,6 +97,7 @@ export function ItemContextProvider(
       currency,
       fetchUser,
       currentYearExpensesTotal,
+      isNative,
     }),
     [
       budgets,
@@ -119,6 +107,7 @@ export function ItemContextProvider(
       user,
       currency,
       currentYearExpensesTotal,
+      isNative,
     ]
   );
 

@@ -1,26 +1,12 @@
-import { jwtDecode } from "jwt-decode";
-import { loginUrl } from "./getLoginUrl";
+import { beginLogin } from "./auth";
 
-export function isUserLoggedIn(): boolean {
-  const token = localStorage.getItem("idToken");
+import { tokenStore } from "./tokenStore";
 
-  return !!token;
+export async function removeToken() {
+  await tokenStore.remove("idToken");
+  await tokenStore.remove("accessToken");
 }
-
-export function isTokenExpired(token: string): boolean {
-  try {
-    const { exp } = jwtDecode<{ exp: number }>(token);
-    return exp < Date.now() / 1000;
-  } catch {
-    return true;
-  }
-}
-
-export function removeToken() {
-  localStorage.removeItem("idToken");
-}
-
-export function handleUnauthorized() {
-  removeToken();
-  window.location.href = loginUrl;
+export async function handleUnauthorized() {
+  await removeToken();
+  await beginLogin();
 }

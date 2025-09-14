@@ -55,14 +55,14 @@ export function ExpenseChart() {
   const filteredExpensesPie = useExpenseFilter(
     chartType === "pie" && month ? [month] : [],
     year,
-    user.budgetStartDay
+    user?.budgetStartDay
   );
 
   // Bar: always 1–12 months
   const filteredExpensesBar = useExpenseFilter(
     Array.from({ length: 12 }, (_, i) => String(i + 1)),
     year,
-    user.budgetStartDay
+    user?.budgetStartDay
   );
 
   const filteredBudgetBar = useBudgetFilter(
@@ -73,7 +73,7 @@ export function ExpenseChart() {
 
   // Pie data// Pie data
   const { pieData, total } = useMemo(() => {
-    const grouped = filteredExpensesPie
+    const grouped = (filteredExpensesPie || [])
       .filter((exp) => !exp.upcoming) // 🚫 filter here
       .reduce((acc, exp) => {
         if (!acc[exp.category]) {

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { Route, Routes, HashRouter, BrowserRouter } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
 import { ExpenseForm } from "./pages/ExpenseForm";
 import { BudgetPage } from "./pages/BudgetPage";
@@ -9,11 +9,15 @@ import { ItemContextProvider } from "./context/ItemContext";
 import { Profile } from "./pages/Profile";
 import ScanReceiptRoute from "./pages/ScanReceiptRoute";
 import NotFound from "./pages/NotFound";
+import { Capacitor } from "@capacitor/core";
+
+const isNative = Capacitor.isNativePlatform();
 
 export default function App() {
+  const RouterComponent = isNative ? HashRouter : BrowserRouter;
   return (
     <ItemContextProvider>
-      <Router>
+      <RouterComponent>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/settings" element={<Profile />} />
@@ -28,7 +32,7 @@ export default function App() {
           <Route path="/expenses/scan" element={<ScanReceiptRoute />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
+      </RouterComponent>
     </ItemContextProvider>
   );
 }
