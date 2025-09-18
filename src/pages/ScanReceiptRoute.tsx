@@ -9,7 +9,7 @@ import { suggestCategory } from "../services/suggestCategory";
 import { parseReceipt } from "../services/receipts/parseReceipt";
 import { getOcrWorker } from "../services/receipts/ocrWorker";
 import { assertUsableReceipt } from "../services/receipts/ocrGuard";
-import { Wrapper } from "../components/Wrapper";
+import { FooterNav } from "../components/FooterNav";
 
 export default function ScanReceiptRoute() {
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ export default function ScanReceiptRoute() {
   };
 
   return (
-    <Wrapper>
+    <>
       <div className="max-w-md mx-auto p-4">
         <h2 className="text-lg font-semibold">Scan a receipt</h2>
         <p className="text-sm text-gray-600 mb-3">
@@ -127,7 +127,8 @@ export default function ScanReceiptRoute() {
           }}
         />
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }
 

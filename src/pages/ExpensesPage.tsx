@@ -15,8 +15,8 @@ import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 export function ExpensesPage() {
   const { loading, fetchExpenses, currency, user } = useItemContext();
@@ -78,44 +78,43 @@ export function ExpensesPage() {
   if (loading || !ready) return <LoadingScreen />;
 
   return (
-    <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
-        <HeaderComponent>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">
-              All Expenses{" "}
-              <span className="text-blue-500">({filteredExpenses.length})</span>
-            </h1>
-            <button
-              className="text-gray-500 dark:text-white hover:text-gray-800"
-              onClick={() => setShowPopup(!showPopup)}
-            >
-              <FiFilter className="text-xl" />
-            </button>
-          </div>
+    <>
+      <HeaderComponent>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">
+            All Expenses{" "}
+            <span className="text-blue-500">({filteredExpenses.length})</span>
+          </h1>
+          <button
+            className="text-gray-500 dark:text-white hover:text-gray-800"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <FiFilter className="text-xl" />
+          </button>
+        </div>
 
-          <SearchBox query={query} setQuery={setQuery} title="expenses" />
+        <SearchBox query={query} setQuery={setQuery} title="expenses" />
 
-          {showPopup && (
-            <ItemFilterPopup
-              months={months}
-              setMonths={setMonths}
-              year={year}
-              setYear={setYear}
-              resetFilter={() => {
-                resetFilter({ setMonths, setYear, setShowPopup });
-              }}
-            />
-          )}
-          <p className="my-1.5 text-blue-500">
-            Total Expenses:{"  "}
-            <span className="font-bold text-black dark:text-white">
-              {formatCurrency(total, currency)}
-            </span>
-          </p>
-        </HeaderComponent>
-
-        <div className="mx-1">
+        {showPopup && (
+          <ItemFilterPopup
+            months={months}
+            setMonths={setMonths}
+            year={year}
+            setYear={setYear}
+            resetFilter={() => {
+              resetFilter({ setMonths, setYear, setShowPopup });
+            }}
+          />
+        )}
+        <p className="my-1.5 text-blue-500">
+          Total Expenses:{"  "}
+          <span className="font-bold text-black dark:text-white">
+            {formatCurrency(total, currency)}
+          </span>
+        </p>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-32">
+        <div className="mx-1 pt-2">
           <CollapsibleUpcoming
             upcomingItems={upcomingExpenses}
             currency={currency!}
@@ -160,6 +159,7 @@ export function ExpensesPage() {
           <FloatingActionButton />
         </div>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

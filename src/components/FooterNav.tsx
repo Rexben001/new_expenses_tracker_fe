@@ -15,7 +15,7 @@ export function FooterNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 dark:text-white border-t shadow-inner h-16 flex justify-around items-center text-sm max-w-md mx-auto w-full"
+      className="fixed bottom-0 left-0 right-0 dark:text-white shadow-inner h-16 flex justify-around items-center text-sm max-w-md mx-auto w-full bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {links.map(({ to, icon: Icon, label, end }) => (
@@ -27,7 +27,7 @@ export function FooterNav() {
             `${base} ${isActive ? active : inactive}`
           }
         >
-          <Icon className="text-lg" />
+          <Icon className="text-2xl pt-0.5" />
           <span className="text-xs">{label}</span>
         </NavLink>
       ))}

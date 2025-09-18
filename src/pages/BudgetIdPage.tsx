@@ -17,8 +17,8 @@ import { ProgressBar } from "../components/ProgressBar";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 export function BudgetIdPage() {
   const { setLoading, loading, budgets, currency, user } = useItemContext();
@@ -69,7 +69,7 @@ export function BudgetIdPage() {
   const state = location.state as BUDGET_STATE;
 
   const budget = useMemo(() => {
-    return state.title
+    return state?.title
       ? {
           ...state,
           id: budgetId ?? "",
@@ -128,77 +128,77 @@ export function BudgetIdPage() {
   };
 
   return (
-    <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
-        <HeaderComponent>
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => navigate("/budgets")}
-              className="text-gray-600 dark:text-white  hover:text-black"
-            >
-              <FiChevronLeft className="text-2xl" />
-            </button>
+    <>
+      <HeaderComponent>
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => navigate("/budgets")}
+            className="text-gray-600 dark:text-white  hover:text-black"
+          >
+            <FiChevronLeft className="text-2xl" />
+          </button>
 
-            <h1 className="text-xl font-bold"> {displayTitle()}</h1>
-            <button
-              className="text-gray-500 dark:text-white hover:text-gray-800"
-              onClick={() => setShowPopup(!showPopup)}
-            >
-              <FiFilter className="text-xl" />
-            </button>
+          <h1 className="text-xl font-bold"> {displayTitle()}</h1>
+          <button
+            className="text-gray-500 dark:text-white hover:text-gray-800"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <FiFilter className="text-xl" />
+          </button>
+        </div>
+
+        <SearchBox query={query} setQuery={setQuery} title="expenses" />
+
+        {showPopup && (
+          <div className="w-full overflow-x-hidden">
+            <ItemFilterPopup
+              months={months}
+              setMonths={setMonths}
+              year={year}
+              setYear={setYear}
+              resetFilter={() => {
+                resetFilter({ setMonths, setYear, setShowPopup });
+              }}
+            />
           </div>
+        )}
 
-          <SearchBox query={query} setQuery={setQuery} title="expenses" />
-
-          {showPopup && (
-            <div className="w-full overflow-x-hidden">
-              <ItemFilterPopup
-                months={months}
-                setMonths={setMonths}
-                year={year}
-                setYear={setYear}
-                resetFilter={() => {
-                  resetFilter({ setMonths, setYear, setShowPopup });
+        <p className="my-1.5 text-blue-500">
+          Total Expenses:{"  "}
+          <span className="font-bold text-black dark:text-white">
+            {formatCurrency(total, currency)}
+          </span>
+        </p>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-33">
+        {budget && (
+          <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
+            <div className="flex-1">
+              <p>Overall Budget Progress</p>
+              <ProgressBar
+                budget={{
+                  ...budget,
+                  title: budget.title ?? "",
+                  category: budget.category ?? "",
+                  amount: budget.amount ?? 0,
+                  period: budget.period ?? "",
+                  updatedAt: budget.updatedAt ?? "",
+                  currency: budget.currency ?? "",
+                  upcoming: budget.upcoming === "true",
                 }}
+                remaining={remaining}
+                currency={currency!}
               />
             </div>
-          )}
+          </div>
+        )}
 
-          <p className="my-1.5 text-blue-500">
-            Total Expenses:{"  "}
-            <span className="font-bold text-black dark:text-white">
-              {formatCurrency(total, currency)}
-            </span>
+        {filteredExpenses.length ? (
+          <p className="mx-4 bold mb-3">
+            Expenses{" "}
+            <span className="text-blue-500">({filteredExpenses.length})</span>
           </p>
-          {budget && (
-            <div className="bg-white dark:bg-gray-900 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
-              <div className="flex-1">
-                <p>Overall Budget Progress</p>
-                <ProgressBar
-                  budget={{
-                    ...budget,
-                    title: budget.title ?? "",
-                    category: budget.category ?? "",
-                    amount: budget.amount ?? 0,
-                    period: budget.period ?? "",
-                    updatedAt: budget.updatedAt ?? "",
-                    currency: budget.currency ?? "",
-                    upcoming: budget.upcoming === "true",
-                  }}
-                  remaining={remaining}
-                  currency={currency!}
-                />
-              </div>
-            </div>
-          )}
-
-          {filteredExpenses.length ? (
-            <p className="mx-4 bold mb-3">
-              Expenses{" "}
-              <span className="text-blue-500">({filteredExpenses.length})</span>
-            </p>
-          ) : null}
-        </HeaderComponent>
+        ) : null}
 
         <div className="mx-3.5">
           <CollapsibleUpcoming
@@ -252,6 +252,7 @@ export function BudgetIdPage() {
           </div>
         </div>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

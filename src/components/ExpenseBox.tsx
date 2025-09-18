@@ -96,7 +96,7 @@ export const ExpenseBox = ({
     <div
       key={id}
       ref={menuRef}
-      className={`bg-white  dark:bg-gray-900 dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4
+      className={`bg-white dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-4
         ${bgColor}`}
       onClick={(e) => {
         e.stopPropagation();

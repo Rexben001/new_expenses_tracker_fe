@@ -174,7 +174,7 @@ export function ExpenseChart() {
   if (loading || !ready) return <LoadingScreen />;
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow px-1 py-4">
+    <div className="rounded-xl shadow px-1 py-4">
       <h2 className="text-lg font-semibold mb-4">Expenses Overview</h2>
 
       {/* Chart Type Toggle */}
@@ -207,7 +207,7 @@ export function ExpenseChart() {
           value={month}
           onChange={(e) => setMonth(e.target.value)}
           disabled={chartType === "bar"} // disable when bar chart is active
-          className="border rounded p-2 bg-white dark:bg-gray-800 dark:text-white disabled:opacity-50"
+          className="border rounded-lg  p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <option value="">All Months</option>
           {Array.from({ length: 12 }, (_, i) => (
@@ -220,7 +220,7 @@ export function ExpenseChart() {
         <select
           value={year}
           onChange={(e) => setYear(e.target.value)}
-          className="border rounded p-2 bg-white dark:bg-gray-800 dark:text-white"
+          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Years</option>
           {Array.from({ length: 3 }, (_, i) => {

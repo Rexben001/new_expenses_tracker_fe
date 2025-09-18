@@ -9,10 +9,10 @@ export default function FloatingActionButton() {
     <div className="fixed bottom-24 inset-x-0 z-50">
       <div className="max-w-md mx-auto px-4 flex justify-end relative">
         {open && (
-          <div className="flex flex-col items-end space-y-3 absolute bottom-16 right-0">
+          <div className="flex flex-col items-end space-y-3 absolute bottom-16 right-5">
             <Link
               to="/expenses/scan"
-              className="bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-md shadow hover:bg-blue-50 flex items-center gap-2"
+              className="bg-white text-blue-600 dark:bg-gray-900 dark:text-white  border border-blue-600 dark:border-gray-700 px-4 py-2 rounded-md shadow hover:bg-blue-50 flex items-center gap-2"
               onClick={() => setOpen(false)}
             >
               <FiCamera />
@@ -21,7 +21,7 @@ export default function FloatingActionButton() {
 
             <Link
               to="/expenses/new"
-              className="bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-md shadow hover:bg-blue-50 flex items-center gap-2"
+              className="bg-white text-blue-600 border border-blue-600 dark:bg-gray-900 dark:text-white dark:border-gray-700 px-4 py-2 rounded-md shadow hover:bg-blue-50 flex items-center gap-2"
               onClick={() => setOpen(false)}
             >
               <FiEdit2 />

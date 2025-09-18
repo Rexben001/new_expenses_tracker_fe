@@ -1,16 +1,17 @@
-import { Capacitor } from "@capacitor/core";
-import { FooterNav } from "./FooterNav";
+import { useItemContext } from "../hooks/useItemContext";
 
 export const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const isNative = Capacitor.isNativePlatform();
+  const { deviceType } = useItemContext();
 
-  const pt = isNative ? "pt-10" : "pt-0";
+  const pt = deviceType === "iphone" ? "pt-10" : "pt-0";
+
   return (
     <div
-      className={`min-h-screen bg-white dark:bg-gray-900 dark:text-white ${pt} pb-16`}
+      className={`fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 dark:text-white ${pt}`}
     >
+      <div className="h-full overflow-y-auto pb-24 pt-[env(safe-area-inset-top)]">
       {children}
-      <FooterNav />
+      </div>
     </div>
   );
 };

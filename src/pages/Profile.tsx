@@ -5,8 +5,8 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { updateUser } from "../services/api";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
 
@@ -67,52 +67,49 @@ export function Profile() {
   if (loading) return <LoadingScreen />;
 
   return (
-    <Wrapper>
-      <div className="flex flex-col space-y-4 min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-        <HeaderComponent>
-          <header className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-3"
-              onClick={() => navigate("/")}
-            >
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <p className="text-sm text-gray-500">
-                  Good {getTimeOfTheDay()}
-                </p>
-                <p className="font-medium">{user?.userName}</p>
-              </div>
+    <>
+      <HeaderComponent>
+        <header className="flex items-center justify-between">
+          <div
+            className="flex items-center gap-3"
+            onClick={() => navigate("/")}
+          >
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full"
+            />
+            <div>
+              <p className="text-sm text-gray-500">Good {getTimeOfTheDay()}</p>
+              <p className="font-medium">{user?.userName}</p>
             </div>
+          </div>
 
+          <div
+            onClick={toggleDarkMode}
+            className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
+          >
+            {/* Toggle Knob */}
             <div
-              onClick={toggleDarkMode}
-              className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
-            >
-              {/* Toggle Knob */}
-              <div
-                className={`w-6 h-6 flex items-center justify-center rounded-full shadow-md transform transition-transform duration-300
+              className={`w-6 h-6 flex items-center justify-center rounded-full shadow-md transform transition-transform duration-300
           ${
             isDark
               ? "translate-x-6 bg-gray-800 text-yellow-400"
               : "translate-x-0 bg-yellow-400 text-white"
           }`}
-              >
-                {isDark ? <FiMoon size={14} /> : <FiSun size={14} />}
-              </div>
+            >
+              {isDark ? <FiMoon size={14} /> : <FiSun size={14} />}
             </div>
-          </header>
-        </HeaderComponent>
-
+          </div>
+        </header>
+      </HeaderComponent>
+      <div className="flex flex-col space-y-4 min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-13">
         <section>
           <div className="flex justify-between items-center mb-2 mt-1">
             <form className="space-y-6 w-full" onSubmit={handleSubmit}>
               <div>
                 <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
-                  UserName
+                  Username
                 </label>
                 <input
                   name="userName"
@@ -208,6 +205,7 @@ export function Profile() {
           </div>
         </section>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

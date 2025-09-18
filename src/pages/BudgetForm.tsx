@@ -7,8 +7,8 @@ import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
 import { SuggestionCategories } from "../components/Category";
 import { suggestCategories } from "../services/suggestCategory";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -80,22 +80,21 @@ export function BudgetForm() {
   };
 
   return (
-    <Wrapper>
-      <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
-        <HeaderComponent>
-          <div className="flex items-center gap-4 mb-6">
-            <button
-              onClick={() => navigate("/budgets")}
-              className="text-gray-600 dark:text-white  hover:text-black"
-            >
-              <FiChevronLeft className="text-2xl" />
-            </button>
-            <h1 className="text-xl font-bold">
-              {isEditMode ? "Edit Budget" : "Create New Budget"}
-            </h1>
-          </div>
-        </HeaderComponent>
-
+    <>
+      <HeaderComponent>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate("/budgets")}
+            className="text-gray-600 dark:text-white  hover:text-black"
+          >
+            <FiChevronLeft className="text-2xl" />
+          </button>
+          <h1 className="text-xl font-bold">
+            {isEditMode ? "Edit Budget" : "Create New Budget"}
+          </h1>
+        </div>
+      </HeaderComponent>
+      <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-14">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-gray-500 mb-1 block">
@@ -211,6 +210,7 @@ export function BudgetForm() {
           </button>
         </form>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

@@ -1,5 +1,4 @@
-import { handleUnauthorized } from "./isLoggedIn";
-import { tokenStore } from "./tokenStore";
+import { getTokens } from "./amplify";
 
 export const API_BASE_URL =
   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
@@ -8,7 +7,6 @@ async function fetchApi({
   method,
   path,
   body,
-  useIdToken = true,
 }: {
   path: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -16,11 +14,10 @@ async function fetchApi({
   useIdToken?: boolean;
 }) {
   try {
-    const tokenKey = useIdToken ? "idToken" : "accessToken";
-    const token = await tokenStore.get(tokenKey);
+    const token = await getTokens();
 
-    if (!token) {
-      handleUnauthorized();
+    if (!token?.idToken) {
+      throw new Error("No ID token available");
     }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -28,17 +25,16 @@ async function fetchApi({
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token.idToken}`,
       },
     });
 
     if (!response.ok) {
       const error = await response.json();
 
-      if (error.message === "Unauthorized") {
-        handleUnauthorized();
-        throw new Error("Unauthorized");
-      }
+      // if (error.message === "Unauthorized") {
+      //   throw new Error("Unauthorized");
+      // }
       throw new Error(error);
     }
     return response.json();

@@ -1,28 +1,26 @@
 import { Link } from "react-router-dom";
 import { FiHome } from "react-icons/fi";
 import { FaList, FaWallet } from "react-icons/fa";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 export default function NotFound() {
   return (
-    <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
-        {/* Sticky header (matches your pages) */}
-        <HeaderComponent>
-          <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-bold">Page Not Found</h1>
-              <Link
-                to="/"
-                className="text-blue-600 dark:text-blue-400 text-sm font-semibold"
-              >
-                Home
-              </Link>
-            </div>
+    <>
+      <HeaderComponent>
+        <div className="sticky top-0 z-10  bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold">Page Not Found</h1>
+            <Link
+              to="/"
+              className="text-blue-600 dark:text-blue-400 text-sm font-semibold"
+            >
+              Home
+            </Link>
           </div>
-        </HeaderComponent>
-
+        </div>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-10">
         {/* Hero / Illustration */}
         <div className="mt-6 flex flex-col items-center text-center">
           {/* Shimmer gradient badge */}
@@ -115,6 +113,7 @@ export default function NotFound() {
 
         {/* Bottom nav (kept for parity with the app) */}
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

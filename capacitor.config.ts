@@ -10,6 +10,11 @@ const config: CapacitorConfig = {
     // url: "https://indictable-industriously-hillary.ngrok-free.app",
     // cleartext: true,
   },
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: false,
+    },
+  },
 };
 
 export default config;

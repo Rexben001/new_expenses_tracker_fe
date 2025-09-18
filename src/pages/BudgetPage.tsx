@@ -12,8 +12,8 @@ import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
-import { Wrapper } from "../components/Wrapper";
 import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
 
 export function BudgetPage() {
   const location = useLocation();
@@ -78,42 +78,41 @@ export function BudgetPage() {
   };
 
   return (
-    <Wrapper>
-      <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 max-w-md mx-auto">
-        <HeaderComponent>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">
-              All Budgets{" "}
-              <span className="text-blue-500">({filteredBudgets.length})</span>
-            </h1>
-            <button
-              className="text-gray-500 dark:text-white hover:text-gray-800"
-              onClick={() => setShowPopup(!showPopup)}
-            >
-              <FiFilter className="text-xl" />
-            </button>
-          </div>
+    <>
+      <HeaderComponent>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold">
+            All Budgets{" "}
+            <span className="text-blue-500">({filteredBudgets.length})</span>
+          </h1>
+          <button
+            className="text-gray-500 dark:text-white hover:text-gray-800"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <FiFilter className="text-xl" />
+          </button>
+        </div>
 
-          <SearchBox query={query} setQuery={setQuery} title="budgets" />
+        <SearchBox query={query} setQuery={setQuery} title="budgets" />
 
-          {showPopup && (
-            <ItemFilterPopup
-              months={months}
-              setMonths={setMonths}
-              year={year}
-              setYear={setYear}
-              resetFilter={resetFilter}
-            />
-          )}
+        {showPopup && (
+          <ItemFilterPopup
+            months={months}
+            setMonths={setMonths}
+            year={year}
+            setYear={setYear}
+            resetFilter={resetFilter}
+          />
+        )}
 
-          <p className="my-1.5 text-blue-500">
-            Total Budgets:{"  "}
-            <span className="font-bold text-black dark:text-white">
-              {formatCurrency(total, currency)}
-            </span>
-          </p>
-        </HeaderComponent>
-
+        <p className="my-1.5 text-blue-500">
+          Total Budgets:{"  "}
+          <span className="font-bold text-black dark:text-white">
+            {formatCurrency(total, currency)}
+          </span>
+        </p>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-34">
         <div className="mx-1">
           <CollapsibleUpcoming
             upcomingItems={upcomingBudgets}
@@ -151,6 +150,7 @@ export function BudgetPage() {
           </div>
         </div>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }

@@ -5,6 +5,8 @@ import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
 import { getMonthlyTotal, getYearlyTotally } from "../services/item";
 import { Capacitor } from "@capacitor/core";
+import { getDeviceType } from "../utils/platform";
+import { getTokens } from "../services/amplify";
 
 export type User = {
   userName?: string;
@@ -26,7 +28,16 @@ export function ItemContextProvider(
     budgetStartDay: undefined,
   });
 
+  const [tokens, setTokens] = useState<{
+    accessToken: string;
+    idToken: string;
+  }>();
+
   const [loading, setLoading] = useState(false);
+
+  const [deviceType, setDeviceType] = useState<
+    "iphone" | "ipad" | "android" | "web"
+  >("web");
 
   const isNative = Capacitor.isNativePlatform();
 
@@ -34,6 +45,17 @@ export function ItemContextProvider(
     fetchBudgets();
     fetchExpenses();
     fetchUser();
+    getDeviceType().then((type) => setDeviceType(type));
+    getTokens().then((t) => {
+      if (t && t.accessToken && t.idToken) {
+        setTokens({ accessToken: t.accessToken, idToken: t.idToken });
+      } else {
+        setTokens({
+          accessToken: t?.accessToken ?? "",
+          idToken: t?.idToken ?? "",
+        });
+      }
+    });
   }, []);
 
   const fetchBudgets = async () => {
@@ -98,6 +120,8 @@ export function ItemContextProvider(
       fetchUser,
       currentYearExpensesTotal,
       isNative,
+      deviceType,
+      tokens,
     }),
     [
       budgets,
@@ -108,6 +132,8 @@ export function ItemContextProvider(
       currency,
       currentYearExpensesTotal,
       isNative,
+      deviceType,
+      tokens,
     ]
   );
 

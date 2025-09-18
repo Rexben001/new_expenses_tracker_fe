@@ -8,7 +8,8 @@ import type { BUDGET_STATE } from "../types/locationState";
 import { getMonthAndYear } from "../services/formatDate";
 import { suggestCategories } from "../services/suggestCategory";
 import { SuggestionCategories } from "../components/Category";
-import { Wrapper } from "../components/Wrapper";
+import { FooterNav } from "../components/FooterNav";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
@@ -117,8 +118,8 @@ export function ExpenseForm() {
   };
 
   return (
-    <Wrapper>
-      <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
+    <>
+      <HeaderComponent>
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => goBack()}
@@ -130,7 +131,8 @@ export function ExpenseForm() {
             {isEditMode ? "Edit Expense" : "Create New Expense"}
           </h1>
         </div>
-
+      </HeaderComponent>
+      <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-10">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
@@ -255,6 +257,7 @@ export function ExpenseForm() {
           </button>
         </form>
       </div>
-    </Wrapper>
+      <FooterNav />
+    </>
   );
 }
