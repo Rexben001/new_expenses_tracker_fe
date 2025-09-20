@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { FiFilter, FiPlus } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
 import { useEffect, useMemo, useState } from "react";
 import { useBudgetFilter, useBudgetSearch } from "../hooks/useBudgetsSearch";
@@ -69,13 +68,13 @@ export function BudgetPage() {
     window.history.replaceState({}, document.title);
   }, []);
 
-  if (loading || !ready) return <LoadingScreen />;
-
   const resetFilter = () => {
     setMonths([]);
     setYear("");
     setShowPopup(false);
   };
+
+  if (loading || !ready) return null;
 
   return (
     <>

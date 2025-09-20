@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useItemContext } from "../hooks/useItemContext";
 import { getTimeOfTheDay } from "../services/formatDate";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { updateUser } from "../services/api";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +19,8 @@ export function Profile() {
   const navigate = useNavigate();
 
   const [isDark, setIsDark] = useState(true);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     userName: user?.userName,
@@ -46,9 +47,13 @@ export function Profile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
+
     await updateUser(formData);
 
     await fetchUser();
+
+    setIsSubmitting(false);
   };
 
   const toggleDarkMode = () => {
@@ -64,7 +69,7 @@ export function Profile() {
       localStorage.setItem("color-theme", "dark");
     }
   };
-  if (loading) return <LoadingScreen />;
+  if (loading) return null;
 
   return (
     <>
@@ -199,7 +204,7 @@ export function Profile() {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
               >
-                Update Settings
+                {isSubmitting ? "Updating..." : "Update Settings"}
               </button>
             </form>
           </div>

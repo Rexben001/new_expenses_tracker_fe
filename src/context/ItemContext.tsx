@@ -63,41 +63,30 @@ export function ItemContextProvider(
   }, [auth]);
 
   const fetchBudgets = async () => {
-    setLoading(true);
     try {
       const budgets = await getBudgets();
       setBudgets(budgets);
     } catch (error) {
       console.log({ error });
     }
-
-    setLoading(false);
   };
 
   const fetchExpenses = async () => {
-    setLoading(true);
-
     try {
       const expenses = await getExpenses();
       setExpenses(expenses);
     } catch (error) {
       console.log({ error });
     }
-
-    setLoading(false);
   };
 
   const fetchUser = async () => {
-    setLoading(true);
-
     try {
       const user = await getUser();
       setUser(user);
     } catch (error) {
       console.log({ error });
     }
-
-    setLoading(false);
   };
 
   const currentMonthExpensesTotal = getMonthlyTotal(

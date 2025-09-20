@@ -6,7 +6,6 @@ import { AddNewItem } from "../components/NoItem";
 import { ExpenseBox } from "../components/ExpenseBox";
 import type { Expense } from "../types/expenses";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
@@ -21,7 +20,7 @@ import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 
 export function BudgetIdPage() {
-  const { setLoading, loading, budgets, currency, user } = useItemContext();
+  const { loading, budgets, currency, user } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -79,7 +78,6 @@ export function BudgetIdPage() {
 
   const fetchBudgetExpenses = useCallback(async () => {
     try {
-      setLoading(true);
       const expenses = await getExpense("", budgetId);
 
       setExpenses(expenses);
@@ -87,8 +85,7 @@ export function BudgetIdPage() {
       console.log({ error });
       setExpenses([]);
     }
-    setLoading(false);
-  }, [budgetId, setLoading]);
+  }, [budgetId]);
 
   useEffect(() => {
     fetchBudgetExpenses();
@@ -117,7 +114,7 @@ export function BudgetIdPage() {
 
   const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
 
-  if (loading || !ready) return <LoadingScreen />;
+  if (loading || !ready) return null;
 
   const displayTitle = () => {
     const title = budget?.title;

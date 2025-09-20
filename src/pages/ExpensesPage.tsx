@@ -3,7 +3,6 @@ import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
 import { FiFilter } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
 import { useEffect, useMemo, useState } from "react";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
@@ -75,7 +74,7 @@ export function ExpensesPage() {
     await fetchExpenses();
   };
 
-  if (loading || !ready) return <LoadingScreen />;
+  if (loading || !ready) return null;
 
   return (
     <>

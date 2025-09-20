@@ -18,7 +18,6 @@ import NotFound from "./pages/NotFound";
 import { Capacitor } from "@capacitor/core";
 import { Wrapper } from "./components/Wrapper";
 import LoginForm from "./pages/LoginForm";
-import { LoadingScreen } from "./components/LoadingScreen";
 import { useAuth } from "./context/AuthContext";
 import { useEffect } from "react";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
@@ -65,7 +64,7 @@ export default function App() {
     }
   }, [auth?.ready]);
 
-  if (!auth || !auth.ready) return <LoadingScreen />;
+  if (!auth || !auth.ready) return;
   const { authed } = auth;
 
   const RouterComponent = isNative ? HashRouter : BrowserRouter;

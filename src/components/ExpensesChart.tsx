@@ -16,7 +16,6 @@ import { useItemContext } from "../hooks/useItemContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDate, getMonth, getYear, parseISO, subMonths } from "date-fns";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
-import { LoadingScreen } from "./LoadingScreen";
 import { useBudgetFilter } from "../hooks/useBudgetsSearch";
 
 const COLOR_CODES: Record<string, string> = {
@@ -34,7 +33,7 @@ const COLOR_CODES: Record<string, string> = {
 };
 
 export function ExpenseChart() {
-  const { user, loading } = useItemContext();
+  const { user } = useItemContext();
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -144,8 +143,6 @@ export function ExpenseChart() {
     return monthlyTotals;
   }, [filteredExpensesBar, filteredBudgetBar, user.budgetStartDay, year]);
 
-  const ready = !loading && user?.budgetStartDay != null;
-
   // Pie labels
   const renderLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -170,8 +167,6 @@ export function ExpenseChart() {
     },
     []
   );
-
-  if (loading || !ready) return <LoadingScreen />;
 
   return (
     <div className="rounded-xl shadow px-1 py-4">

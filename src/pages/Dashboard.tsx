@@ -7,7 +7,6 @@ import {
   getMonth,
 } from "../services/formatDate";
 import { formatCurrency } from "../services/formatCurrency";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { getMonthlyTotal } from "../services/item";
 import { CategoryComponent } from "../components/Category";
 import { ExpenseChart } from "../components/ExpensesChart";
@@ -41,7 +40,7 @@ export function Dashboard() {
       ? "bg-red-500 h-1.5 rounded-full"
       : "bg-blue-500 h-1.5 rounded-full";
 
-  if (loading || !auth?.authed) return <LoadingScreen />;
+  if (loading || !auth?.authed || !expense) return null;
 
   return (
     <>
