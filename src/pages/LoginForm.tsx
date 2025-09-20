@@ -107,7 +107,7 @@ export default function LoginForm() {
                 </span>
                 <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 focus-within:ring-2 focus-within:ring-blue-500">
                   <input
-                    className="w-full h-12 bg-transparent outline-none text-base dark:text-white"
+                    className="w-full h-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none"
                     placeholder="you@example.com"
                     inputMode="email"
                     autoCapitalize="none"
@@ -126,7 +126,7 @@ export default function LoginForm() {
                 </span>
                 <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 focus-within:ring-2 focus-within:ring-blue-500">
                   <input
-                    className="w-full h-12 bg-transparent outline-none text-base dark:text-white"
+                    className="w-full h-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none"
                     placeholder="••••••••"
                     type={showPass ? "text" : "password"}
                     value={pass}
@@ -173,7 +173,7 @@ export default function LoginForm() {
               </p>
               <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 focus-within:ring-2 focus-within:ring-blue-500">
                 <input
-                  className="w-full h-12 bg-transparent outline-none text-base tracking-widest text-center dark:text-white"
+                  className="w-full h-12 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none"
                   placeholder="123 456"
                   inputMode="numeric"
                   pattern="[0-9]*"
