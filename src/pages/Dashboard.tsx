@@ -25,7 +25,7 @@ export function Dashboard() {
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user?.userName}`;
 
-  const expense = (expenses || []).find((expense) => !expense.upcoming);
+  const expense = expenses.find((expense) => !expense.upcoming);
   const total = getMonthlyTotal(expenses, user?.budgetStartDay ?? 1) ?? 0;
 
   const totalBudget = getMonthlyTotal(budgets, user?.budgetStartDay ?? 1) ?? 0;
@@ -41,12 +41,12 @@ export function Dashboard() {
       ? "bg-red-500 h-1.5 rounded-full"
       : "bg-blue-500 h-1.5 rounded-full";
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !auth?.authed) return <LoadingScreen />;
 
   return (
     <>
       <HeaderComponent>
-        <header className="flex items-center justify-between pb-1">
+        <header className="flex items-center justify-between pb-2">
           <div
             className="flex items-center gap-3"
             onClick={() => navigate("/settings")}

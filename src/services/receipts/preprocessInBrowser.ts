@@ -7,14 +7,25 @@ type PreprocessOpts = {
   contrast?: number; // default 1.1
 };
 
-function webpSupported(): boolean {
-  const c = document.createElement("canvas");
-  return c.toDataURL("image/webp").startsWith("data:image/webp");
+let _webpSupported: boolean | null = null;
+export function webpSupported(): boolean {
+  if (_webpSupported != null) return _webpSupported;
+  try {
+    if (typeof document !== "undefined") {
+      const c = document.createElement("canvas");
+      _webpSupported = c.toDataURL("image/webp").startsWith("data:image/webp");
+      return _webpSupported;
+    }
+    if (typeof OffscreenCanvas !== "undefined") {
+      const oc = new OffscreenCanvas(1, 1);
+      _webpSupported = "convertToBlob" in oc; // heuristic; we still retry encode below
+      return _webpSupported;
+    }
+  } catch {}
+  _webpSupported = false;
+  return false;
 }
 
-// heic.ts
-// If you use strict TS, add:  declare module "heic2any";
-// If TS complains about types, add a d.ts:  declare module "heic2any";
 export async function normalizeHeicToJpeg(file: File | Blob): Promise<Blob> {
   const name = (file as File).name || "";
   const type = (file as File).type || "";
@@ -22,19 +33,25 @@ export async function normalizeHeicToJpeg(file: File | Blob): Promise<Blob> {
 
   if (!isHeic) return file;
 
-  const { default: heic2any } = await import("heic2any");
-  const out = await heic2any({
-    blob: file,
-    toType: "image/jpeg",
-    quality: 0.92,
-  });
-  return Array.isArray(out) ? (out[0] as Blob) : (out as Blob);
+  try {
+    const { default: heic2any } = await import("heic2any");
+    const out = await heic2any({
+      blob: file,
+      toType: "image/jpeg",
+      quality: 0.92,
+    });
+    return Array.isArray(out) ? (out[0] as Blob) : (out as Blob);
+  } catch {
+    // Safari can often decode HEIC directly; let downstream try.
+    return file;
+  }
 }
 
 // NOTE: setting src *before* waiting is important—calling decode() too early was the bug.
 function loadHtmlImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.decoding = "async";
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("Image decode failed"));
     img.src = src;
@@ -51,7 +68,6 @@ export function isLikelyFreshCameraCapture(file: File, minutes = 3) {
 }
 
 // preprocess.ts
-
 export async function preprocessInBrowserFast(
   input: File | Blob,
   opts: PreprocessOpts = {}
@@ -64,35 +80,99 @@ export async function preprocessInBrowserFast(
     contrast = 1.1,
   } = opts;
 
-  if (!input || (input as File).size === 0) {
+  if (!input || (input as File).size === 0)
     throw new Error("Empty or invalid file.");
+
+  let drawSource: ImageBitmap | HTMLImageElement | null = null;
+  let srcWidth = 0,
+    srcHeight = 0;
+
+  const canCreate = typeof createImageBitmap === "function";
+  if (canCreate) {
+    try {
+      const bm = await createImageBitmap(input);
+      if (bm) {
+        drawSource = bm;
+        srcWidth = bm.width;
+        srcHeight = bm.height;
+      }
+    } catch {}
   }
 
-  // 1) Decode to ImageBitmap (fast path), with fallback via <img>
-  let bitmap: ImageBitmap | null = null;
-  try {
-    // imageOrientation honors EXIF rotation on supporting browsers
-    bitmap = await createImageBitmap(input, { imageOrientation: "from-image" });
-  } catch {
-    // Fallback: blob URL -> <img> -> ImageBitmap
-    const url = URL.createObjectURL(input);
+  if (!drawSource) {
+    const url =
+      typeof URL !== "undefined" && URL.createObjectURL
+        ? URL.createObjectURL(input)
+        : "";
     try {
-      const img = await loadHtmlImage(url);
-      bitmap = await createImageBitmap(img, { imageOrientation: "from-image" });
+      const img = await loadHtmlImage(url || (input as any));
+      drawSource = img;
+      srcWidth = img.naturalWidth || img.width;
+      srcHeight = img.naturalHeight || img.height;
     } finally {
-      URL.revokeObjectURL(url);
+      if (url) URL.revokeObjectURL(url);
     }
   }
 
-  if (!bitmap) throw new Error("Failed to decode image.");
+  if (!drawSource || !srcWidth || !srcHeight)
+    throw new Error("Failed to decode image.");
 
-  // 2) Scale
-  const srcW = bitmap.width;
-  const scale = Math.min(1, maxWidth / (srcW || 1));
-  const w = Math.max(1, Math.round(bitmap.width * scale));
-  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const scale = Math.min(1, maxWidth / srcWidth);
+  const w = Math.max(1, Math.round(srcWidth * scale));
+  const h = Math.max(1, Math.round(srcHeight * scale));
 
-  // 3) Draw with GPU filters (grayscale/contrast) — no per-pixel JS loops
+  const canvas = drawToCanvas(drawSource, w, h, { grayscale, contrast });
+  (drawSource as ImageBitmap).close?.();
+
+  const wantType =
+    format === "image/webp" && !webpSupported() ? "image/jpeg" : format;
+  return await exportCanvasBlob(canvas, wantType, quality);
+}
+
+async function exportCanvasBlob(
+  canvas: OffscreenCanvas | HTMLCanvasElement,
+  type: "image/webp" | "image/jpeg",
+  quality: number
+): Promise<Blob> {
+  if ("convertToBlob" in canvas) {
+    try {
+      return await (canvas as OffscreenCanvas).convertToBlob({ type, quality });
+    } catch {
+      if (type === "image/webp") {
+        return await (canvas as OffscreenCanvas).convertToBlob({
+          type: "image/jpeg",
+          quality,
+        });
+      }
+      throw new Error("convertToBlob failed");
+    }
+  }
+  return await new Promise<Blob>((resolve, reject) =>
+    (canvas as HTMLCanvasElement).toBlob(
+      (b) => {
+        if (b) return resolve(b);
+        if (type === "image/webp") {
+          (canvas as HTMLCanvasElement).toBlob(
+            (b2) => (b2 ? resolve(b2) : reject(new Error("toBlob failed"))),
+            "image/jpeg",
+            quality
+          );
+        } else {
+          reject(new Error("toBlob failed"));
+        }
+      },
+      type,
+      quality
+    )
+  );
+}
+
+function drawToCanvas(
+  src: ImageBitmap | HTMLImageElement,
+  w: number,
+  h: number,
+  opts: { grayscale: boolean; contrast: number }
+) {
   const useOffscreen = typeof OffscreenCanvas !== "undefined";
   const canvas = useOffscreen
     ? new OffscreenCanvas(w, h)
@@ -103,34 +183,24 @@ export async function preprocessInBrowserFast(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported");
 
-  // @ts-expect-error: imageSmoothingEnabled may not be present on all canvas contexts
-  ctx.imageSmoothingEnabled = true;
-  if ("imageSmoothingQuality" in ctx) {
-    ctx.imageSmoothingQuality = "high";
-  }
-  // @ts-expect-error: ctx.filter is not present on all canvas contexts, but is supported in modern browsers
-  ctx.filter = `${grayscale ? "grayscale(1)" : ""} ${
-    contrast !== 1 ? `contrast(${contrast})` : ""
-  }`.trim();
-  // @ts-expect-error: drawImage may not accept ImageBitmap in all TS versions
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close?.();
+  // Narrow context type to those supporting drawImage
+  if (
+    ctx instanceof CanvasRenderingContext2D ||
+    (typeof OffscreenCanvasRenderingContext2D !== "undefined" && ctx instanceof OffscreenCanvasRenderingContext2D)
+  ) {
+    if ("imageSmoothingEnabled" in ctx) ctx.imageSmoothingEnabled = true;
+    if ("imageSmoothingQuality" in ctx) ctx.imageSmoothingQuality = "high";
 
-  // 4) Export (prefer WebP, fallback to JPEG if not supported)
-  const wantType =
-    format === "image/webp" && !webpSupported() ? "image/jpeg" : format;
+    if ("filter" in ctx) {
+      const parts: string[] = [];
+      if (opts.grayscale) parts.push("grayscale(1)");
+      if (opts.contrast !== 1) parts.push(`contrast(${opts.contrast})`);
+      ctx.filter = parts.join(" ");
+    }
 
-  if ("convertToBlob" in canvas) {
-    return await (canvas as OffscreenCanvas).convertToBlob({
-      type: wantType,
-      quality,
-    });
+    ctx.drawImage(src, 0, 0, w, h);
+  } else {
+    throw new Error("Unsupported canvas context for drawing images.");
   }
-  return await new Promise<Blob>((resolve, reject) =>
-    (canvas as HTMLCanvasElement).toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-      wantType,
-      quality
-    )
-  );
+  return canvas as OffscreenCanvas | HTMLCanvasElement;
 }

@@ -22,49 +22,49 @@ import { LoadingScreen } from "./components/LoadingScreen";
 import { useAuth } from "./context/AuthContext";
 import { useEffect } from "react";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+import { fetchAuthSession } from "@aws-amplify/auth";
+import { SplashScreen } from "@capacitor/splash-screen";
 
 const isNative = Capacitor.isNativePlatform();
 
 export default function App() {
-  // const [tokens, setTokens] = useState<{
-  //   accessToken: string;
-  //   idToken: string;
-  // }>();
-
-  // useEffect(() => {
-  //   // initial load
-  //   getTokens().then((t) =>
-  //     setTokens({
-  //       accessToken: t?.accessToken ?? "",
-  //       idToken: t?.idToken ?? "",
-  //     })
-  //   );
-
-  //   // react to auth events
-  //   const onIn = async () => {
-  //     const t = await getTokens();
-  //     setTokens({
-  //       accessToken: t?.accessToken ?? "",
-  //       idToken: t?.idToken ?? "",
-  //     });
-  //   };
-  //   const onOut = () => setTokens({ accessToken: "", idToken: "" });
-
-  //   window.addEventListener("app:auth-signedIn", onIn);
-  //   window.addEventListener("app:auth-signedOut", onOut);
-  //   return () => {
-  //     window.removeEventListener("app:auth-signedIn", onIn);
-  //     window.removeEventListener("app:auth-signedOut", onOut);
-  //   };
-  // }, []);
-
   useEffect(() => {
     Keyboard.setResizeMode({ mode: KeyboardResize.Body }); // "native" is what often causes big jumps
     // Optional: if you don't want the WebView to scroll itself
     // Keyboard.setScroll({ isDisabled: true });
   }, []);
 
+  useEffect(() => {
+    if (!isNative) return;
+    // If you set launchAutoHide:false in capacitor.config, this guarantees control here.
+    SplashScreen.show({ autoHide: false }).catch(() => {});
+    return () => {
+      // Ensure we never leave it up on unmount
+      SplashScreen.hide().catch(() => {});
+    };
+  }, []);
+
   const auth = useAuth();
+
+  const hasIdToken = async () => {
+    const s = await fetchAuthSession().catch(() => null);
+    return !!s?.tokens?.idToken;
+  };
+
+  useEffect(() => {
+    (async () => {
+      auth?.setAuthed(await hasIdToken());
+      auth?.setReady(true);
+    })();
+  }, [auth]);
+
+  useEffect(() => {
+    if (!isNative) return;
+    if (auth?.ready) {
+      SplashScreen.hide().catch(() => {});
+    }
+  }, [auth?.ready]);
+
   if (!auth || !auth.ready) return <LoadingScreen />;
   const { authed } = auth;
 
@@ -76,14 +76,20 @@ export default function App() {
           <Routes>
             {!authed ? (
               <>
+                {/* default route goes to /login */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/login" element={<LoginForm />} />
+                {/* if someone hits /expenses while logged out, send them to /login */}
+                <Route
+                  path="/expenses/*"
+                  element={<Navigate to="/login" replace />}
+                />
+                {/* ...you can guard other private paths similarly */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </>
             ) : (
               <>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/settings" element={<Profile />} />
-                <Route path="/expenses/new" element={<ExpenseForm />} />
                 <Route path="/expenses" element={<ExpensesPage />} />
                 <Route path="/expenses/new" element={<ExpenseForm />} />
                 <Route
@@ -97,8 +103,18 @@ export default function App() {
                   path="/budgets/:budgetId/edit"
                   element={<BudgetForm />}
                 />
+                <Route path="/settings" element={<Profile />} />
                 <Route path="/expenses/scan" element={<ScanReceiptRoute />} />
-                <Route path="*" element={<NotFound />} />
+
+                {/* web-only 404, mobile redirects (if you want that behavior) */}
+                {isNative ? (
+                  <Route
+                    path="*"
+                    element={<Navigate to="/expenses" replace />}
+                  />
+                ) : (
+                  <Route path="*" element={<NotFound />} />
+                )}
               </>
             )}
           </Routes>

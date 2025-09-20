@@ -10,6 +10,8 @@ export type Ctx = {
   confirmMfa: (code: string) => Promise<void>;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
+  setAuthed(auth: boolean): void;
+  setReady(ready: boolean): void;
 };
 
 export const AuthContext = createContext<Ctx | null>(null);

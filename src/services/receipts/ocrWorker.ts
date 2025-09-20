@@ -1,8 +1,5 @@
-// ocrWorker.ts
 import { createWorker, OEM, type Worker } from "tesseract.js";
 let _worker: Worker | null = null;
-
-// ocrWorker.ts
 
 export async function getOcrWorker(
   lang: "eng" | "nld" = "nld",
@@ -11,9 +8,8 @@ export async function getOcrWorker(
   if (_worker) return _worker;
   _worker = await createWorker(lang, OEM.DEFAULT, {
     logger: (m) => {
-      if (m.status === "recognizing text") {
+      if (m.status === "recognizing text")
         setProgress(Math.round(m.progress * 100));
-      }
     },
   });
   await _worker.setParameters({

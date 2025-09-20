@@ -7,6 +7,7 @@ import { getMonthlyTotal, getYearlyTotally } from "../services/item";
 import { Capacitor } from "@capacitor/core";
 import { getDeviceType } from "../utils/platform";
 import { getTokens } from "../services/amplify";
+import { useAuth } from "./AuthContext";
 
 export type User = {
   userName?: string;
@@ -28,6 +29,8 @@ export function ItemContextProvider(
     budgetStartDay: undefined,
   });
 
+  const auth = useAuth();
+
   const [tokens, setTokens] = useState<{
     accessToken: string;
     idToken: string;
@@ -47,6 +50,7 @@ export function ItemContextProvider(
     fetchUser();
     getDeviceType().then((type) => setDeviceType(type));
     getTokens().then((t) => {
+      console.log({ t });
       if (t && t.accessToken && t.idToken) {
         setTokens({ accessToken: t.accessToken, idToken: t.idToken });
       } else {
@@ -56,7 +60,7 @@ export function ItemContextProvider(
         });
       }
     });
-  }, []);
+  }, [auth]);
 
   const fetchBudgets = async () => {
     setLoading(true);

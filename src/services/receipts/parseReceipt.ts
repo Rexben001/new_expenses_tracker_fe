@@ -12,13 +12,7 @@ type Parsed = {
 export function parseReceipt(text: string): Parsed {
   const merchant = getMerchantName({ rawText: text });
   const total = pickTotalsNL(text);
-  const hit = extractReceiptDate(text);
-  let date;
-  if (hit) {
-    date = hit.date;
-  } else {
-    date = null;
-  }
+  const date = extractReceiptDate(text)?.date ?? null;
 
   const totalAmt =
     total.used === "basket" ? total.basketTotal : total.paidTotal;

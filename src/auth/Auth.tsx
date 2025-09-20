@@ -1,4 +1,3 @@
-// auth/Auth.tsx
 import { useEffect, useState } from "react";
 import {
   signIn,
@@ -12,10 +11,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
 
+  const hasIdToken = async () => {
+    const s = await fetchAuthSession().catch(() => null);
+    return !!s?.tokens?.idToken;
+  };
+
   useEffect(() => {
     (async () => {
-      const s = await fetchAuthSession().catch(() => null);
-      setAuthed(!!s?.tokens?.idToken);
+      setAuthed(await hasIdToken());
       setReady(true);
     })();
   }, []);
@@ -23,10 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login: Ctx["login"] = async (username, password) => {
     const res = await signIn({ username, password });
     const step = res.nextStep?.signInStep ?? "DONE";
+
     if (step === "DONE") {
-      setAuthed(true);
-      window.location.href = `${window.location.origin}/expenses`;
-    } // <- flip immediately
+      // only flip authed if an idToken truly exists
+      setAuthed(await hasIdToken());
+      return "DONE";
+    }
     if (step === "CONFIRM_SIGN_IN_WITH_SMS_CODE") return "MFA";
     if (step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED")
       return "NEW_PASSWORD_REQUIRED";
@@ -35,23 +40,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const confirmMfa: Ctx["confirmMfa"] = async (code) => {
     await confirmSignIn({ challengeResponse: code });
-    setAuthed(true); // <- flip immediately
+    setAuthed(await hasIdToken());
   };
 
   const logout: Ctx["logout"] = async () => {
     await signOut();
-    setAuthed(false); // <- flip immediately
-    window.location.href = `${window.location.origin}/`;
+    setAuthed(false);
+    setReady(true);
   };
+
   const getAccessToken = async () => {
-    if (!authed) return null;
     const s = await fetchAuthSession().catch(() => null);
     return s?.tokens?.accessToken?.toString() ?? null;
   };
 
   return (
     <AuthContext.Provider
-      value={{ ready, authed, login, confirmMfa, logout, getAccessToken }}
+      value={{
+        ready,
+        authed,
+        login,
+        confirmMfa,
+        logout,
+        getAccessToken,
+        setAuthed,
+        setReady,
+      }}
     >
       {children}
     </AuthContext.Provider>
