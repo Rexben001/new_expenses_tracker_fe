@@ -130,6 +130,7 @@ export function BudgetPage() {
             upcomingItems={upcomingBudgets}
             currency={currency!}
             compType="Budget"
+            removeBudget={removeBudget}
           />
 
           {filteredBudgets.length ? (

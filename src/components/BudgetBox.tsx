@@ -3,12 +3,7 @@ import { formatCurrency } from "../services/formatCurrency";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { useEffect, useRef, useState } from "react";
-import {
-  deleteBudget,
-  duplicateBudget,
-  getExpenses,
-  updateBudget,
-} from "../services/api";
+import { duplicateBudget, getExpenses, updateBudget } from "../services/api";
 import { formatRelativeDate } from "../services/formatDate";
 import { useItemContext } from "../hooks/useItemContext";
 import { ProgressBar } from "./ProgressBar";
