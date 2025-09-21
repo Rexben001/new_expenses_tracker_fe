@@ -21,10 +21,12 @@ export const BudgetBox = ({
   budget,
   currency,
   showExpense,
+  removeBudget,
 }: {
   budget: Budget;
   currency?: string;
   showExpense?: boolean;
+  removeBudget: (id: string) => Promise<void>;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -173,8 +175,7 @@ export const BudgetBox = ({
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                     onClick={async (e) => {
                       e.stopPropagation();
-                      await deleteBudget(budget.id);
-                      await fetchBudgets();
+                      await removeBudget(budget.id);
                       setShowMenu(false);
                     }}
                   >

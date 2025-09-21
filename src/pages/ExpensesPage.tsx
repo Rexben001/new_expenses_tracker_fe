@@ -16,9 +16,11 @@ import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
+import { hasIdToken } from "../services/amplify";
 
 export function ExpensesPage() {
-  const { loading, fetchExpenses, currency, user } = useItemContext();
+  const { fetchExpenses, currency, user, setExpenses } = useItemContext();
   const location = useLocation();
 
   const [query, setQuery] = useState("");
@@ -27,10 +29,12 @@ export function ExpensesPage() {
   const [year, setYear] = useState<string>("");
   const [total, setTotal] = useState(0);
 
+  const auth = useAuth();
+
   const defaults = useMemo(() => {
     if (user?.budgetStartDay == null) return null;
     return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user?.budgetStartDay]);
+  }, [user.budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -38,7 +42,12 @@ export function ExpensesPage() {
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
 
-  const ready = !loading && user?.budgetStartDay != null;
+  useEffect(() => {
+    (async () => {
+      auth?.setAuthed(await hasIdToken());
+      auth?.setReady(true);
+    })();
+  }, [auth]);
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -65,8 +74,14 @@ export function ExpensesPage() {
   }, [filteredExpenses]);
 
   const removeExpense = async (id: string, budgetId?: string) => {
-    await deleteExpense(id, budgetId);
-    await fetchExpenses();
+    const _expenses = filteredExpenses.filter((e) => e.id !== id);
+    setExpenses(_expenses);
+    try {
+      await deleteExpense(id, budgetId);
+      await fetchExpenses();
+    } catch {
+      await fetchExpenses();
+    }
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
@@ -74,7 +89,7 @@ export function ExpensesPage() {
     await fetchExpenses();
   };
 
-  if (loading || !ready) return null;
+  if (!auth?.ready) return null;
 
   return (
     <>

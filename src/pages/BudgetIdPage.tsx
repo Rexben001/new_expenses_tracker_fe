@@ -18,9 +18,10 @@ import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
 
 export function BudgetIdPage() {
-  const { loading, budgets, currency, user } = useItemContext();
+  const { budgets, currency, user } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -50,7 +51,7 @@ export function BudgetIdPage() {
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
 
-  const ready = !loading && user?.budgetStartDay != null;
+  const auth = useAuth();
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -92,8 +93,14 @@ export function BudgetIdPage() {
   }, [fetchBudgetExpenses]);
 
   const removeExpense = async (id: string, budgetId?: string) => {
-    await deleteExpense(id, budgetId);
-    await fetchBudgetExpenses();
+    const _expenses = filteredExpenses.filter((e) => e.id !== id);
+    setExpenses(_expenses);
+    try {
+      await deleteExpense(id, budgetId);
+      await fetchBudgetExpenses();
+    } catch {
+      await fetchBudgetExpenses();
+    }
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
@@ -114,7 +121,7 @@ export function BudgetIdPage() {
 
   const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
 
-  if (loading || !ready) return null;
+  if (!auth?.ready) return null;
 
   const displayTitle = () => {
     const title = budget?.title;

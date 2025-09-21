@@ -40,7 +40,7 @@ export function Dashboard() {
       ? "bg-red-500 h-1.5 rounded-full"
       : "bg-blue-500 h-1.5 rounded-full";
 
-  if (loading || !auth?.authed || !expense) return null;
+  if (loading || !auth?.authed) return null;
 
   return (
     <>

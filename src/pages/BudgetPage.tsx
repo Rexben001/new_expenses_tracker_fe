@@ -13,11 +13,15 @@ import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
+import { deleteBudget } from "../services/api";
 
 export function BudgetPage() {
   const location = useLocation();
 
-  const { loading, fetchBudgets, currency, user } = useItemContext();
+  const auth = useAuth();
+
+  const { fetchBudgets, currency, user, setBudgets } = useItemContext();
 
   const [query, setQuery] = useState("");
 
@@ -38,8 +42,6 @@ export function BudgetPage() {
     setMonths((prev) => (prev.length ? prev : [defaults.month]));
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
-
-  const ready = !loading && user?.budgetStartDay != null;
 
   const _filterBudgets = useBudgetFilter(
     months,
@@ -74,7 +76,18 @@ export function BudgetPage() {
     setShowPopup(false);
   };
 
-  if (loading || !ready) return null;
+  const removeBudget = async (id: string) => {
+    const _budgets = filteredBudgets.filter((e) => e.id !== id);
+    setBudgets(_budgets);
+    try {
+      await deleteBudget(id);
+      await fetchBudgets();
+    } catch {
+      await fetchBudgets();
+    }
+  };
+
+  if (!auth?.ready) return null;
 
   return (
     <>
@@ -126,6 +139,7 @@ export function BudgetPage() {
                 budget={budget}
                 currency={currency}
                 showExpense={true}
+                removeBudget={removeBudget}
               />
             ))
           ) : (

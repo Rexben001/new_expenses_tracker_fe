@@ -13,7 +13,7 @@ export function Profile() {
   const { user, loading, fetchUser } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${
-    user?.userName ?? "Rexben"
+    user?.userName ?? user.email
   }`;
 
   const navigate = useNavigate();

@@ -33,6 +33,7 @@ export function ExpenseForm() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isEditMode) {
@@ -70,10 +71,18 @@ export function ExpenseForm() {
       setSuggestions(suggestions);
     }
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.budgetId) {
+      const option = budgets?.length
+        ? "select a budget"
+        : "create a budget first and then select it";
+      setError(`You need to ${option}`);
+      return;
+    }
     setIsSubmitting(true);
     const id = formData.budgetId ?? state?.id;
 
@@ -133,6 +142,11 @@ export function ExpenseForm() {
         </div>
       </HeaderComponent>
       <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-10">
+        {error && (
+          <div className="mb-2 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-700 dark:text-red-300 mt-2">
+            {error}
+          </div>
+        )}
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
@@ -143,6 +157,7 @@ export function ExpenseForm() {
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter name"
+              required
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -157,6 +172,7 @@ export function ExpenseForm() {
               value={formData.amount}
               onChange={handleChange}
               placeholder="Enter amount"
+              required
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -169,9 +185,10 @@ export function ExpenseForm() {
               {suggestions.length > 0 && (
                 <SuggestionCategories
                   categories={suggestions}
-                  onSelect={(category) =>
-                    setFormData({ ...formData, category })
-                  }
+                  onSelect={(category) => {
+                    setFormData({ ...formData, category });
+                    setError("");
+                  }}
                 />
               )}
             </div>
@@ -192,27 +209,40 @@ export function ExpenseForm() {
             </select>
           </div>
           <div>
-            <label className="text-sm dark:text-white   text-gray-500 mb-1 block">
+            <label className="text-sm dark:text-white text-gray-500 mb-1 block">
               Budget
             </label>
-            <select
-              name="budgetId"
-              value={formData.budgetId?.toString() ?? ""}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Select Budget
-              </option>
-              {budgets?.length
-                ? budgets.map(({ id, title, updatedAt }) => (
-                    <option key={id} value={id.toString()}>
-                      {title} - {getMonthAndYear(updatedAt)}
-                    </option>
-                  ))
-                : null}
-            </select>
+
+            {budgets?.length ? (
+              <select
+                name="budgetId"
+                value={formData.budgetId?.toString() ?? ""}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Budget
+                </option>
+                {budgets.map(({ id, title, updatedAt }) => (
+                  <option key={id} value={id.toString()}>
+                    {title} - {getMonthAndYear(updatedAt)}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm">
+                <p className="text-amber-800 dark:text-amber-200">
+                  You need to create a budget before adding an expense.
+                </p>
+                <a
+                  href="/budgets/new"
+                  className="inline-block mt-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
+                >
+                  Create budget
+                </a>
+              </div>
+            )}
           </div>
 
           <div>

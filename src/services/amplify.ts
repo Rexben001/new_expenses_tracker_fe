@@ -43,3 +43,8 @@ export async function getTokens() {
     idToken: s.tokens?.idToken?.toString() ?? null,
   };
 }
+
+export const hasIdToken = async () => {
+  const s = await fetchAuthSession().catch(() => null);
+  return !!s?.tokens?.idToken;
+};

@@ -21,8 +21,8 @@ import LoginForm from "./pages/LoginForm";
 import { useAuth } from "./context/AuthContext";
 import { useEffect } from "react";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
-import { fetchAuthSession } from "@aws-amplify/auth";
 import { SplashScreen } from "@capacitor/splash-screen";
+import { hasIdToken } from "./services/amplify";
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -44,11 +44,6 @@ export default function App() {
   }, []);
 
   const auth = useAuth();
-
-  const hasIdToken = async () => {
-    const s = await fetchAuthSession().catch(() => null);
-    return !!s?.tokens?.idToken;
-  };
 
   useEffect(() => {
     (async () => {
