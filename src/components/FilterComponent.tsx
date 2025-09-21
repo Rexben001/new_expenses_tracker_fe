@@ -72,8 +72,8 @@ export const ItemFilterPopup = ({
   resetFilter,
 }: ItemFilterPopupProps) => {
   return (
-    <div className="w-full max-w-screen-xl mx-auto overflow-x-hidden">
-      <div className="flex flex-wrap md:flex-nowrap items-end gap-2 bg-white dark:bg-gray-900 dark:text-white px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 w-full">
+    <div className="w-full max-w-screen-xl mx-auto overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950">
+      <div className="flex flex-wrap md:flex-nowrap items-end gap-2 dark:text-white px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 w-full">
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
             Months

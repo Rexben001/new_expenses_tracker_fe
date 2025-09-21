@@ -34,7 +34,7 @@ export function useExpenseFilter(
 
   const results = useMemo(() => {
     return filterByDate(_expenses, months, year, Number(budgetStartDay));
-  }, [_expenses, budgetStartDay, months, year]);
+  }, [_expenses, expenses, budgetStartDay, months, year]);
 
   return results as Expense[];
 }

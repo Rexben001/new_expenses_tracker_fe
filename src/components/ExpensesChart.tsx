@@ -16,7 +16,6 @@ import { useItemContext } from "../hooks/useItemContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getDate, getMonth, getYear, parseISO, subMonths } from "date-fns";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
-import { LoadingScreen } from "./LoadingScreen";
 import { useBudgetFilter } from "../hooks/useBudgetsSearch";
 
 const COLOR_CODES: Record<string, string> = {
@@ -34,7 +33,7 @@ const COLOR_CODES: Record<string, string> = {
 };
 
 export function ExpenseChart() {
-  const { user, loading } = useItemContext();
+  const { user } = useItemContext();
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -55,14 +54,14 @@ export function ExpenseChart() {
   const filteredExpensesPie = useExpenseFilter(
     chartType === "pie" && month ? [month] : [],
     year,
-    user.budgetStartDay
+    user?.budgetStartDay
   );
 
   // Bar: always 1–12 months
   const filteredExpensesBar = useExpenseFilter(
     Array.from({ length: 12 }, (_, i) => String(i + 1)),
     year,
-    user.budgetStartDay
+    user?.budgetStartDay
   );
 
   const filteredBudgetBar = useBudgetFilter(
@@ -73,7 +72,7 @@ export function ExpenseChart() {
 
   // Pie data// Pie data
   const { pieData, total } = useMemo(() => {
-    const grouped = filteredExpensesPie
+    const grouped = (filteredExpensesPie || [])
       .filter((exp) => !exp.upcoming) // 🚫 filter here
       .reduce((acc, exp) => {
         if (!acc[exp.category]) {
@@ -144,8 +143,6 @@ export function ExpenseChart() {
     return monthlyTotals;
   }, [filteredExpensesBar, filteredBudgetBar, user.budgetStartDay, year]);
 
-  const ready = !loading && user?.budgetStartDay != null;
-
   // Pie labels
   const renderLabel = useCallback(
     ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
@@ -171,10 +168,8 @@ export function ExpenseChart() {
     []
   );
 
-  if (loading || !ready) return <LoadingScreen />;
-
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow px-1 py-4">
+    <div className="rounded-xl shadow px-1 py-4">
       <h2 className="text-lg font-semibold mb-4">Expenses Overview</h2>
 
       {/* Chart Type Toggle */}
@@ -207,7 +202,7 @@ export function ExpenseChart() {
           value={month}
           onChange={(e) => setMonth(e.target.value)}
           disabled={chartType === "bar"} // disable when bar chart is active
-          className="border rounded p-2 bg-white dark:bg-gray-800 dark:text-white disabled:opacity-50"
+          className="border rounded-lg  p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         >
           <option value="">All Months</option>
           {Array.from({ length: 12 }, (_, i) => (
@@ -220,7 +215,7 @@ export function ExpenseChart() {
         <select
           value={year}
           onChange={(e) => setYear(e.target.value)}
-          className="border rounded p-2 bg-white dark:bg-gray-800 dark:text-white"
+          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Years</option>
           {Array.from({ length: 3 }, (_, i) => {

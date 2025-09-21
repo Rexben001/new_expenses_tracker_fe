@@ -8,6 +8,8 @@ import type { BUDGET_STATE } from "../types/locationState";
 import { getMonthAndYear } from "../services/formatDate";
 import { suggestCategories } from "../services/suggestCategory";
 import { SuggestionCategories } from "../components/Category";
+import { FooterNav } from "../components/FooterNav";
+import { HeaderComponent } from "../components/HeaderComponent";
 
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
@@ -31,6 +33,7 @@ export function ExpenseForm() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isEditMode) {
@@ -68,10 +71,18 @@ export function ExpenseForm() {
       setSuggestions(suggestions);
     }
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.budgetId) {
+      const option = budgets?.length
+        ? "select a budget"
+        : "create a budget first and then select it";
+      setError(`You need to ${option}`);
+      return;
+    }
     setIsSubmitting(true);
     const id = formData.budgetId ?? state?.id;
 
@@ -116,140 +127,166 @@ export function ExpenseForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto">
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => goBack()}
-          className="text-gray-600 dark:text-white  hover:text-black"
-        >
-          <FiChevronLeft className="text-2xl" />
-        </button>
-        <h1 className="text-xl font-bold">
-          {isEditMode ? "Edit Expense" : "Create New Expense"}
-        </h1>
-      </div>
-
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        <div>
-          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
-            Expense Name
-          </label>
-          <input
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            placeholder="Enter name"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+    <>
+      <HeaderComponent>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => goBack()}
+            className="text-gray-600 dark:text-white  hover:text-black"
+          >
+            <FiChevronLeft className="text-2xl" />
+          </button>
+          <h1 className="text-xl font-bold">
+            {isEditMode ? "Edit Expense" : "Create New Expense"}
+          </h1>
         </div>
-
-        <div>
-          <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
-            Amount
-          </label>
-          <input
-            name="amount"
-            type="number"
-            value={formData.amount}
-            onChange={handleChange}
-            placeholder="Enter amount"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <div className="inline-flex items-center justify-between  mb-1">
-            <label className="text-sm dark:text-white  text-gray-500 pr-4 block">
-              Category
-            </label>
-            {suggestions.length > 0 && (
-              <SuggestionCategories
-                categories={suggestions}
-                onSelect={(category) => setFormData({ ...formData, category })}
-              />
-            )}
+      </HeaderComponent>
+      <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-10">
+        {error && (
+          <div className="mb-2 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-700 dark:text-red-300 mt-2">
+            {error}
           </div>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select category
-            </option>
-            {CATEGORY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
+        )}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="text-sm text-gray-500 dark:text-white  my-1 block">
+              Expense Name
+            </label>
+            <input
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter name"
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
+              Amount
+            </label>
+            <input
+              name="amount"
+              type="number"
+              value={formData.amount}
+              onChange={handleChange}
+              placeholder="Enter amount"
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <div className="inline-flex items-center justify-between  mb-1">
+              <label className="text-sm dark:text-white  text-gray-500 pr-4 block">
+                Category
+              </label>
+              {suggestions.length > 0 && (
+                <SuggestionCategories
+                  categories={suggestions}
+                  onSelect={(category) => {
+                    setFormData({ ...formData, category });
+                    setError("");
+                  }}
+                />
+              )}
+            </div>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select category
               </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-sm dark:text-white   text-gray-500 mb-1 block">
-            Budget
-          </label>
-          <select
-            name="budgetId"
-            value={formData.budgetId?.toString() ?? ""}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select Budget
-            </option>
-            {budgets?.length
-              ? budgets.map(({ id, title, updatedAt }) => (
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm dark:text-white text-gray-500 mb-1 block">
+              Budget
+            </label>
+
+            {budgets?.length ? (
+              <select
+                name="budgetId"
+                value={formData.budgetId?.toString() ?? ""}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Select Budget
+                </option>
+                {budgets.map(({ id, title, updatedAt }) => (
                   <option key={id} value={id.toString()}>
                     {title} - {getMonthAndYear(updatedAt)}
                   </option>
-                ))
-              : null}
-          </select>
-        </div>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-3 text-sm">
+                <p className="text-amber-800 dark:text-amber-200">
+                  You need to create a budget before adding an expense.
+                </p>
+                <a
+                  href="/budgets/new"
+                  className="inline-block mt-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
+                >
+                  Create budget
+                </a>
+              </div>
+            )}
+          </div>
 
-        <div>
-          <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
-            Date
-          </label>
-          <input
-            name="updatedAt"
-            type="date"
-            value={formData.updatedAt}
-            onChange={handleChange}
-            required
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+          <div>
+            <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
+              Date
+            </label>
+            <input
+              name="updatedAt"
+              type="date"
+              value={formData.updatedAt}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-        <div>
-          <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
-          <select
-            name="upcoming"
-            value={formData.upcoming}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select upcoming status
-            </option>
-            {["true", "false"].map((option) => (
-              <option key={option} value={option}>
-                {option}
+          <div>
+            <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
+            <select
+              name="upcoming"
+              value={formData.upcoming}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled>
+                Select upcoming status
               </option>
-            ))}
-          </select>
-        </div>
+              {["true", "false"].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
-        >
-          {isEditMode ? "Update Expense" : "Add Expense"}
-        </button>
-      </form>
-    </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold"
+          >
+            {isEditMode ? "Update Expense" : "Add Expense"}
+          </button>
+        </form>
+      </div>
+      <FooterNav />
+    </>
   );
 }

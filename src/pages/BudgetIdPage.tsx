@@ -6,21 +6,22 @@ import { AddNewItem } from "../components/NoItem";
 import { ExpenseBox } from "../components/ExpenseBox";
 import type { Expense } from "../types/expenses";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
 import { ItemFilterPopup } from "../components/FilterComponent";
 import type { BUDGET_STATE } from "../types/locationState";
 import { resetFilter } from "../services/utils";
-import { FooterNav } from "../components/FooterNav";
 import { formatCurrency } from "../services/formatCurrency";
 import { calculateRemaining, getTotal } from "../services/item";
 import { ProgressBar } from "../components/ProgressBar";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
+import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
 
 export function BudgetIdPage() {
-  const { setLoading, loading, budgets, currency, user } = useItemContext();
+  const { budgets, currency, user } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -50,7 +51,7 @@ export function BudgetIdPage() {
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
 
-  const ready = !loading && user?.budgetStartDay != null;
+  const auth = useAuth();
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -68,7 +69,7 @@ export function BudgetIdPage() {
   const state = location.state as BUDGET_STATE;
 
   const budget = useMemo(() => {
-    return state.title
+    return state?.title
       ? {
           ...state,
           id: budgetId ?? "",
@@ -78,7 +79,6 @@ export function BudgetIdPage() {
 
   const fetchBudgetExpenses = useCallback(async () => {
     try {
-      setLoading(true);
       const expenses = await getExpense("", budgetId);
 
       setExpenses(expenses);
@@ -86,16 +86,21 @@ export function BudgetIdPage() {
       console.log({ error });
       setExpenses([]);
     }
-    setLoading(false);
-  }, [budgetId, setLoading]);
+  }, [budgetId]);
 
   useEffect(() => {
     fetchBudgetExpenses();
   }, [fetchBudgetExpenses]);
 
   const removeExpense = async (id: string, budgetId?: string) => {
-    await deleteExpense(id, budgetId);
-    await fetchBudgetExpenses();
+    const _expenses = filteredExpenses.filter((e) => e.id !== id);
+    setExpenses(_expenses);
+    try {
+      await deleteExpense(id, budgetId);
+      await fetchBudgetExpenses();
+    } catch {
+      await fetchBudgetExpenses();
+    }
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
@@ -116,7 +121,7 @@ export function BudgetIdPage() {
 
   const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
 
-  if (loading || !ready) return <LoadingScreen />;
+  if (!auth?.ready) return null;
 
   const displayTitle = () => {
     const title = budget?.title;
@@ -127,8 +132,8 @@ export function BudgetIdPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto overflow-x-hidden">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2 overflow-x-hidden">
+    <>
+      <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => navigate("/budgets")}
@@ -146,7 +151,7 @@ export function BudgetIdPage() {
           </button>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} />
+        <SearchBox query={query} setQuery={setQuery} title="expenses" />
 
         {showPopup && (
           <div className="w-full overflow-x-hidden">
@@ -168,8 +173,10 @@ export function BudgetIdPage() {
             {formatCurrency(total, currency)}
           </span>
         </p>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-33">
         {budget && (
-          <div className="bg-white dark:bg-gray-900 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
+          <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
             <div className="flex-1">
               <p>Overall Budget Progress</p>
               <ProgressBar
@@ -196,61 +203,60 @@ export function BudgetIdPage() {
             <span className="text-blue-500">({filteredExpenses.length})</span>
           </p>
         ) : null}
-      </div>
 
-      <div className="mx-3.5">
-        <CollapsibleUpcoming
-          upcomingItems={upcomingExpenses}
-          currency={currency!}
-          compType="Expense"
-          removeExpense={removeExpense}
-          duplicateExpense={duplicateOldExpense}
-        />
-      </div>
+        <div className="mx-3.5">
+          <CollapsibleUpcoming
+            upcomingItems={upcomingExpenses}
+            currency={currency!}
+            compType="Expense"
+            removeExpense={removeExpense}
+            duplicateExpense={duplicateOldExpense}
+          />
+        </div>
 
-      {filteredExpenses.length ? (
-        activeExpenses.map(
-          ({ id, title, category, amount, updatedAt, upcoming }) => (
-            <div key={id} className="mx-5">
-              <ExpenseBox
-                key={id}
-                id={id}
-                title={title}
-                category={category}
-                amount={amount || 0}
-                updatedAt={updatedAt || ""}
-                currency={currency!}
-                removeExpense={removeExpense}
-                budgetId={budgetId}
-                duplicateExpense={duplicateOldExpense}
-                upcoming={upcoming}
-              />
-            </div>
+        {filteredExpenses.length ? (
+          activeExpenses.map(
+            ({ id, title, category, amount, updatedAt, upcoming }) => (
+              <div key={id} className="mx-5">
+                <ExpenseBox
+                  key={id}
+                  id={id}
+                  title={title}
+                  category={category}
+                  amount={amount || 0}
+                  updatedAt={updatedAt || ""}
+                  currency={currency!}
+                  removeExpense={removeExpense}
+                  budgetId={budgetId}
+                  duplicateExpense={duplicateOldExpense}
+                  upcoming={upcoming}
+                />
+              </div>
+            )
           )
-        )
-      ) : (
-        <AddNewItem
-          url="/expenses/new"
-          type="expenses"
-          text="No expenses allocated to this budget"
-          id={budgetId}
-        />
-      )}
+        ) : (
+          <AddNewItem
+            url="/expenses/new"
+            type="expenses"
+            text="No expenses allocated to this budget"
+            id={budgetId}
+          />
+        )}
 
-      <div className="fixed bottom-24 inset-x-0 z-50">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <Link
-            to="/expenses/new"
-            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-            aria-label="Add an expense"
-            state={{ id: budgetId }}
-          >
-            <FiPlus className="text-2xl" />
-          </Link>
+        <div className="fixed bottom-24 inset-x-0 z-50">
+          <div className="max-w-md mx-auto px-4 flex justify-end">
+            <Link
+              to="/expenses/new"
+              className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+              aria-label="Add an expense"
+              state={{ id: budgetId }}
+            >
+              <FiPlus className="text-2xl" />
+            </Link>
+          </div>
         </div>
       </div>
-
-      <FooterNav page="budgets" />
-    </div>
+      <FooterNav />
+    </>
   );
 }

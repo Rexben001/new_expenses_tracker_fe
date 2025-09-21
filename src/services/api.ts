@@ -1,4 +1,4 @@
-import { handleUnauthorized } from "./isLoggedIn";
+import { getTokens } from "./amplify";
 
 export const API_BASE_URL =
   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
@@ -11,31 +11,35 @@ async function fetchApi({
   path: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
+  useIdToken?: boolean;
 }) {
   try {
-    const token = localStorage.getItem("idToken");
+    const token = await getTokens();
+
+    if (!token?.idToken) {
+      throw new Error("No ID token available");
+    }
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
       ...(body ? { body: JSON.stringify(body) } : {}),
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token.idToken}`,
       },
     });
 
     if (!response.ok) {
       const error = await response.json();
 
-      if (error.message === "Unauthorized") {
-        handleUnauthorized();
-        throw new Error("Unauthorized");
-      }
+      // if (error.message === "Unauthorized") {
+      //   throw new Error("Unauthorized");
+      // }
       throw new Error(error);
     }
     return response.json();
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data:", String(error));
     throw error;
   }
 }

@@ -15,11 +15,13 @@ export const CollapsibleUpcoming = ({
   compType,
   removeExpense,
   duplicateExpense,
+  removeBudget,
 }: {
   upcomingItems: Budget[] | Expense[];
   currency: string;
   compType: CompType;
   removeExpense?: (id: string, budgetId?: string) => Promise<void>;
+  removeBudget?: (id: string) => Promise<void>;
   duplicateExpense?: (id: string, budgetId?: string) => Promise<void>;
 }) => {
   const [showUpcoming, setShowUpcoming] = useState(false);
@@ -74,6 +76,7 @@ export const CollapsibleUpcoming = ({
                   budget={item as Budget}
                   currency={currency}
                   showExpense={true}
+                  removeBudget={removeBudget!}
                 />
               );
             })}

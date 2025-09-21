@@ -17,6 +17,12 @@ interface IItemContext {
   user: User;
   currency?: string;
   currentYearExpensesTotal: number;
+  isNative: boolean;
+  deviceType: "iphone" | "ipad" | "android" | "web";
+  tokens?: {
+    accessToken: string;
+    idToken: string;
+  };
 }
 
 export const ItemContext = createContext<IItemContext>({} as IItemContext);

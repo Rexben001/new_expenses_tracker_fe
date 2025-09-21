@@ -97,3 +97,45 @@
     animation: none !important;
   }
 }
+
+
+/* src/styles.css */
+html, body, #root { height: 100%; }
+.app {
+  min-height: 100dvh;              /* use dynamic viewport (fixes iOS 100vh) */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Tailwind + Autofill hardening */
+@layer base {
+  /* LIGHT MODE */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    /* paint the background via an inset shadow */
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+            box-shadow: 0 0 0px 1000px #ffffff inset;
+    -webkit-text-fill-color: #111827; /* gray-900 */
+    caret-color: #111827;
+    /* stop color “snap” animations from Chrome */
+    transition: background-color 9999s ease-out 0s, color 9999s ease-out 0s;
+    /* keep rounded corners consistent with your inputs */
+    border-radius: 0.75rem; /* matches rounded-xl */
+  }
+
+  /* DARK MODE */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark textarea:-webkit-autofill,
+  .dark select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px #1f2937 inset; /* gray-800 */
+            box-shadow: 0 0 0px 1000px #1f2937 inset;
+    -webkit-text-fill-color: #f9fafb; /* gray-50 */
+    caret-color: #f9fafb;
+    border-radius: 0.75rem; /* rounded-xl */
+  }
+}

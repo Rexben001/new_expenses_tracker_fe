@@ -1,7 +1,8 @@
 // ocr-guard.ts
 export class ReceiptOcrError extends Error {
   constructor(reason: string, score: number) {
-    super(`OCR_TOO_NOISY: ${reason} (score=${score})`);
+    console.log(`OCR_TOO_NOISY: ${reason} (score=${score})`);
+    super(`${reason}`);
   }
 }
 

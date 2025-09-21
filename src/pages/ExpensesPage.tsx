@@ -1,10 +1,8 @@
 import { useLocation } from "react-router-dom";
-import { FooterNav } from "../components/FooterNav";
 import { deleteExpense, duplicateExpense } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
 import { FiFilter } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
 import { useEffect, useMemo, useState } from "react";
 import { useExpenseFilter, useExpenseSearch } from "../hooks/useExpensesSearch";
@@ -16,9 +14,13 @@ import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
+import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
+import { hasIdToken } from "../services/amplify";
 
 export function ExpensesPage() {
-  const { loading, fetchExpenses, currency, user } = useItemContext();
+  const { fetchExpenses, currency, user, setExpenses } = useItemContext();
   const location = useLocation();
 
   const [query, setQuery] = useState("");
@@ -27,10 +29,12 @@ export function ExpensesPage() {
   const [year, setYear] = useState<string>("");
   const [total, setTotal] = useState(0);
 
+  const auth = useAuth();
+
   const defaults = useMemo(() => {
     if (user?.budgetStartDay == null) return null;
     return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user?.budgetStartDay]);
+  }, [user.budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -38,7 +42,12 @@ export function ExpensesPage() {
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
 
-  const ready = !loading && user?.budgetStartDay != null;
+  useEffect(() => {
+    (async () => {
+      auth?.setAuthed(await hasIdToken());
+      auth?.setReady(true);
+    })();
+  }, [auth]);
 
   const _filterExpenses = useExpenseFilter(
     months,
@@ -65,8 +74,14 @@ export function ExpensesPage() {
   }, [filteredExpenses]);
 
   const removeExpense = async (id: string, budgetId?: string) => {
-    await deleteExpense(id, budgetId);
-    await fetchExpenses();
+    const _expenses = filteredExpenses.filter((e) => e.id !== id);
+    setExpenses(_expenses);
+    try {
+      await deleteExpense(id, budgetId);
+      await fetchExpenses();
+    } catch {
+      await fetchExpenses();
+    }
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
@@ -74,11 +89,11 @@ export function ExpensesPage() {
     await fetchExpenses();
   };
 
-  if (loading || !ready) return <LoadingScreen />;
+  if (!auth?.ready) return null;
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+    <>
+      <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">
             All Expenses{" "}
@@ -92,7 +107,7 @@ export function ExpensesPage() {
           </button>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} />
+        <SearchBox query={query} setQuery={setQuery} title="expenses" />
 
         {showPopup && (
           <ItemFilterPopup
@@ -111,56 +126,54 @@ export function ExpensesPage() {
             {formatCurrency(total, currency)}
           </span>
         </p>
-      </div>
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-32">
+        <div className="mx-1 pt-2">
+          <CollapsibleUpcoming
+            upcomingItems={upcomingExpenses}
+            currency={currency!}
+            compType="Expense"
+            removeExpense={removeExpense}
+            duplicateExpense={duplicateOldExpense}
+          />
 
-      <CollapsibleUpcoming
-        upcomingItems={upcomingExpenses}
-        currency={currency!}
-        compType="Expense"
-        removeExpense={removeExpense}
-        duplicateExpense={duplicateOldExpense}
-      />
-
-      {filteredExpenses?.length ? (
-        activeExpenses.map(
-          ({ id, title, category, amount, updatedAt, budgetId, upcoming }) => (
-            <ExpenseBox
-              key={id}
-              id={id}
-              title={title}
-              category={category}
-              amount={amount}
-              updatedAt={updatedAt}
-              currency={currency!}
-              budgetId={budgetId}
-              upcoming={upcoming}
-              removeExpense={removeExpense}
-              duplicateExpense={duplicateOldExpense}
+          {filteredExpenses?.length ? (
+            activeExpenses.map(
+              ({
+                id,
+                title,
+                category,
+                amount,
+                updatedAt,
+                budgetId,
+                upcoming,
+              }) => (
+                <ExpenseBox
+                  key={id}
+                  id={id}
+                  title={title}
+                  category={category}
+                  amount={amount}
+                  updatedAt={updatedAt}
+                  currency={currency!}
+                  budgetId={budgetId}
+                  upcoming={upcoming}
+                  removeExpense={removeExpense}
+                  duplicateExpense={duplicateOldExpense}
+                />
+              )
+            )
+          ) : (
+            <AddNewItem
+              url="/expenses/new"
+              type="expenses"
+              text="You don't have any expenses"
             />
-          )
-        )
-      ) : (
-        <AddNewItem
-          url="/expenses/new"
-          type="expenses"
-          text="You don't have any expenses"
-        />
-      )}
-
-      {/* <div className="fixed bottom-24 inset-x-0 z-50">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <Link
-            to="/expenses/new"
-            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-            aria-label="Add an expense"
-          >
-            <FiPlus className="text-2xl" />
-          </Link>
+          )}
+          <FloatingActionButton />
         </div>
-      </div> */}
-      <FloatingActionButton />
-
-      <FooterNav page="expenses" />
-    </div>
+      </div>
+      <FooterNav />
+    </>
   );
 }

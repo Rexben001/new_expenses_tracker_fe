@@ -1,8 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { FiFilter, FiPlus } from "react-icons/fi";
-import { FooterNav } from "../components/FooterNav";
 import { useItemContext } from "../hooks/useItemContext";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { AddNewItem } from "../components/NoItem";
 import { useEffect, useMemo, useState } from "react";
 import { useBudgetFilter, useBudgetSearch } from "../hooks/useBudgetsSearch";
@@ -13,11 +11,17 @@ import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
 import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
+import { HeaderComponent } from "../components/HeaderComponent";
+import { FooterNav } from "../components/FooterNav";
+import { useAuth } from "../context/AuthContext";
+import { deleteBudget } from "../services/api";
 
 export function BudgetPage() {
   const location = useLocation();
 
-  const { loading, fetchBudgets, currency, user } = useItemContext();
+  const auth = useAuth();
+
+  const { fetchBudgets, currency, user, setBudgets } = useItemContext();
 
   const [query, setQuery] = useState("");
 
@@ -38,8 +42,6 @@ export function BudgetPage() {
     setMonths((prev) => (prev.length ? prev : [defaults.month]));
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
-
-  const ready = !loading && user?.budgetStartDay != null;
 
   const _filterBudgets = useBudgetFilter(
     months,
@@ -68,17 +70,28 @@ export function BudgetPage() {
     window.history.replaceState({}, document.title);
   }, []);
 
-  if (loading || !ready) return <LoadingScreen />;
-
   const resetFilter = () => {
     setMonths([]);
     setYear("");
     setShowPopup(false);
   };
 
+  const removeBudget = async (id: string) => {
+    const _budgets = filteredBudgets.filter((e) => e.id !== id);
+    setBudgets(_budgets);
+    try {
+      await deleteBudget(id);
+      await fetchBudgets();
+    } catch {
+      await fetchBudgets();
+    }
+  };
+
+  if (!auth?.ready) return null;
+
   return (
-    <div className="relative min-h-screen bg-white  dark:bg-gray-900 dark:text-white px-4 pt-6 pb-24 max-w-md mx-auto">
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 pb-2">
+    <>
+      <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">
             All Budgets{" "}
@@ -92,7 +105,7 @@ export function BudgetPage() {
           </button>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} />
+        <SearchBox query={query} setQuery={setQuery} title="budgets" />
 
         {showPopup && (
           <ItemFilterPopup
@@ -110,44 +123,48 @@ export function BudgetPage() {
             {formatCurrency(total, currency)}
           </span>
         </p>
-      </div>
-
-      <CollapsibleUpcoming
-        upcomingItems={upcomingBudgets}
-        currency={currency!}
-        compType="Budget"
-      />
-
-      {filteredBudgets.length ? (
-        activeBudgets.map((budget) => (
-          <BudgetBox
-            key={budget.id}
-            budget={budget}
-            currency={currency}
-            showExpense={true}
+      </HeaderComponent>
+      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-34">
+        <div className="mx-1">
+          <CollapsibleUpcoming
+            upcomingItems={upcomingBudgets}
+            currency={currency!}
+            compType="Budget"
+            removeBudget={removeBudget}
           />
-        ))
-      ) : (
-        <AddNewItem
-          url="/budgets/new"
-          type="budgets"
-          text="You don't have any budgets"
-        />
-      )}
 
-      <div className="fixed bottom-24 inset-x-0 z-50">
-        <div className="max-w-md mx-auto px-4 flex justify-end">
-          <Link
-            to="/budgets/new"
-            className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
-            aria-label="Add an expense"
-          >
-            <FiPlus className="text-2xl" />
-          </Link>
+          {filteredBudgets.length ? (
+            activeBudgets.map((budget) => (
+              <BudgetBox
+                key={budget.id}
+                budget={budget}
+                currency={currency}
+                showExpense={true}
+                removeBudget={removeBudget}
+              />
+            ))
+          ) : (
+            <AddNewItem
+              url="/budgets/new"
+              type="budgets"
+              text="You don't have any budgets"
+            />
+          )}
+
+          <div className="fixed bottom-24 inset-x-0 z-50">
+            <div className="max-w-md mx-auto px-4 flex justify-end">
+              <Link
+                to="/budgets/new"
+                className="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg"
+                aria-label="Add an expense"
+              >
+                <FiPlus className="text-2xl" />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-
-      <FooterNav page="budgets" />
-    </div>
+      <FooterNav />
+    </>
   );
 }
