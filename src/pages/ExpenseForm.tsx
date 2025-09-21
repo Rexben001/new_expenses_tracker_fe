@@ -218,7 +218,6 @@ export function ExpenseForm() {
                 name="budgetId"
                 value={formData.budgetId?.toString() ?? ""}
                 onChange={handleChange}
-                required
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="" disabled>
