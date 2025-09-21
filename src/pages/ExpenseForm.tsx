@@ -149,7 +149,7 @@ export function ExpenseForm() {
         )}
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label className="text-sm text-gray-500 dark:text-white  mb-1 block">
+            <label className="text-sm text-gray-500 dark:text-white  my-1 block">
               Expense Name
             </label>
             <input
