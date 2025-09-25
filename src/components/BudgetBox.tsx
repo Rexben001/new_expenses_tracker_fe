@@ -24,7 +24,7 @@ export const BudgetBox = ({
   currency?: string;
   showExpense?: boolean;
   removeBudget: (id: string) => Promise<void>;
-  updateFavorites: (id: string, favorite: boolean) => Promise<void>;
+  updateFavorites?: (id: string, favorite: boolean) => Promise<void>;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -140,7 +140,8 @@ export const BudgetBox = ({
                 aria-label={favorite ? "Unfavorite" : "Favorite"}
                 onClick={(e) => {
                   e.stopPropagation();
-                  updateFavorites(id, !favorite)!;
+                  if (typeof updateFavorites === "function")
+                    updateFavorites(id, !favorite)!;
                 }}
                 className={`transition p-0.5 rounded-full text-yellow-400 ${
                   favorite ? "opacity-100" : "opacity-30 hover:opacity-60"
@@ -204,7 +205,8 @@ export const BudgetBox = ({
                   <button
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                     onClick={() => {
-                      updateFavorites(id, !favorite)!;
+                      if (typeof updateFavorites === "function")
+                        updateFavorites(id, !favorite)!;
                       setShowMenu(false);
                     }}
                   >

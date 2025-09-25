@@ -20,7 +20,7 @@ export interface IExpenseBox {
   favorite?: boolean;
   removeExpense: (id: string, budgetId?: string) => Promise<void>;
   duplicateExpense: (id: string, budgetId?: string) => Promise<void>;
-  updateFavorites: (
+  updateFavorites?: (
     id: string,
     budgetId: string,
     favorite: boolean
@@ -120,7 +120,8 @@ export const ExpenseBox = ({
             aria-label={favorite ? "Unfavorite" : "Favorite"}
             onClick={(e) => {
               e.stopPropagation();
-              updateFavorites(id, budgetId!, !favorite);
+              if (typeof updateFavorites === "function")
+                updateFavorites(id, budgetId!, !favorite);
             }}
             className={`transition p-0.5 rounded-full text-yellow-400 ${
               favorite ? "opacity-100" : "opacity-30 hover:opacity-60"
@@ -187,7 +188,8 @@ export const ExpenseBox = ({
               <button
                 className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
                 onClick={() => {
-                  updateFavorites(id, budgetId!, !favorite);
+                  if (typeof updateFavorites === "function")
+                    updateFavorites(id, budgetId!, !favorite);
                   setShowMenu(false);
                 }}
               >
