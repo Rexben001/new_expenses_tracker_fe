@@ -30,7 +30,7 @@ export function filterByDate(
     const raw = parseISO(item.updatedAt);
 
     // Shift back a month if the day is BEFORE the budget start day
-    const shifted = getDate(raw) < budgetStartDay ? subMonths(raw, 1) : raw;
+    const shifted = getDate(raw) <= budgetStartDay ? subMonths(raw, 1) : raw;
 
     const shiftedMonth = getMonth(shifted) + 1; // 1..12
     const shiftedYear = getYear(shifted);

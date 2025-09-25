@@ -11,17 +11,20 @@ import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
+import { FiStar } from "react-icons/fi";
 
 export const BudgetBox = ({
   budget,
   currency,
   showExpense,
   removeBudget,
+  updateFavorites,
 }: {
   budget: Budget;
   currency?: string;
   showExpense?: boolean;
   removeBudget: (id: string) => Promise<void>;
+  updateFavorites?: (id: string, favorite: boolean) => Promise<void>;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,7 +68,8 @@ export const BudgetBox = ({
 
   const navigate = useNavigate();
 
-  const { id, title, category, period, updatedAt, amount, upcoming } = budget;
+  const { id, title, category, period, updatedAt, amount, upcoming, favorite } =
+    budget;
 
   const remaining = calculateRemaining(budget.amount, expenses);
 
@@ -127,9 +131,28 @@ export const BudgetBox = ({
       <div className="flex-1">
         <div className="flex justify-between">
           <div>
-            <p className={`font-bold text-lg mb-1 ${textColor}`}>
-              {budget?.title}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className={`font-bold text-lg mb-1 ${textColor}`}>
+                {budget?.title}
+              </p>
+              <button
+                type="button"
+                aria-label={favorite ? "Unfavorite" : "Favorite"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (typeof updateFavorites === "function")
+                    updateFavorites(id, !favorite)!;
+                }}
+                className={`transition p-0.5 rounded-full text-yellow-400 ${
+                  favorite ? "opacity-100" : "opacity-30 hover:opacity-60"
+                }`}
+              >
+                <FiStar
+                  className="w-4 h-4"
+                  fill={favorite ? "currentColor" : "none"}
+                />
+              </button>
+            </div>
             {
               <CategoryComponent
                 category={budget?.category ?? ""}
@@ -175,6 +198,19 @@ export const BudgetBox = ({
                     }}
                   >
                     Delete
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                    onClick={() => {
+                      if (typeof updateFavorites === "function")
+                        updateFavorites(id, !favorite)!;
+                      setShowMenu(false);
+                    }}
+                  >
+                    {favorite ? " Remove from Favorites" : " Add to Favorites"}
                   </button>
                 </li>
                 <li>

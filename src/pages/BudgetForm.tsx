@@ -9,6 +9,7 @@ import { SuggestionCategories } from "../components/Category";
 import { suggestCategories } from "../services/suggestCategory";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
+import SwipeShell from "../components/SwipeShell";
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -80,7 +81,7 @@ export function BudgetForm() {
   };
 
   return (
-    <>
+    <SwipeShell>
       <HeaderComponent>
         <div className="flex items-center gap-4 mb-6">
           <button
@@ -211,6 +212,6 @@ export function BudgetForm() {
         </form>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }

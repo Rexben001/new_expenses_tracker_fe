@@ -15,34 +15,30 @@ export const UpcomingBox = ({
   currency?: string;
 }) => {
   return (
-    <div className="dark:shadow-amber-50 rounded-xl p-2 px-4 shadow mb-2 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700">
-      <div className="flex justify-between items-center text-sm gap-4 pt-1">
-        <p
-          className={`font-semibold text-base text-gray-250 dark:text-gray-500`}
-        >
-          {title}
-        </p>
-        <p
-          className={`font-semibold text-base text-gray-250 dark:text-gray-500`}
-        >
-          {formatCurrency(amount, currency)}
-        </p>
-        <div
-          onClick={() => {
-            updateItem();
-          }}
-          className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
-        >
-          <div
-            className={`w-6 h-6 flex items-center justify-center rounded-full shadow-md transform transition-transform duration-300`}
-          ></div>
-        </div>
+    <div className="rounded-xl px-4 py-2 mb-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500 text-sm flex items-center justify-between shadow-sm">
+      <div className="flex flex-col flex-1 min-w-0">
+        <p className="truncate font-medium">{title}</p>
+        {updatedAt && (
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            {formatRelativeDate(updatedAt)}
+          </p>
+        )}
       </div>
 
-      <p className="text-xs text-gray-400 mt-1">
-        {" "}
-        {formatRelativeDate(updatedAt)}
-      </p>
+      <div className="flex items-center gap-2 ml-4">
+        <p className="font-semibold text-sm text-gray-500 dark:text-gray-400">
+          {formatCurrency(amount, currency)}
+        </p>
+
+        {/* Toggle */}
+        <div
+          onClick={updateItem}
+          title="Activate expense"
+          className="w-10 h-5 flex items-center bg-gray-300 dark:bg-gray-700 rounded-full p-0.5 cursor-pointer relative hover:bg-blue-400 dark:hover:bg-blue-600 transition"
+        >
+          <div className="w-4 h-4 bg-white rounded-full shadow transition-transform transform translate-x-0" />
+        </div>
+      </div>
     </div>
   );
 };

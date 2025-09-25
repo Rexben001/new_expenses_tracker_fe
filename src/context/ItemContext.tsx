@@ -50,7 +50,6 @@ export function ItemContextProvider(
     fetchUser();
     getDeviceType().then((type) => setDeviceType(type));
     getTokens().then((t) => {
-      console.log({ t });
       if (t && t.accessToken && t.idToken) {
         setTokens({ accessToken: t.accessToken, idToken: t.idToken });
       } else {

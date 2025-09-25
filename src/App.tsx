@@ -28,6 +28,7 @@ const isNative = Capacitor.isNativePlatform();
 
 export default function App() {
   useEffect(() => {
+    if (!isNative) return;
     Keyboard.setResizeMode({ mode: KeyboardResize.Body }); // "native" is what often causes big jumps
     // Optional: if you don't want the WebView to scroll itself
     // Keyboard.setScroll({ isDisabled: true });

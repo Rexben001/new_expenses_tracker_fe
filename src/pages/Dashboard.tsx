@@ -21,6 +21,7 @@ import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { Modal } from "../components/Modal";
+import SwipeShell from "../components/SwipeShell";
 
 export function Dashboard() {
   const { expenses, budgets, loading, user, currency } = useItemContext();
@@ -52,7 +53,7 @@ export function Dashboard() {
   if (loading || !auth?.authed) return null;
 
   return (
-    <>
+    <SwipeShell toLeft="/expenses">
       <HeaderComponent>
         <header className="flex items-center justify-between pb-2">
           <div
@@ -269,6 +270,6 @@ export function Dashboard() {
         <ExpenseChart />
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }

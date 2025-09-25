@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { FiFilter, FiPlus, FiChevronLeft } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { deleteExpense, duplicateExpense, getExpense } from "../services/api";
+import {
+  deleteExpense,
+  duplicateExpense,
+  getExpense,
+  updateExpense,
+} from "../services/api";
 import { AddNewItem } from "../components/NoItem";
 import { ExpenseBox } from "../components/ExpenseBox";
 import type { Expense } from "../types/expenses";
@@ -19,6 +24,7 @@ import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
+import SwipeShell from "../components/SwipeShell";
 
 export function BudgetIdPage() {
   const { budgets, currency, user } = useItemContext();
@@ -121,6 +127,27 @@ export function BudgetIdPage() {
 
   const remaining = calculateRemaining(budget?.amount ?? 0, expenses);
 
+  const updateFavorites = async (
+    expenseId: string,
+    id: string,
+    favorite: boolean
+  ) => {
+    const expenses = filteredExpenses.map((e) => {
+      if (e.id === id) {
+        return { ...e, favorite };
+      }
+      return e;
+    });
+    setExpenses(expenses);
+    await updateExpense(
+      expenseId,
+      {
+        favorite,
+      },
+      id
+    );
+  };
+
   if (!auth?.ready) return null;
 
   const displayTitle = () => {
@@ -132,7 +159,7 @@ export function BudgetIdPage() {
   };
 
   return (
-    <>
+    <SwipeShell>
       <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <button
@@ -151,7 +178,9 @@ export function BudgetIdPage() {
           </button>
         </div>
 
-        <SearchBox query={query} setQuery={setQuery} title="expenses" />
+        {!showPopup && (
+          <SearchBox query={query} setQuery={setQuery} title="expenses" />
+        )}
 
         {showPopup && (
           <div className="w-full overflow-x-hidden">
@@ -216,7 +245,15 @@ export function BudgetIdPage() {
 
         {filteredExpenses.length ? (
           activeExpenses.map(
-            ({ id, title, category, amount, updatedAt, upcoming }) => (
+            ({
+              id,
+              title,
+              category,
+              amount,
+              updatedAt,
+              upcoming,
+              favorite,
+            }) => (
               <div key={id} className="mx-5">
                 <ExpenseBox
                   key={id}
@@ -230,6 +267,8 @@ export function BudgetIdPage() {
                   budgetId={budgetId}
                   duplicateExpense={duplicateOldExpense}
                   upcoming={upcoming}
+                  favorite={favorite}
+                  updateFavorites={updateFavorites}
                 />
               </div>
             )
@@ -257,6 +296,6 @@ export function BudgetIdPage() {
         </div>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }
