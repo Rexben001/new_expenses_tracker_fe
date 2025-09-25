@@ -5,6 +5,7 @@ export type Expense = {
   updatedAt: string;
   currency: string;
   amount: number;
-  budgetId?: string
+  budgetId?: string;
   upcoming?: boolean;
+  favorite?: boolean;
 };

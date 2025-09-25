@@ -7,4 +7,5 @@ export type Budget = {
   updatedAt: string;
   currency: string;
   upcoming?: boolean;
+  favorite?: boolean;
 };

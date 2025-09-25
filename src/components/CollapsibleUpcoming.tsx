@@ -16,15 +16,17 @@ export const CollapsibleUpcoming = ({
   removeExpense,
   duplicateExpense,
   removeBudget,
+  show = false,
 }: {
   upcomingItems: Budget[] | Expense[];
   currency: string;
   compType: CompType;
+  show?: boolean;
   removeExpense?: (id: string, budgetId?: string) => Promise<void>;
   removeBudget?: (id: string) => Promise<void>;
   duplicateExpense?: (id: string, budgetId?: string) => Promise<void>;
 }) => {
-  const [showUpcoming, setShowUpcoming] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(show);
 
   const totalUpcoming = getTotal(upcomingItems, false);
 

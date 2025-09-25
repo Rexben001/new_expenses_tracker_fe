@@ -6,5 +6,6 @@ export type BUDGET_STATE = {
   updatedAt?: string;
   currency?: string;
   upcoming?: string;
+  favorite?: boolean;
   id?: string;
 };

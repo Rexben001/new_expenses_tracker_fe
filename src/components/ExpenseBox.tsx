@@ -6,8 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
 import { updateExpense } from "../services/api";
+import { FiStar } from "react-icons/fi";
 
-type ExpenseBox = {
+export interface IExpenseBox {
   id: string;
   title: string;
   category: string;
@@ -16,9 +17,15 @@ type ExpenseBox = {
   amount: number;
   budgetId?: string;
   upcoming?: boolean;
+  favorite?: boolean;
   removeExpense: (id: string, budgetId?: string) => Promise<void>;
   duplicateExpense: (id: string, budgetId?: string) => Promise<void>;
-};
+  updateFavorites: (
+    id: string,
+    budgetId: string,
+    favorite: boolean
+  ) => Promise<void>;
+}
 
 export const ExpenseBox = ({
   id,
@@ -30,8 +37,10 @@ export const ExpenseBox = ({
   budgetId,
   upcoming,
   removeExpense,
+  favorite,
   duplicateExpense,
-}: ExpenseBox) => {
+  updateFavorites,
+}: IExpenseBox) => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -104,7 +113,25 @@ export const ExpenseBox = ({
       }}
     >
       <div>
-        <p className={`font-semibold text-base ${textColor}`}>{title}</p>
+        <div className="flex items-center gap-2">
+          <p className={`font-semibold text-base ${textColor}`}>{title}</p>
+          <button
+            type="button"
+            aria-label={favorite ? "Unfavorite" : "Favorite"}
+            onClick={(e) => {
+              e.stopPropagation();
+              updateFavorites(id, budgetId!, !favorite);
+            }}
+            className={`transition p-0.5 rounded-full text-yellow-400 ${
+              favorite ? "opacity-100" : "opacity-30 hover:opacity-60"
+            }`}
+          >
+            <FiStar
+              className="w-4 h-4"
+              fill={favorite ? "currentColor" : "none"}
+            />
+          </button>
+        </div>{" "}
         {<CategoryComponent category={category} isUpcoming={upcoming} />}
         <p className="text-xs text-gray-400 mt-1">
           {" "}
@@ -154,6 +181,17 @@ export const ExpenseBox = ({
                 }}
               >
                 Duplicate
+              </button>
+            </li>
+            <li>
+              <button
+                className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                onClick={() => {
+                  updateFavorites(id, budgetId!, !favorite);
+                  setShowMenu(false);
+                }}
+              >
+                {favorite ? " Remove from Favorites" : " Add to Favorites"}
               </button>
             </li>
           </ul>
