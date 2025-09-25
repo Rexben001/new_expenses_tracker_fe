@@ -22,6 +22,7 @@ import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
 import { hasIdToken } from "../services/amplify";
+import SwipeShell from "../components/SwipeShell";
 
 type TabKey = "ALL" | "FAV" | "UPCOMING";
 
@@ -141,7 +142,7 @@ export function ExpensesPage() {
   };
 
   return (
-    <>
+    <SwipeShell toLeft="/budgets" toRight="/">
       <HeaderComponent>
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold">
@@ -325,6 +326,6 @@ export function ExpensesPage() {
         </div>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }

@@ -6,6 +6,7 @@ import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
+import SwipeShell from "../components/SwipeShell";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
 
@@ -72,7 +73,7 @@ export function Profile() {
   if (loading) return null;
 
   return (
-    <>
+    <SwipeShell toRight="/budgets">
       <HeaderComponent>
         <header className="flex items-center justify-between">
           <div
@@ -211,6 +212,6 @@ export function Profile() {
         </section>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }

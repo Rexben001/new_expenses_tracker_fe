@@ -15,6 +15,7 @@ import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
 import { deleteBudget, updateBudget } from "../services/api";
+import SwipeShell from "../components/SwipeShell";
 
 type TabKey = "ALL" | "FAV" | "UPCOMING";
 
@@ -97,13 +98,11 @@ export function BudgetPage() {
     });
     setBudgets(budgets);
 
-    console.log("bbbb");
     try {
       await updateBudget(id, {
         favorite,
       });
       await fetchBudgets();
-      console.log("bbbbee44");
     } catch {
       await fetchBudgets();
     }
@@ -126,7 +125,7 @@ export function BudgetPage() {
   };
 
   return (
-    <>
+    <SwipeShell toLeft="/settings" toRight="/expenses">
       <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">
@@ -276,6 +275,6 @@ export function BudgetPage() {
         </div>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }

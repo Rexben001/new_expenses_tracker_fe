@@ -24,6 +24,7 @@ import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
+import SwipeShell from "../components/SwipeShell";
 
 export function BudgetIdPage() {
   const { budgets, currency, user } = useItemContext();
@@ -158,7 +159,7 @@ export function BudgetIdPage() {
   };
 
   return (
-    <>
+    <SwipeShell>
       <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <button
@@ -295,6 +296,6 @@ export function BudgetIdPage() {
         </div>
       </div>
       <FooterNav />
-    </>
+    </SwipeShell>
   );
 }
