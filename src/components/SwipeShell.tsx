@@ -55,8 +55,6 @@ export default function SwipeShell({
     onSwiped: (e) => {
       if (disabled) return;
 
-      console.log("here");
-
       const target = e.event.target as HTMLElement;
       if (target.closest("input, textarea, select, [contenteditable='true']"))
         return;
@@ -76,9 +74,5 @@ export default function SwipeShell({
     },
   });
 
-  return (
-    <div {...handlers} className="h-full">
-      {children}
-    </div>
-  );
+  return <div {...handlers}>{children}</div>;
 }

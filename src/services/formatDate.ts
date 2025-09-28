@@ -80,7 +80,7 @@ export function getMonthAndYear(date: string) {
   return format(parseDate, "MMM yyyy");
 }
 
-export function getDefaultBudgetMonthYear(budgetStartDay = 23) {
+export function getDefaultBudgetMonthYear(budgetStartDay = 1) {
   const now = new Date();
   const ref = now.getDate() < budgetStartDay ? subMonths(now, 1) : now;
 
