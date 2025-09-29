@@ -1,4 +1,4 @@
-import { parseISO, getDate, getMonth, getYear, subMonths } from "date-fns";
+import { parseISO, getDate, getMonth, getYear, subMonths, getDaysInMonth, setDate } from "date-fns";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { getDefaultBudgetMonthYear } from "./formatDate";
@@ -8,36 +8,45 @@ export function filterByDate(
   months: string[], // e.g. ["7","8"]
   year: string, // e.g. "2025"
   budgetStartDay: number = 1,
-  options?: { includeUpcoming?: boolean } // optional toggle
+  options?: { includeUpcoming?: boolean }
 ) {
-  // Default month/year when not provided
-  const selected = months?.length
-    ? months
-    : [getDefaultBudgetMonthYear(budgetStartDay).month];
-  const selectedYear = year || getDefaultBudgetMonthYear(budgetStartDay).year;
-  const selectedYearNum = Number(selectedYear);
+  const { month: defMonth, year: defYear } =
+    getDefaultBudgetMonthYear(budgetStartDay);
 
-  // Normalize selected months to numbers 1..12
-  const monthSet = new Set(selected.map((m) => Number(m)));
+  const selectedMonths = (months?.length ? months : [defMonth]).map((m) =>
+    Number(m)
+  );
+  const selectedYearNum = Number(year || defYear);
+  const monthSet = new Set(selectedMonths);
 
   const includeUpcoming = options?.includeUpcoming ?? true;
 
-  const results = items.filter((item) => {
-    // Skip upcoming if requested
-    if (!includeUpcoming && item?.upcoming) return false;
+  return Array.from(
+    new Map(
+      items
+        .filter((item) => {
+          if (!includeUpcoming && item?.upcoming) return false;
+          if (!item?.updatedAt) return false;
 
-    if (!item.updatedAt) return false;
-    const raw = parseISO(item.updatedAt);
+          const d = parseISO(item.updatedAt);
+          if (isNaN(d as any)) return false;
 
-    // Shift back a month if the day is BEFORE the budget start day
-    const shifted = getDate(raw) <= budgetStartDay ? subMonths(raw, 1) : raw;
+          const day = getDate(d);
 
-    const shiftedMonth = getMonth(shifted) + 1; // 1..12
-    const shiftedYear = getYear(shifted);
+          // Decide which month the period starts in (same or previous)
+          const base = day >= budgetStartDay ? d : subMonths(d, 1);
 
-    return shiftedYear === selectedYearNum && monthSet.has(shiftedMonth);
-  });
+          // Clamp the start day to that month's max days (handles 28/29/30/31)
+          const maxDay = getDaysInMonth(base);
+          const anchor = setDate(base, Math.min(budgetStartDay, maxDay));
 
-  // If needed, dedupe by id
-  return Array.from(new Map(results.map((it) => [it.id, it])).values());
+          const anchorMonth = getMonth(anchor) + 1; // 1..12
+          const anchorYear = getYear(anchor);
+
+          return anchorYear === selectedYearNum && monthSet.has(anchorMonth);
+        })
+        // de‑dupe by id if needed
+        .map((it) => [it.id, it] as const)
+    ).values()
+  );
 }

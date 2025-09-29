@@ -234,27 +234,7 @@ export function Dashboard() {
               </button>
             </div>
           )}
-        </section>
-        {/* 
-      <section>
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="font-semibold">Recent Budgets</h3>
-          <button className="text-sm text-blue-500">
-            <Link to={"/budgets"}>View all</Link>
-          </button>
-        </div>{" "}
-        {budgets?.length === 0 ? (
-          <div className="bg-gray-100 text-center text-sm text-gray-500 p-4 rounded-xl">
-            <p>You don’t have any budget for this month</p>
-            <button className="mt-2 text-blue-500">
-              <Link to="/budgets/new">+ Add budget</Link>
-            </button>
-          </div>
-        ) : (
-          <BudgetBox budget={budget} currency={currency} showExpense={true} />
-        )}
-      </section> */}
-
+        </section>    
         <ExpenseChart />
       </div>
       <FooterNav />
