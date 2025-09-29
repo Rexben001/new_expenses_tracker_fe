@@ -46,9 +46,10 @@ export function ExpensesPage() {
 
   useEffect(() => {
     if (!defaults) return;
-    setMonths((prev) => (prev.length ? prev : [defaults.month]));
-    setYear((prev) => (prev ? prev : defaults.year));
-  }, [defaults]);
+    // Always reset on start-day changes
+    setMonths([defaults.month]);
+    setYear(defaults.year);
+  }, [defaults, defaults?.month, defaults?.year]);
 
   useEffect(() => {
     (async () => {

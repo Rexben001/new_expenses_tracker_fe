@@ -84,6 +84,8 @@ export function getDefaultBudgetMonthYear(budgetStartDay = 1) {
   const now = new Date();
   const ref = now.getDate() < budgetStartDay ? subMonths(now, 1) : now;
 
+  ref.setHours(0, 0, 0, 0);
+
   return {
     month: String(getMonthFn(ref) + 1),
     year: String(getYearFn(ref)),
