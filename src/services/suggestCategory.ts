@@ -196,13 +196,12 @@ const ALIASES: Record<string, Cat> = {
 
 // Weighting knobs
 const WEIGHTS = {
-  keyword: 3, // matched keyword from KEYWORDS
+  keyword: 3,
   categoryMention: 2, // if the category name itself appears in the title
   recentBoost: 0.75, // each recent category occurrence
   exactMerchantBoost: 1.5, // if an alias/brand appears exactly
 };
 
-// If caller doesn’t supply these helpers, fall back to internal ones
 const normalizeText = (s: string) =>
   s
     .toLowerCase()
@@ -279,7 +278,6 @@ export function suggestCategories(
   }
 ): string[] {
   if (!rawTitle?.trim()) return [];
-
 
   const norm =
     opts?.normalize ??
