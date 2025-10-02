@@ -212,7 +212,11 @@ export function ExpensesPage() {
         </p>
       </HeaderComponent>
 
-      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-42">
+      <div
+        className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
+          showPopup ? "mt-50" : "mt-42"
+        }`}
+      >
         <div className="mx-1 pt-2">
           {/* Content per tab */}
           {tab === "ALL" && (
