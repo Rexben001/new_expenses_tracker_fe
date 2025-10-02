@@ -143,7 +143,7 @@ export function ExpensesPage() {
   };
 
   return (
-    <SwipeShell toLeft="/budgets" toRight="/">
+    <SwipeShell toLeft="/budgets" toRight="/" refresh={fetchExpenses}>
       <HeaderComponent>
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold">
@@ -211,10 +211,9 @@ export function ExpensesPage() {
           </span>
         </p>
       </HeaderComponent>
-
       <div
         className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-50" : "mt-42"
+          showPopup ? "mt-37" : "mt-30"
         }`}
       >
         <div className="mx-1 pt-2">

@@ -159,7 +159,7 @@ export function BudgetIdPage() {
   };
 
   return (
-    <SwipeShell>
+    <SwipeShell refresh={fetchBudgetExpenses}>
       <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <button

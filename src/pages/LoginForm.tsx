@@ -125,8 +125,12 @@ export default function LoginForm() {
       setPass("");
       setNewPass("");
       setCode("");
-    } catch (e: any) {
-      setErr(e.message || "Failed to reset");
+    } catch (e: unknown) {
+      if (e && typeof e === "object" && "message" in e) {
+        setErr((e as { message?: string }).message || "Failed to reset");
+      } else {
+        setErr("Failed to reset");
+      }
     } finally {
       setBusy(false);
     }

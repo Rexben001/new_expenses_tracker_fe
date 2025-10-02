@@ -23,7 +23,15 @@ import { useBudgetFilter } from "../hooks/useBudgetsSearch";
 import { OverviewBoard } from "../components/Overview";
 
 export function Dashboard() {
-  const { expenses, budgets, loading, user, currency } = useItemContext();
+  const {
+    expenses,
+    budgets,
+    loading,
+    user,
+    currency,
+    fetchExpenses,
+    fetchBudgets,
+  } = useItemContext();
 
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
@@ -99,7 +107,14 @@ export function Dashboard() {
   if (loading || !auth?.authed) return null;
 
   return (
-    <SwipeShell toLeft="/expenses">
+    <SwipeShell
+      toLeft="/expenses"
+      refresh={() => {
+        fetchExpenses();
+        fetchBudgets();
+        return Promise.resolve();
+      }}
+    >
       <HeaderComponent>
         <header className="flex items-center justify-between pb-2">
           <div
@@ -234,7 +249,7 @@ export function Dashboard() {
               </button>
             </div>
           )}
-        </section>    
+        </section>
         <ExpenseChart />
       </div>
       <FooterNav />

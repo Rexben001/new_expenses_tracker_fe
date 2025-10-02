@@ -139,3 +139,9 @@ html, body, #root { height: 100%; }
     border-radius: 0.75rem; /* rounded-xl */
   }
 }
+
+.page-scroll {
+  overscroll-behavior: contain;     /* prevent page-level refresh */
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;               /* allow vertical pans, not horizontal */
+}

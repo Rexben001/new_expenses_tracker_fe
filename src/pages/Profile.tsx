@@ -73,7 +73,7 @@ export function Profile() {
   if (loading) return null;
 
   return (
-    <SwipeShell toRight="/budgets">
+    <SwipeShell toRight="/budgets" refresh={fetchUser}>
       <HeaderComponent>
         <header className="flex items-center justify-between">
           <div

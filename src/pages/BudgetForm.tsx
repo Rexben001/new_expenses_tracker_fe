@@ -85,7 +85,7 @@ export function BudgetForm() {
   };
 
   return (
-    <SwipeShell>
+    <SwipeShell refresh={Promise.resolve}>
       <HeaderComponent>
         <div className="flex items-center gap-4 mb-6">
           <button

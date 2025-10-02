@@ -80,7 +80,7 @@ export default function ScanReceiptRoute() {
   };
 
   return (
-    <SwipeShell>
+    <SwipeShell refresh={Promise.resolve}>
       <div className="max-w-md mx-auto p-4">
         <h2 className="text-lg font-semibold">Scan a receipt</h2>
         <p className="text-sm text-gray-600 mb-3">

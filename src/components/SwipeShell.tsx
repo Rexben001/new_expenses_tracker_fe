@@ -2,12 +2,15 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useNavigate } from "react-router-dom";
+import PullToRefresh from "react-simple-pull-to-refresh";
+import { FiArrowDown } from "react-icons/fi";
 
 type Props = {
   children: ReactNode;
   toLeft?: string; // navigate when user swipes LEFT (→ next screen)
   toRight?: string; // navigate when user swipes RIGHT (→ previous screen)
   disabled?: boolean;
+  refresh: () => Promise<void>;
 };
 
 export default function SwipeShell({
@@ -15,6 +18,7 @@ export default function SwipeShell({
   toLeft,
   toRight,
   disabled,
+  refresh,
 }: Props) {
   const nav = useNavigate();
   const startXRef = useRef(0);
@@ -74,5 +78,32 @@ export default function SwipeShell({
     },
   });
 
-  return <div {...handlers}>{children}</div>;
+  return (
+    <div {...handlers}>
+      <PullToRefresh
+        onRefresh={refresh}
+        pullingContent={
+          <div className="pt-3 pb-1 flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
+              <FiArrowDown className="animate-bounce" />
+              <span className="font-medium">Pull to refresh</span>
+            </div>
+          </div>
+        }
+        refreshingContent={
+          <div className="pt-3 pb-1 flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
+              <span className="inline-block w-4 h-4 border-2 border-gray-300 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
+              <span className="font-medium">Refreshing…</span>
+            </div>
+          </div>
+        }
+        resistance={2.2}
+        pullDownThreshold={64}
+        maxPullDownDistance={96}
+      >
+        {children}
+      </PullToRefresh>
+    </div>
+  );
 }

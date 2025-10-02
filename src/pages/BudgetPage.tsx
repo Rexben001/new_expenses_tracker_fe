@@ -125,7 +125,7 @@ export function BudgetPage() {
   };
 
   return (
-    <SwipeShell toLeft="/settings" toRight="/expenses">
+    <SwipeShell toLeft="/settings" toRight="/expenses" refresh={fetchBudgets}>
       <HeaderComponent>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold">
