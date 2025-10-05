@@ -82,7 +82,7 @@ export function ItemContextProvider(
   const fetchUser = async () => {
     try {
       const user = await getUser();
-      setUser(user);
+      setUser(user.profile);
     } catch (error) {
       console.log({ error });
     }
