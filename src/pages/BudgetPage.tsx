@@ -191,7 +191,7 @@ export function BudgetPage() {
       </HeaderComponent>
       <div
         className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-53" : "mt-44"
+          showPopup ? "mt-63" : "mt-44"
         }`}
       >
         <div className="mx-1 pt-2">

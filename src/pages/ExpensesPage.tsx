@@ -213,7 +213,7 @@ export function ExpensesPage() {
       </HeaderComponent>
       <div
         className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-37" : "mt-30"
+          showPopup ? "mt-48" : "mt-30"
         }`}
       >
         <div className="mx-1 pt-2">

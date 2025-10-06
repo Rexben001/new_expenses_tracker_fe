@@ -203,7 +203,11 @@ export function BudgetIdPage() {
           </span>
         </p>
       </HeaderComponent>
-      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-33">
+      <div
+        className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
+          showPopup ? "mt-50" : "mt-30"
+        }`}
+      >
         {budget && (
           <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
             <div className="flex-1">
