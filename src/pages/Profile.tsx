@@ -211,8 +211,12 @@ export function Profile() {
     navigate(0);
   };
 
-  const handleCreateSub = () => {
+  const handleCreateSub = async () => {
     createSubAccount();
+    await fetchUser();
+    await fetchBudgets();
+    await fetchExpenses();
+    navigate(0);
   };
 
   if (loading) return null;
