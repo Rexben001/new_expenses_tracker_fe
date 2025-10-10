@@ -26,6 +26,8 @@ export function ItemContextProvider(
     id: undefined,
   });
 
+  const [currency, setCurrency] = useState<string | undefined>(undefined);
+
   const [currentAccount, setCurrentAccount] = useState<Account | undefined>(
     undefined
   );
@@ -103,7 +105,19 @@ export function ItemContextProvider(
       const subId = _subId ?? (await getSubAccountId());
 
       try {
-        const user = await getUser(subId);
+        const user = (await getUser(subId)) as Account;
+        console.log({
+          user,
+        });
+        // pick the profile part from subAccount if subId
+        if (subId && user.subAccounts) {
+          const subAccount = user.subAccounts.find(
+            ({ subAccountId }) => subAccountId === subId
+          );
+          setCurrency(subAccount?.currency ?? user.profile.currency);
+        } else {
+          setCurrency(user.profile.currency);
+        }
         setUser(user.profile);
         setCurrentAccount(user);
       } catch (error) {
@@ -118,8 +132,6 @@ export function ItemContextProvider(
     user?.budgetStartDay ?? 1
   );
   const currentYearExpensesTotal = getYearlyTotally(expenses);
-
-  const currency = user?.currency ?? "EUR";
 
   const value = useMemo(
     () => ({
