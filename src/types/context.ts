@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { Budget } from "./budgets";
 import type { Expense } from "./expenses";
-import type { User } from "../context/ItemContext";
+import type { Account, User } from "./user";
 
 interface IItemContext {
   budgets: Budget[];
@@ -11,9 +11,9 @@ interface IItemContext {
   currentMonthExpensesTotal: number;
   loading: boolean;
   setLoading(loading: boolean): void;
-  fetchExpenses(): Promise<void>;
-  fetchBudgets(): Promise<void>;
-  fetchUser(): Promise<void>;
+  fetchExpenses(subId?: string): Promise<void>;
+  fetchBudgets(subId?: string): Promise<void>;
+  fetchUser(subId?: string): Promise<void>;
   user: User;
   currency?: string;
   currentYearExpensesTotal: number;
@@ -23,6 +23,11 @@ interface IItemContext {
     accessToken: string;
     idToken: string;
   };
+  setCurrentAccount(account: Account): void;
+  currentAccount: Account | undefined;
+  setCurrentAccountId(accountId: string | undefined): void;
+  currentAccountId: string | undefined;
+  getSubAccountId(): Promise<string | undefined>;
 }
 
 export const ItemContext = createContext<IItemContext>({} as IItemContext);

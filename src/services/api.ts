@@ -35,6 +35,7 @@ async function fetchApi({
       // if (error.message === "Unauthorized") {
       //   throw new Error("Unauthorized");
       // }
+
       throw new Error(error);
     }
     return response.json();
@@ -44,105 +45,133 @@ async function fetchApi({
   }
 }
 
-export function getBudgets() {
+export function getBudgets(subId?: string) {
   return fetchApi({
     method: "GET",
-    path: "budgets",
+    path: addSubIdPath("budgets", subId),
   });
 }
 
-export function createBudget(body: unknown) {
+export function createBudget(body: unknown, subId?: string) {
   return fetchApi({
     method: "POST",
-    path: "budgets",
+    path: addSubIdPath("budgets", subId),
     body,
   });
 }
 
-export function updateBudget(id: string, body: unknown) {
+export function updateBudget(id: string, body: unknown, subId?: string) {
   return fetchApi({
     method: "PUT",
-    path: `budgets/${id}`,
+    path: addSubIdPath(`budgets/${id}`, subId),
     body,
   });
 }
-export function deleteBudget(id: string) {
+
+export function deleteBudget(id: string, subId?: string) {
   return fetchApi({
     method: "DELETE",
-    path: `budgets/${id}`,
+    path: addSubIdPath(`budgets/${id}`, subId),
   });
 }
 
-export function duplicateBudget(id: string, isOnly?: boolean) {
+export function duplicateBudget(id: string, isOnly?: boolean, subId?: string) {
   const path = isOnly
     ? `budgets/${id}/duplicates?only=true`
     : `budgets/${id}/duplicates`;
   return fetchApi({
     method: "POST",
-    path,
+    path: addSubIdPath(path, subId),
   });
 }
 
-export function getExpenses(budgetId?: string) {
+export function getExpenses(budgetId?: string, subId?: string) {
   let path = "expenses";
 
   if (budgetId) path += `?budgetId=${budgetId}`;
 
   return fetchApi({
     method: "GET",
-    path: path,
+    path: addSubIdPath(path, subId),
   });
 }
 
-export function getExpense(id?: string, budgetId?: string) {
+export function getExpense(id?: string, budgetId?: string, subId?: string) {
   return fetchApi({
     method: "GET",
-    path: getExpensesPath(id, budgetId),
+    path: addSubIdPath(getExpensesPath(id, budgetId), subId),
   });
 }
 
-export function createExpense(body: unknown, budgetId?: string) {
+export function createExpense(
+  body: unknown,
+  budgetId?: string,
+  subId?: string
+) {
   return fetchApi({
     method: "POST",
-    path: getExpensesPath(undefined, budgetId),
+    path: addSubIdPath(getExpensesPath(undefined, budgetId), subId),
     body,
   });
 }
 
-export function duplicateExpense(id: string, budgetId?: string) {
+export function duplicateExpense(
+  id: string,
+  budgetId?: string,
+  subId?: string
+) {
   return fetchApi({
     method: "POST",
-    path: getExpensesPath(id, budgetId, "true"),
+    path: addSubIdPath(getExpensesPath(id, budgetId, "true"), subId),
   });
 }
 
-export function updateExpense(id: string, body: unknown, budgetId?: string) {
+export function updateExpense(
+  id: string,
+  body: unknown,
+  budgetId?: string,
+  subId?: string
+) {
   return fetchApi({
     method: "PUT",
-    path: getExpensesPath(id, budgetId),
+    path: addSubIdPath(getExpensesPath(id, budgetId), subId),
     body,
   });
 }
 
-export function deleteExpense(id: string, budgetId?: string) {
+export function deleteExpense(id: string, budgetId?: string, subId?: string) {
   return fetchApi({
     method: "DELETE",
-    path: getExpensesPath(id, budgetId),
+    path: addSubIdPath(getExpensesPath(id, budgetId), subId),
   });
 }
 
-export function getUser() {
+export function getUser(subId?: string) {
   return fetchApi({
     method: "GET",
+    path: addSubIdPath("users", subId),
+  });
+}
+
+export async function updateUser(body: unknown, subId?: string) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath("users", subId),
+    body,
+  });
+}
+
+export async function createSubAccount() {
+  return fetchApi({
+    method: "POST",
     path: "users",
   });
 }
 
-export async function updateUser(body: unknown) {
+export async function deleteSubAccount(subId: string) {
   return fetchApi({
-    method: "PUT",
-    path: "users",
-    body,
+    method: "DELETE",
+    path: `users?subId=${subId}`,
   });
 }
 
@@ -154,6 +183,12 @@ const getExpensesPath = (id?: string, budgetId?: string, duplicates = "") => {
   if (duplicates) path += "/duplicates";
 
   if (budgetId) path += `?budgetId=${budgetId}`;
+
+  return path;
+};
+
+const addSubIdPath = (path: string, id?: string) => {
+  if (id) path += path.includes("?") ? `&subId=${id}` : `?subId=${id}`;
 
   return path;
 };

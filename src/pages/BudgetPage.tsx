@@ -24,7 +24,8 @@ export function BudgetPage() {
 
   const auth = useAuth();
 
-  const { fetchBudgets, currency, user, setBudgets } = useItemContext();
+  const { fetchBudgets, currency, user, setBudgets, getSubAccountId } =
+    useItemContext();
 
   const [query, setQuery] = useState("");
   const [total, setTotal] = useState(0);
@@ -82,7 +83,8 @@ export function BudgetPage() {
     const _budgets = filteredBudgets.filter((e) => e.id !== id);
     setBudgets(_budgets);
     try {
-      await deleteBudget(id);
+      const subId = await getSubAccountId();
+      await deleteBudget(id, subId);
       await fetchBudgets();
     } catch {
       await fetchBudgets();
@@ -98,13 +100,18 @@ export function BudgetPage() {
     });
     setBudgets(budgets);
 
+    const subId = await getSubAccountId();
     try {
-      await updateBudget(id, {
-        favorite,
-      });
-      await fetchBudgets();
+      await updateBudget(
+        id,
+        {
+          favorite,
+        },
+        subId
+      );
+      await fetchBudgets(subId);
     } catch {
-      await fetchBudgets();
+      await fetchBudgets(subId);
     }
   };
 

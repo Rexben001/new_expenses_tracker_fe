@@ -25,6 +25,7 @@ import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
 import SwipeShell from "../components/SwipeShell";
+import { tokenStore } from "../services/tokenStore";
 
 export function BudgetIdPage() {
   const { budgets, currency, user } = useItemContext();
@@ -84,8 +85,9 @@ export function BudgetIdPage() {
   }, [state, budgetId, budgets]);
 
   const fetchBudgetExpenses = useCallback(async () => {
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
     try {
-      const expenses = await getExpense("", budgetId);
+      const expenses = await getExpense("", budgetId, subAccountId);
 
       setExpenses(expenses);
     } catch (error) {
@@ -101,8 +103,10 @@ export function BudgetIdPage() {
   const removeExpense = async (id: string, budgetId?: string) => {
     const _expenses = filteredExpenses.filter((e) => e.id !== id);
     setExpenses(_expenses);
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
+
     try {
-      await deleteExpense(id, budgetId);
+      await deleteExpense(id, budgetId, subAccountId);
       await fetchBudgetExpenses();
     } catch {
       await fetchBudgetExpenses();
@@ -110,7 +114,9 @@ export function BudgetIdPage() {
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
-    await duplicateExpense(id, budgetId);
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
+
+    await duplicateExpense(id, budgetId, subAccountId);
     await fetchBudgetExpenses();
   };
 
@@ -132,6 +138,7 @@ export function BudgetIdPage() {
     id: string,
     favorite: boolean
   ) => {
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
     const expenses = filteredExpenses.map((e) => {
       if (e.id === id) {
         return { ...e, favorite };
@@ -144,7 +151,8 @@ export function BudgetIdPage() {
       {
         favorite,
       },
-      id
+      id,
+      subAccountId
     );
   };
 

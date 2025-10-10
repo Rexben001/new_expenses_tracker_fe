@@ -7,6 +7,7 @@ import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
 import { updateExpense } from "../services/api";
 import { FiStar } from "react-icons/fi";
+import { tokenStore } from "../services/tokenStore";
 
 export interface IExpenseBox {
   id: string;
@@ -72,6 +73,7 @@ export const ExpenseBox = ({
     : "text-black dark:text-white";
 
   const updateItem = async () => {
+    const subId = (await tokenStore.get("subAccountId")) || undefined;
     await updateExpense(
       id,
       {
@@ -84,7 +86,8 @@ export const ExpenseBox = ({
         currency,
         budgetId,
       },
-      budgetId
+      budgetId,
+      subId
     );
     window.location.reload();
   };

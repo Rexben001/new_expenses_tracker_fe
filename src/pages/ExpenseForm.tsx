@@ -11,6 +11,7 @@ import { SuggestionCategories } from "../components/Category";
 import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
 import SwipeShell from "../components/SwipeShell";
+import { tokenStore } from "../services/tokenStore";
 
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
@@ -81,6 +82,7 @@ export function ExpenseForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
     if (!formData.budgetId) {
       const option = budgets?.length
         ? "select a budget"
@@ -102,7 +104,8 @@ export function ExpenseForm() {
           ...(id && { budgetId: id }),
           upcoming: formData.upcoming === "true",
         },
-        id
+        id,
+        subAccountId
       );
     } else
       await createExpense(
@@ -112,7 +115,8 @@ export function ExpenseForm() {
           ...(id && { budgetId: id }),
           upcoming: formData.upcoming === "true",
         },
-        id
+        id,
+        subAccountId
       );
 
     await fetchExpenses();

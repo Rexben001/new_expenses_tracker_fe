@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../services/formatCurrency";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { duplicateBudget, getExpenses, updateBudget } from "../services/api";
 import { formatRelativeDate } from "../services/formatDate";
 import { useItemContext } from "../hooks/useItemContext";
@@ -31,9 +31,19 @@ export const BudgetBox = ({
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  const { fetchBudgets } = useItemContext();
+  const { fetchBudgets, getSubAccountId } = useItemContext();
 
   const [showDetails, setShowDetails] = useState(false);
+
+  const [remaining, setRemaining] = useState(0);
+
+  const [spent, setSpent] = useState(0);
+
+  useEffect(() => {
+    const rem = calculateRemaining(budget.amount, expenses);
+    setRemaining(rem);
+    setSpent(budget.amount! - rem);
+  }, [budget, expenses]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -53,25 +63,25 @@ export const BudgetBox = ({
     };
   }, [showMenu]);
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     try {
-      const expenses = await getExpenses(budget.id);
+      const subId = await getSubAccountId();
+      const expenses = await getExpenses(budget.id, subId);
+
       setExpenses(expenses);
     } catch (error) {
       console.log({ error });
     }
-  };
+  }, [budget.id, getSubAccountId]);
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [fetchExpenses]);
 
   const navigate = useNavigate();
 
   const { id, title, category, period, updatedAt, amount, upcoming, favorite } =
     budget;
-
-  const remaining = calculateRemaining(budget.amount, expenses);
 
   const bgColor = upcoming
     ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700 cursor-not-allowed"
@@ -82,19 +92,22 @@ export const BudgetBox = ({
     : "text-black dark:text-white";
 
   const updateItem = async () => {
-    await updateBudget(id, {
-      amount,
+    const subId = await getSubAccountId();
+    await updateBudget(
       id,
-      upcoming: false,
-      title,
-      category,
-      updatedAt,
-      currency,
-    });
+      {
+        amount,
+        id,
+        upcoming: false,
+        title,
+        category,
+        updatedAt,
+        currency,
+      },
+      subId
+    );
     window.location.reload();
   };
-
-  const spent = budget.amount! - remaining;
 
   const percent = (spent / budget.amount!) * 100;
 
@@ -219,8 +232,10 @@ export const BudgetBox = ({
                     onClick={async (e) => {
                       e.stopPropagation();
                       setShowMenu(false);
-                      await duplicateBudget(budget.id);
-                      await fetchBudgets();
+                      const subId = await getSubAccountId();
+                      await duplicateBudget(budget.id, false, subId);
+
+                      await fetchBudgets(subId);
 
                       // window.location.reload();
                     }}
@@ -234,7 +249,8 @@ export const BudgetBox = ({
                     onClick={async (e) => {
                       e.stopPropagation();
                       setShowMenu(false);
-                      await duplicateBudget(budget.id, true);
+                      const subId = await getSubAccountId();
+                      await duplicateBudget(budget.id, true, subId);
                       await fetchBudgets();
                       // window.location.reload();
                     }}

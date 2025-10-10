@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getBudgets, getExpenses, getUser } from "../services/api";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
@@ -8,14 +8,9 @@ import { Capacitor } from "@capacitor/core";
 import { getDeviceType } from "../utils/platform";
 import { getTokens } from "../services/amplify";
 import { useAuth } from "./AuthContext";
+import type { Account, User } from "../types/user";
+import { tokenStore } from "../services/tokenStore";
 
-export type User = {
-  userName?: string;
-  currency?: string;
-  email?: string;
-  colorMode?: "Dark" | "White";
-  budgetStartDay?: number;
-};
 export function ItemContextProvider(
   props: Readonly<{ children: React.ReactNode }>
 ) {
@@ -27,7 +22,17 @@ export function ItemContextProvider(
     email: undefined,
     colorMode: undefined,
     budgetStartDay: undefined,
+    accountType: "Main",
+    id: undefined,
   });
+
+  const [currentAccount, setCurrentAccount] = useState<Account | undefined>(
+    undefined
+  );
+
+  const [currentAccountId, setCurrentAccountId] = useState<string | undefined>(
+    undefined
+  );
 
   const auth = useAuth();
 
@@ -61,32 +66,52 @@ export function ItemContextProvider(
     });
   }, [auth]);
 
-  const fetchBudgets = async () => {
-    try {
-      const budgets = await getBudgets();
-      setBudgets(budgets);
-    } catch (error) {
-      console.log({ error });
-    }
-  };
+  const getSubAccountId = useCallback(async (): Promise<string | undefined> => {
+    const subAccountId = await tokenStore.get("subAccountId");
+    return subAccountId === null ? undefined : subAccountId;
+  }, []);
 
-  const fetchExpenses = async () => {
-    try {
-      const expenses = await getExpenses();
-      setExpenses(expenses);
-    } catch (error) {
-      console.log({ error });
-    }
-  };
+  const fetchBudgets = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+      try {
+        const budgets = await getBudgets(subId);
+        setBudgets(budgets);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    [getSubAccountId]
+  );
 
-  const fetchUser = async () => {
-    try {
-      const user = await getUser();
-      setUser(user.profile);
-    } catch (error) {
-      console.log({ error });
-    }
-  };
+  const fetchExpenses = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+
+      try {
+        const expenses = await getExpenses(undefined, subId);
+        setExpenses(expenses);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    [getSubAccountId]
+  );
+
+  const fetchUser = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+
+      try {
+        const user = await getUser(subId);
+        setUser(user.profile);
+        setCurrentAccount(user);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    [getSubAccountId]
+  );
 
   const currentMonthExpensesTotal = getMonthlyTotal(
     expenses,
@@ -114,18 +139,29 @@ export function ItemContextProvider(
       isNative,
       deviceType,
       tokens,
+      setCurrentAccount,
+      currentAccount,
+      setCurrentAccountId,
+      currentAccountId,
+      getSubAccountId,
     }),
     [
       budgets,
       expenses,
       loading,
       currentMonthExpensesTotal,
+      fetchExpenses,
+      fetchBudgets,
       user,
       currency,
+      fetchUser,
       currentYearExpensesTotal,
       isNative,
       deviceType,
       tokens,
+      currentAccount,
+      currentAccountId,
+      getSubAccountId,
     ]
   );
 

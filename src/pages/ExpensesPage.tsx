@@ -27,7 +27,8 @@ import SwipeShell from "../components/SwipeShell";
 type TabKey = "ALL" | "FAV" | "UPCOMING";
 
 export function ExpensesPage() {
-  const { fetchExpenses, currency, user, setExpenses } = useItemContext();
+  const { fetchExpenses, currency, user, setExpenses, getSubAccountId } =
+    useItemContext();
   const location = useLocation();
 
   const [query, setQuery] = useState("");
@@ -88,7 +89,8 @@ export function ExpensesPage() {
     const expenses = filteredExpenses.filter((e) => e.id !== id);
     setExpenses(expenses);
     try {
-      await deleteExpense(id, budgetId);
+      const subId = await getSubAccountId();
+      await deleteExpense(id, budgetId, subId);
       await fetchExpenses();
     } catch {
       await fetchExpenses();
@@ -96,7 +98,9 @@ export function ExpensesPage() {
   };
 
   const duplicateOldExpense = async (id: string, budgetId?: string) => {
-    await duplicateExpense(id, budgetId);
+    const subId = await getSubAccountId();
+
+    await duplicateExpense(id, budgetId, subId);
     await fetchExpenses();
   };
 
@@ -112,13 +116,15 @@ export function ExpensesPage() {
       return e;
     });
     setExpenses(expenses);
+    const subId = await getSubAccountId();
     try {
       await updateExpense(
         expenseId,
         {
           favorite,
         },
-        id
+        id,
+        subId
       );
       await fetchExpenses();
     } catch {
@@ -213,7 +219,7 @@ export function ExpensesPage() {
       </HeaderComponent>
       <div
         className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-48" : "mt-30"
+          showPopup ? "mt-48" : "mt-40"
         }`}
       >
         <div className="mx-1 pt-2">

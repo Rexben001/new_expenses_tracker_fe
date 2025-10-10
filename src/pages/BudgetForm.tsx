@@ -10,6 +10,7 @@ import { suggestCategories } from "../services/suggestCategory";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import SwipeShell from "../components/SwipeShell";
+import { tokenStore } from "../services/tokenStore";
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -68,18 +69,27 @@ export function BudgetForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
+
     if (isEditMode)
-      await updateBudget(budgetId!, {
-        ...formData,
-        amount: Number(formData.amount),
-        upcoming: formData.upcoming === "true",
-      });
+      await updateBudget(
+        budgetId!,
+        {
+          ...formData,
+          amount: Number(formData.amount),
+          upcoming: formData.upcoming === "true",
+        },
+        subAccountId
+      );
     else
-      await createBudget({
-        ...formData,
-        amount: Number(formData.amount),
-        upcoming: formData.upcoming === "true",
-      });
+      await createBudget(
+        {
+          ...formData,
+          amount: Number(formData.amount),
+          upcoming: formData.upcoming === "true",
+        },
+        subAccountId
+      );
 
     navigate("/budgets", { state: { refresh: true } });
   };
