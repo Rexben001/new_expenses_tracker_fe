@@ -33,16 +33,16 @@ const COLOR_CODES: Record<string, string> = {
 };
 
 export function ExpenseChart() {
-  const { user } = useItemContext();
+  const { budgetStartDay } = useItemContext();
 
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [chartType, setChartType] = useState<"pie" | "bar">("pie");
 
   const defaults = useMemo(() => {
-    if (user?.budgetStartDay == null) return null;
-    return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user?.budgetStartDay]);
+    if (budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(budgetStartDay);
+  }, [budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -54,20 +54,20 @@ export function ExpenseChart() {
   const filteredExpensesPie = useExpenseFilter(
     chartType === "pie" && month ? [month] : [],
     year,
-    user?.budgetStartDay
+    budgetStartDay
   );
 
   // Bar: always 1–12 months
   const filteredExpensesBar = useExpenseFilter(
     Array.from({ length: 12 }, (_, i) => String(i + 1)),
     year,
-    user?.budgetStartDay
+    budgetStartDay
   );
 
   const filteredBudgetBar = useBudgetFilter(
     Array.from({ length: 12 }, (_, i) => String(i + 1)),
     year,
-    user.budgetStartDay
+    budgetStartDay
   );
 
   // Pie data// Pie data
@@ -109,7 +109,7 @@ export function ExpenseChart() {
         let monthIndex = getMonth(d); // JS: 0 = Jan
         let yearOfBudget = getYear(d);
 
-        if (getDate(d) < user.budgetStartDay!) {
+        if (getDate(d) < budgetStartDay!) {
           const shiftedDate = subMonths(d, 1);
           monthIndex = getMonth(shiftedDate);
           yearOfBudget = getYear(shiftedDate);
@@ -129,7 +129,7 @@ export function ExpenseChart() {
         let monthIndex = getMonth(d); // JS: 0 = Jan
         let yearOfExpense = getYear(d);
 
-        if (getDate(d) < user.budgetStartDay!) {
+        if (getDate(d) < budgetStartDay!) {
           const shiftedDate = subMonths(d, 1);
           monthIndex = getMonth(shiftedDate);
           yearOfExpense = getYear(shiftedDate);
@@ -141,7 +141,7 @@ export function ExpenseChart() {
       });
 
     return monthlyTotals;
-  }, [filteredExpensesBar, filteredBudgetBar, user.budgetStartDay, year]);
+  }, [filteredExpensesBar, filteredBudgetBar, budgetStartDay, year]);
 
   // Pie labels
   const renderLabel = useCallback(

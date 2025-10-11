@@ -27,7 +27,7 @@ import SwipeShell from "../components/SwipeShell";
 type TabKey = "ALL" | "FAV" | "UPCOMING";
 
 export function ExpensesPage() {
-  const { fetchExpenses, currency, user, setExpenses, getSubAccountId } =
+  const { fetchExpenses, currency, budgetStartDay, setExpenses, getSubAccountId } =
     useItemContext();
   const location = useLocation();
 
@@ -41,9 +41,9 @@ export function ExpensesPage() {
   const auth = useAuth();
 
   const defaults = useMemo(() => {
-    if (user?.budgetStartDay == null) return null;
-    return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user.budgetStartDay]);
+    if (budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(budgetStartDay);
+  }, [budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -59,11 +59,7 @@ export function ExpensesPage() {
     })();
   }, [auth]);
 
-  const _filterExpenses = useExpenseFilter(
-    months,
-    year,
-    user?.budgetStartDay ?? 1
-  );
+  const _filterExpenses = useExpenseFilter(months, year, budgetStartDay ?? 1);
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 

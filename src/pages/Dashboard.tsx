@@ -31,6 +31,7 @@ export function Dashboard() {
     currency,
     fetchExpenses,
     fetchBudgets,
+    budgetStartDay,
   } = useItemContext();
 
   const [totalBudget, setTotalBudget] = useState(0);
@@ -46,9 +47,9 @@ export function Dashboard() {
   const auth = useAuth();
 
   const defaults = useMemo(() => {
-    if (user?.budgetStartDay == null) return null;
-    return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user.budgetStartDay]);
+    if (budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(budgetStartDay);
+  }, [budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -62,17 +63,9 @@ export function Dashboard() {
 
   const expense = expenses.find((expense) => !expense.upcoming);
 
-  const _filterExpenses = useExpenseFilter(
-    [month],
-    year,
-    user?.budgetStartDay ?? 1
-  );
+  const _filterExpenses = useExpenseFilter([month], year, budgetStartDay ?? 1);
 
-  const _filterBudgets = useBudgetFilter(
-    [month],
-    year,
-    user?.budgetStartDay ?? 1
-  );
+  const _filterBudgets = useBudgetFilter([month], year, budgetStartDay ?? 1);
 
   useEffect(() => {
     const total = getTotal(_filterExpenses) ?? 0;
@@ -94,13 +87,7 @@ export function Dashboard() {
     setRemaining(remaining);
     setTotalWidth(totalWidth);
     setProgressBarClass(progressBarClass);
-  }, [
-    _filterBudgets,
-    _filterExpenses,
-    budgets,
-    expenses,
-    user?.budgetStartDay,
-  ]);
+  }, [_filterBudgets, _filterExpenses, budgets, expenses, budgetStartDay]);
 
   const [openStats, setOpenStats] = useState(false);
 
@@ -200,7 +187,7 @@ export function Dashboard() {
               />
             </div>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {getMonth(user.budgetStartDay)} {getYear()}
+              {getMonth(budgetStartDay)} {getYear()}
             </p>
           </div>
 

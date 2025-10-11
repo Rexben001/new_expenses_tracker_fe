@@ -36,6 +36,10 @@ export function ItemContextProvider(
     undefined
   );
 
+  const [budgetStartDay, setBudgetStartDay] = useState<number | undefined>(
+    user.budgetStartDay
+  );
+
   const auth = useAuth();
 
   const [tokens, setTokens] = useState<{
@@ -115,8 +119,12 @@ export function ItemContextProvider(
             ({ subAccountId }) => subAccountId === subId
           );
           setCurrency(subAccount?.currency ?? user.profile.currency);
+          setBudgetStartDay(
+            subAccount?.budgetStartDay ?? user.profile.budgetStartDay
+          );
         } else {
           setCurrency(user.profile.currency);
+          setBudgetStartDay(user.profile.budgetStartDay);
         }
         setUser(user.profile);
         setCurrentAccount(user);
@@ -129,7 +137,7 @@ export function ItemContextProvider(
 
   const currentMonthExpensesTotal = getMonthlyTotal(
     expenses,
-    user?.budgetStartDay ?? 1
+    budgetStartDay ?? 1
   );
   const currentYearExpensesTotal = getYearlyTotally(expenses);
 
@@ -156,6 +164,7 @@ export function ItemContextProvider(
       setCurrentAccountId,
       currentAccountId,
       getSubAccountId,
+      budgetStartDay,
     }),
     [
       budgets,
@@ -174,6 +183,7 @@ export function ItemContextProvider(
       currentAccount,
       currentAccountId,
       getSubAccountId,
+      budgetStartDay,
     ]
   );
 

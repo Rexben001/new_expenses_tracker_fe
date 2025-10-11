@@ -24,7 +24,7 @@ export function BudgetPage() {
 
   const auth = useAuth();
 
-  const { fetchBudgets, currency, user, setBudgets, getSubAccountId } =
+  const { fetchBudgets, currency, budgetStartDay, setBudgets, getSubAccountId } =
     useItemContext();
 
   const [query, setQuery] = useState("");
@@ -35,9 +35,9 @@ export function BudgetPage() {
   const [tab, setTab] = useState<TabKey>("ALL");
 
   const defaults = useMemo(() => {
-    if (user?.budgetStartDay == null) return null;
-    return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user?.budgetStartDay]);
+    if (budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(budgetStartDay);
+  }, [budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -45,11 +45,7 @@ export function BudgetPage() {
     setYear((prev) => (prev ? prev : defaults.year));
   }, [defaults]);
 
-  const _filterBudgets = useBudgetFilter(
-    months,
-    year,
-    user?.budgetStartDay ?? 1
-  );
+  const _filterBudgets = useBudgetFilter(months, year, budgetStartDay ?? 1);
 
   const filteredBudgets = useBudgetSearch(query, _filterBudgets);
 

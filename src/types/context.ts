@@ -28,6 +28,7 @@ interface IItemContext {
   setCurrentAccountId(accountId: string | undefined): void;
   currentAccountId: string | undefined;
   getSubAccountId(): Promise<string | undefined>;
+  budgetStartDay: number | undefined;
 }
 
 export const ItemContext = createContext<IItemContext>({} as IItemContext);

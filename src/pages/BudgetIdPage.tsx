@@ -28,7 +28,7 @@ import SwipeShell from "../components/SwipeShell";
 import { tokenStore } from "../services/tokenStore";
 
 export function BudgetIdPage() {
-  const { budgets, currency, user } = useItemContext();
+  const { budgets, currency, budgetStartDay } = useItemContext();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
@@ -48,9 +48,9 @@ export function BudgetIdPage() {
   const [total, setTotal] = useState(0);
 
   const defaults = useMemo(() => {
-    if (user?.budgetStartDay == null) return null;
-    return getDefaultBudgetMonthYear(user.budgetStartDay);
-  }, [user?.budgetStartDay]);
+    if (budgetStartDay == null) return null;
+    return getDefaultBudgetMonthYear(budgetStartDay);
+  }, [budgetStartDay]);
 
   useEffect(() => {
     if (!defaults) return;
@@ -63,7 +63,7 @@ export function BudgetIdPage() {
   const _filterExpenses = useExpenseFilter(
     months,
     year,
-    user?.budgetStartDay ?? 1, // Default to 1 if not set
+    budgetStartDay ?? 1, // Default to 1 if not set
     expenses
   );
 
