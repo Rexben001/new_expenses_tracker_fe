@@ -112,9 +112,9 @@ export const BudgetBox = ({
   const percent = (spent / budget.amount!) * 100;
 
   const textColorClass =
-    percent > 100
+    percent > 95
       ? "text-red-500"
-      : percent > 90
+      : percent > 60
       ? "text-yellow-500"
       : "text-green-500";
 
