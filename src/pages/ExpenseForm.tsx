@@ -52,10 +52,11 @@ export function ExpenseForm() {
         upcoming: state?.upcoming ?? "false",
       });
     } else if (state?.id) {
+      const bud = budgets?.find((b) => b.id === state.id);
       setFormData({
         title: "",
         amount: 0,
-        category: "",
+        category: bud?.category ?? "",
         updatedAt: new Date().toISOString().split("T")[0],
         description: "",
         currency: "EUR",
@@ -63,7 +64,7 @@ export function ExpenseForm() {
         upcoming: state?.upcoming ?? "false",
       });
     }
-  }, [expenseId, isEditMode, state]);
+  }, [budgets, expenseId, isEditMode, state]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });

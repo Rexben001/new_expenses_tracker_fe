@@ -178,7 +178,7 @@ export const BudgetBox = ({
             </p>
           </div>
           {showMenu && (
-            <div className="absolute right-3.5 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+            <div className="absolute right-3.5 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-100">
               <ul className="text-sm text-gray-700 dark:text-white">
                 <li>
                   <button
