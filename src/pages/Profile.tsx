@@ -14,7 +14,29 @@ import SwipeShell from "../components/SwipeShell";
 import type { SubAccount, User } from "../types/user";
 import { tokenStore } from "../services/tokenStore";
 
-const CURRENCY_OPTIONS = ["EUR", "USD", "NGN", "CAD"];
+const CURRENCY_OPTIONS = [
+  "EUR",
+  "USD",
+  "GBP",
+  "NGN",
+  "CAD",
+  "JPY",
+  "CNY",
+  "AUD",
+  "INR",
+  "CHF",
+  "SEK",
+  "NZD",
+  "MXN",
+  "SGD",
+  "HKD",
+  "NOK",
+  "KRW",
+  "TRY",
+  "RUB",
+  "BRL",
+  "ZAR",
+];
 
 export function Profile() {
   const {

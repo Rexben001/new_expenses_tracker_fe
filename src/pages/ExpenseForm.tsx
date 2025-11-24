@@ -47,7 +47,7 @@ export function ExpenseForm() {
           state?.updatedAt?.split("T")[0] ??
           new Date().toISOString().split("T")[0],
         description: "",
-        currency: "EUR",
+        currency: state?.currency || "EUR",
         budgetId: state?.id ?? "",
         upcoming: state?.upcoming ?? "false",
       });
@@ -59,7 +59,7 @@ export function ExpenseForm() {
         category: bud?.category ?? "",
         updatedAt: new Date().toISOString().split("T")[0],
         description: "",
-        currency: "EUR",
+        currency: state?.currency || "EUR",
         budgetId: state?.id ?? "",
         upcoming: state?.upcoming ?? "false",
       });
@@ -73,11 +73,21 @@ export function ExpenseForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    if (e.target.name === "title") {
-      const suggestions = suggestCategories(e.target.value);
+    const { name, value } = e.target;
+    const updatedFormData = { ...formData, [name]: value };
+
+    if (name === "title") {
+      const suggestions = value.trim() ? suggestCategories(value) : [];
       setSuggestions(suggestions);
+      setFormData({
+        ...updatedFormData,
+        category:
+          suggestions.length === 1 ? suggestions[0] : updatedFormData.category,
+      });
+    } else {
+      if (updatedFormData.title.trim() === "") setSuggestions([]);
+      setFormData(updatedFormData);
     }
-    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
   };
 

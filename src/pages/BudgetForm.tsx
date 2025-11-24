@@ -30,7 +30,7 @@ export function BudgetForm() {
     description: "",
     period: "monthly",
     upcoming: "false",
-    currency,
+    currency: currency || "EUR",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +46,7 @@ export function BudgetForm() {
         period: state?.period ?? "monthly",
         description: "",
         upcoming: state?.upcoming ?? "false",
-        currency: "EUR",
+        currency: state.currency ?? "EUR",
       });
     }
   }, [budgetId, isEditMode, state]);
@@ -58,11 +58,21 @@ export function BudgetForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    if (e.target.name === "title") {
-      const suggestions = suggestCategories(e.target.value);
+    const { name, value } = e.target;
+    const updatedFormData = { ...formData, [name]: value };
+
+    if (name === "title") {
+      const suggestions = value.trim() ? suggestCategories(value) : [];
       setSuggestions(suggestions);
+      setFormData({
+        ...updatedFormData,
+        category:
+          suggestions.length === 1 ? suggestions[0] : updatedFormData.category,
+      });
+    } else {
+      if (updatedFormData.title.trim() === "") setSuggestions([]);
+      setFormData(updatedFormData);
     }
-    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,7 +91,7 @@ export function BudgetForm() {
         },
         subAccountId
       );
-    else
+    else {
       await createBudget(
         {
           ...formData,
@@ -90,6 +100,7 @@ export function BudgetForm() {
         },
         subAccountId
       );
+    }
 
     navigate("/budgets", { state: { refresh: true } });
   };

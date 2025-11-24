@@ -87,4 +87,9 @@ export const CATEGORY_OPTIONS = [
   "Holiday",
   "Miscellaneous",
   "Others",
+  "Education",
+  "Subscriptions",
+  "Gifts",
+  "Personal Care",
+  "Dining Out",
 ];
