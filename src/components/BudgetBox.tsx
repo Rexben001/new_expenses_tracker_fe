@@ -11,7 +11,7 @@ import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
-import { FiStar } from "react-icons/fi";
+import { FiStar, FiRefreshCcw } from "react-icons/fi";
 
 export const BudgetBox = ({
   budget,
@@ -80,8 +80,16 @@ export const BudgetBox = ({
 
   const navigate = useNavigate();
 
-  const { id, title, category, period, updatedAt, amount, upcoming, favorite } =
-    budget;
+  const {
+    id,
+    title,
+    category,
+    isRecurring,
+    updatedAt,
+    amount,
+    upcoming,
+    favorite,
+  } = budget;
 
   const bgColor = upcoming
     ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700 cursor-not-allowed"
@@ -148,6 +156,13 @@ export const BudgetBox = ({
               <p className={`font-bold text-lg mb-1 ${textColor}`}>
                 {budget?.title}
               </p>
+              <FiRefreshCcw
+                className={`w-4 h-4 ${
+                  isRecurring
+                    ? "text-blue-500"
+                    : "text-gray-300 dark:text-gray-600"
+                }`}
+              />
               <button
                 type="button"
                 aria-label={favorite ? "Unfavorite" : "Favorite"}
@@ -194,6 +209,7 @@ export const BudgetBox = ({
                           currency,
                           id,
                           upcoming,
+                          isRecurring,
                         },
                       });
                     }}
@@ -288,7 +304,7 @@ export const BudgetBox = ({
               title: budget.title ?? "",
               category: budget.category ?? "",
               amount: budget.amount ?? 0,
-              period: budget.period ?? "",
+              isRecurring: budget.isRecurring ?? false,
               updatedAt: budget.updatedAt ?? "",
               currency: budget.currency ?? "",
             }}
@@ -305,7 +321,7 @@ export const BudgetBox = ({
                 state: {
                   title,
                   category,
-                  period,
+                  isRecurring: isRecurring?.toString(),
                   updatedAt,
                   amount,
                   currency,
@@ -357,3 +373,5 @@ export const BudgetBox = ({
     </div>
   );
 };
+
+// TODO: Add an icon for recurring items

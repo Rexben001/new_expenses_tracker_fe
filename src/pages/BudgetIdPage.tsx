@@ -226,7 +226,7 @@ export function BudgetIdPage() {
                   title: budget.title ?? "",
                   category: budget.category ?? "",
                   amount: budget.amount ?? 0,
-                  period: budget.period ?? "",
+                  isRecurring: budget.isRecurring === "true",
                   updatedAt: budget.updatedAt ?? "",
                   currency: budget.currency ?? "",
                   upcoming: budget.upcoming === "true",
@@ -265,6 +265,7 @@ export function BudgetIdPage() {
               updatedAt,
               upcoming,
               favorite,
+              isRecurring,
             }) => (
               <div key={id} className="mx-5">
                 <ExpenseBox
@@ -281,6 +282,7 @@ export function BudgetIdPage() {
                   upcoming={upcoming}
                   favorite={favorite}
                   updateFavorites={updateFavorites}
+                  isRecurring={isRecurring}
                 />
               </div>
             )

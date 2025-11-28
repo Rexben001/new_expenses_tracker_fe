@@ -27,8 +27,13 @@ import SwipeShell from "../components/SwipeShell";
 type TabKey = "ALL" | "FAV" | "UPCOMING";
 
 export function ExpensesPage() {
-  const { fetchExpenses, currency, budgetStartDay, setExpenses, getSubAccountId } =
-    useItemContext();
+  const {
+    fetchExpenses,
+    currency,
+    budgetStartDay,
+    setExpenses,
+    getSubAccountId,
+  } = useItemContext();
   const location = useLocation();
 
   const [query, setQuery] = useState("");
@@ -62,6 +67,10 @@ export function ExpensesPage() {
   const _filterExpenses = useExpenseFilter(months, year, budgetStartDay ?? 1);
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
+
+  console.log({
+    filteredExpenses,
+  });
 
   const upcomingExpenses = filteredExpenses.filter((e) => e.upcoming);
   const activeExpenses = filteredExpenses.filter((e) => !e.upcoming);
@@ -241,6 +250,7 @@ export function ExpensesPage() {
                     budgetId,
                     upcoming,
                     favorite,
+                    isRecurring,
                   }) => (
                     <ExpenseBox
                       key={id}
@@ -253,6 +263,7 @@ export function ExpensesPage() {
                       budgetId={budgetId}
                       upcoming={upcoming}
                       favorite={favorite}
+                      isRecurring={isRecurring}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
                       updateFavorites={updateFavorites}
@@ -282,6 +293,7 @@ export function ExpensesPage() {
                     budgetId,
                     upcoming,
                     favorite,
+                    isRecurring,
                   }) => (
                     <ExpenseBox
                       key={id}
@@ -294,6 +306,7 @@ export function ExpensesPage() {
                       budgetId={budgetId}
                       upcoming={upcoming}
                       favorite={favorite}
+                      isRecurring={isRecurring}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
                       updateFavorites={updateFavorites}

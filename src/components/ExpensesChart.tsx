@@ -30,6 +30,7 @@ const COLOR_CODES: Record<string, string> = {
   Toiletries: "#5EEAD4", // teal-300
   Holiday: "#A5B4FC", // indigo-300
   Other: "#E5E7EB", // gray-200
+  
 };
 
 export function ExpenseChart() {
