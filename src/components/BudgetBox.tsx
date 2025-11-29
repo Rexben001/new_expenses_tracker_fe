@@ -19,12 +19,18 @@ export const BudgetBox = ({
   showExpense,
   removeBudget,
   updateFavorites,
+  selectMode,
+  selected,
+  onSelect,
 }: {
   budget: Budget;
   currency?: string;
   showExpense?: boolean;
   removeBudget: (id: string) => Promise<void>;
   updateFavorites?: (id: string, favorite: boolean) => Promise<void>;
+  selectMode?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string) => void;
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -134,6 +140,11 @@ export const BudgetBox = ({
         updatedAt={updatedAt}
         updateItem={updateItem}
         currency={currency}
+        selectMode={selectMode}
+        selected={selected}
+        onSelect={onSelect}
+        id={id}
+        budgetId={undefined}
       />
     );
   }
@@ -149,6 +160,14 @@ export const BudgetBox = ({
         setShowMenu(false);
       }}
     >
+      <input
+        type="checkbox"
+        className="mt-1 mr-3 w-4 h-4 cursor-pointer"
+        checked={selected}
+        onChange={() => onSelect?.(budget.id)}
+        hidden={!selectMode}
+      />
+
       <div className="flex-1">
         <div className="flex justify-between">
           <div>

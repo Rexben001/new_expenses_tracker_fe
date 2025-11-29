@@ -27,6 +27,9 @@ export interface IExpenseBox {
     budgetId: string,
     favorite: boolean
   ) => Promise<void>;
+  selectMode?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string, budgetId: string) => void;
 }
 
 export const ExpenseBox = ({
@@ -43,6 +46,9 @@ export const ExpenseBox = ({
   duplicateExpense,
   updateFavorites,
   isRecurring,
+  selectMode,
+  selected,
+  onSelect,
 }: IExpenseBox) => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
@@ -102,6 +108,11 @@ export const ExpenseBox = ({
         updatedAt={updatedAt}
         updateItem={updateItem}
         currency={currency}
+        selectMode={selectMode}
+        selected={selected}
+        onSelect={onSelect}
+        id={id}
+        budgetId={budgetId}
       />
     );
   }
@@ -117,7 +128,14 @@ export const ExpenseBox = ({
         setShowMenu(false);
       }}
     >
-      <div>
+      <input
+        type="checkbox"
+        className="mt-1 mr-3 w-4 h-4 cursor-pointer"
+        checked={selected}
+        onChange={() => onSelect?.(id, budgetId!)}
+        hidden={!selectMode}
+      />
+      <div className="flex-1">
         <div className="flex items-center gap-2">
           <p className={`font-semibold text-base ${textColor}`}>{title}</p>
           <FiRefreshCcw

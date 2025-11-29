@@ -5,7 +5,7 @@ import {
   updateExpense,
 } from "../services/api";
 import { ExpenseBox } from "../components/ExpenseBox";
-import { FiFilter } from "react-icons/fi";
+import { FiFilter, FiClock, FiTrash2, FiStar } from "react-icons/fi";
 import { useItemContext } from "../hooks/useItemContext";
 import { AddNewItem } from "../components/NoItem";
 import { useEffect, useMemo, useState } from "react";
@@ -16,13 +16,14 @@ import { getTotal } from "../services/item";
 import { formatCurrency } from "../services/formatCurrency";
 import { SearchBox } from "../components/SearchBox";
 import { getDefaultBudgetMonthYear } from "../services/formatDate";
-import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 import FloatingActionButton from "../components/FloatingActionButton";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
 import { hasIdToken } from "../services/amplify";
 import SwipeShell from "../components/SwipeShell";
+import type { Expense } from "../types/expenses";
+import { CollapsibleUpcoming } from "../components/CollapsibleUpcoming";
 
 type TabKey = "ALL" | "FAV" | "UPCOMING" | "RECURRING";
 
@@ -44,6 +45,31 @@ export function ExpensesPage() {
   const [tab, setTab] = useState<TabKey>("ALL");
 
   const auth = useAuth();
+
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<
+    { id: string; budgetId: string }[]
+  >([]);
+
+  const toggleSelect = (id: string, budgetId?: string) => {
+    setSelectedIds((prev) => {
+      const exists = prev.some((x) => x.id === id && x.budgetId === budgetId);
+      if (exists) {
+        return prev.filter((x) => !(x.id === id && x.budgetId === budgetId));
+      } else {
+        return [...prev, { id, budgetId: budgetId! }];
+      }
+    });
+  };
+
+  const selectAll = (items: Expense[]) => {
+    setSelectedIds(items.map((b) => ({ id: b.id, budgetId: b.budgetId! })));
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setSelectMode(false);
+  };
 
   const defaults = useMemo(() => {
     if (budgetStartDay == null) return null;
@@ -68,14 +94,19 @@ export function ExpensesPage() {
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
-  console.log({
-    filteredExpenses,
-  });
-
   const upcomingExpenses = filteredExpenses.filter((e) => e.upcoming);
   const activeExpenses = filteredExpenses.filter((e) => !e.upcoming);
   const favExpenses = filteredExpenses.filter((e) => e?.favorite);
   const recurringExpenses = filteredExpenses.filter((e) => e.isRecurring);
+
+  const currentExpenses =
+    tab === "ALL"
+      ? activeExpenses
+      : tab === "FAV"
+      ? favExpenses
+      : tab === "UPCOMING"
+      ? upcomingExpenses
+      : recurringExpenses;
 
   useEffect(() => {
     if (location.state?.refresh) fetchExpenses();
@@ -187,7 +218,10 @@ export function ExpensesPage() {
               return (
                 <button
                   key={key}
-                  onClick={() => setTab(key)}
+                  onClick={() => {
+                    setTab(key);
+                    selectAll([]);
+                  }}
                   className={`px-3 py-1.5 text-sm rounded-lg transition
                     ${
                       active
@@ -219,23 +253,144 @@ export function ExpensesPage() {
         )}
 
         {/* Total always reflects filtered set, not tab */}
-        <p className="my-1.5 text-blue-500">
-          Total Expenses:{" "}
-          <span className="font-bold text-black dark:text-white">
-            {formatCurrency(total, currency)}
-          </span>
-        </p>
+        <div className="flex items-center gap-3 justify-between">
+          <p className="my-1.5 text-blue-500">
+            Total Expenses:{" "}
+            <span className="font-bold text-black dark:text-white">
+              {formatCurrency(total, currency)}
+            </span>
+          </p>
+          <div className="flex items-center gap-4">
+            {selectMode && (
+              <button
+                className="text-blue-600 text-sm"
+                onClick={() => selectAll(currentExpenses)}
+              >
+                Select All
+              </button>
+            )}
+            <button
+              className="text-blue-600 text-sm"
+              onClick={() => {
+                if (selectMode) clearSelection();
+                else setSelectMode(true);
+              }}
+            >
+              {selectMode ? "Cancel" : "Select"}
+            </button>
+          </div>
+        </div>
       </HeaderComponent>
       <div
         className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-48" : "mt-40"
+          showPopup ? "mt-50" : "mt-45"
         }`}
       >
         <div className="mx-1 pt-2">
+          {selectMode && selectedIds.length > 0 && (
+            <div className="max-w-md px-1 pb-2">
+              <div
+                className="
+      bg-white dark:bg-gray-800 shadow-xl rounded-xl 
+      p-2 flex items-center justify-between 
+      border border-gray-200 dark:border-gray-700
+    "
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">Selected</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    ({selectedIds.length})
+                  </span>
+                </div>
+
+                <div className="flex gap-6">
+                  {/* Upcoming */}
+                  <button
+                    className={`flex flex-col items-center ${
+                      tab === "UPCOMING"
+                        ? "text-gray-600 dark:text-gray-300"
+                        : "text-blue-600"
+                    }`}
+                    onClick={async () => {
+                      const sub = await getSubAccountId();
+                      await Promise.all(
+                        selectedIds.map(({ id, budgetId }) =>
+                          updateExpense(
+                            id,
+                            { upcoming: tab === "UPCOMING" ? false : true },
+                            budgetId,
+                            sub
+                          )
+                        )
+                      );
+                      await fetchExpenses();
+                      clearSelection();
+                    }}
+                  >
+                    <FiClock className="text-xl font-extrabold" />
+                    <span className="text-[10px] mt-0.5">Upcoming</span>
+                  </button>
+
+                  {/* Fav */}
+                  <button
+                    className="flex flex-col items-center text-yellow-600"
+                    onClick={async () => {
+                      const sub = await getSubAccountId();
+                      await Promise.all(
+                        selectedIds.map(({ id, budgetId }) =>
+                          updateExpense(id, { favorite: true }, budgetId, sub)
+                        )
+                      );
+                      await fetchExpenses();
+                      clearSelection();
+                    }}
+                  >
+                    <FiStar className="text-xl font-extrabold caret-amber-300" />
+                    <span className="text-[10px] mt-0.5">Fav</span>
+                  </button>
+
+                  {/* Unfav */}
+                  <button
+                    className="flex flex-col items-center text-gray-600 dark:text-gray-300"
+                    onClick={async () => {
+                      const sub = await getSubAccountId();
+                      await Promise.all(
+                        selectedIds.map(({ id, budgetId }) =>
+                          updateExpense(id, { favorite: false }, budgetId, sub)
+                        )
+                      );
+                      await fetchExpenses();
+                      clearSelection();
+                    }}
+                  >
+                    <FiStar className="text-xl font-extrabold" />
+                    <span className="text-[10px] mt-0.5">Unfav</span>
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    className="flex flex-col items-center text-red-600"
+                    onClick={async () => {
+                      await Promise.all(
+                        selectedIds.map(({ id, budgetId }) =>
+                          removeExpense(id, budgetId)
+                        )
+                      );
+                      await fetchExpenses();
+                      clearSelection();
+                    }}
+                  >
+                    <FiTrash2 className="text-xl font-extrabold" />
+                    <span className="text-[10px] mt-0.5">Delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Content per tab */}
           {tab === "ALL" && (
             <>
-              {/* Keep your collapsible upcoming + active list */}
               <CollapsibleUpcoming
                 upcomingItems={upcomingExpenses}
                 currency={currency!}
@@ -266,11 +421,16 @@ export function ExpensesPage() {
                       currency={currency!}
                       budgetId={budgetId}
                       upcoming={upcoming}
+                      selectMode={selectMode}
+                      selected={selectedIds.some(
+                        (x) => x.id === id && x.budgetId === budgetId
+                      )}
+                      onSelect={() => toggleSelect(id, budgetId)}
+                      updateFavorites={updateFavorites}
                       favorite={favorite}
                       isRecurring={isRecurring}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
-                      updateFavorites={updateFavorites}
                     />
                   )
                 )
@@ -311,9 +471,14 @@ export function ExpensesPage() {
                       upcoming={upcoming}
                       favorite={favorite}
                       isRecurring={isRecurring}
+                      selectMode={selectMode}
+                      selected={selectedIds.some(
+                        (x) => x.id === id && x.budgetId === budgetId
+                      )}
+                      onSelect={() => toggleSelect(id, budgetId)}
+                      updateFavorites={updateFavorites}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
-                      updateFavorites={updateFavorites}
                     />
                   )
                 )
@@ -329,14 +494,41 @@ export function ExpensesPage() {
           {tab === "UPCOMING" && (
             <>
               {upcomingExpenses.length ? (
-                <CollapsibleUpcoming
-                  upcomingItems={upcomingExpenses}
-                  currency={currency!}
-                  compType="Expense"
-                  show={true}
-                  removeExpense={removeExpense}
-                  duplicateExpense={duplicateOldExpense}
-                />
+                upcomingExpenses.map(
+                  ({
+                    id,
+                    title,
+                    category,
+                    amount,
+                    updatedAt,
+                    budgetId,
+                    upcoming,
+                    favorite,
+                    isRecurring,
+                  }) => (
+                    <ExpenseBox
+                      key={id}
+                      id={id}
+                      title={title}
+                      category={category}
+                      amount={amount}
+                      updatedAt={updatedAt}
+                      currency={currency!}
+                      budgetId={budgetId}
+                      upcoming={upcoming}
+                      favorite={favorite}
+                      isRecurring={isRecurring}
+                      selectMode={selectMode}
+                      selected={selectedIds.some(
+                        (x) => x.id === id && x.budgetId === budgetId
+                      )}
+                      onSelect={() => toggleSelect(id, budgetId)}
+                      updateFavorites={updateFavorites}
+                      removeExpense={removeExpense}
+                      duplicateExpense={duplicateOldExpense}
+                    />
+                  )
+                )
               ) : (
                 <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 p-3 text-sm">
                   No upcoming expenses in the selected period.
@@ -371,9 +563,14 @@ export function ExpensesPage() {
                       upcoming={upcoming}
                       favorite={favorite}
                       isRecurring={isRecurring}
+                      selectMode={selectMode}
+                      selected={selectedIds.some(
+                        (x) => x.id === id && x.budgetId === budgetId
+                      )}
+                      onSelect={() => toggleSelect(id, budgetId)}
+                      updateFavorites={updateFavorites}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
-                      updateFavorites={updateFavorites}
                     />
                   )
                 )

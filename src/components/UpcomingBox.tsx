@@ -2,20 +2,38 @@ import { formatCurrency } from "../services/formatCurrency";
 import { formatRelativeDate } from "../services/formatDate";
 
 export const UpcomingBox = ({
+  id,
+  budgetId,
   amount,
   title,
   updatedAt,
   updateItem,
   currency = "EUR",
+  selectMode,
+  selected,
+  onSelect,
 }: {
+  id: string;
+  budgetId?: string;
   amount: number;
   title: string;
   updatedAt?: string;
   updateItem: () => void;
   currency?: string;
+  selectMode?: boolean;
+  selected?: boolean;
+  onSelect?: ((id: string, budgetId: string) => void) | ((id: string) => void);
 }) => {
   return (
     <div className="rounded-xl px-4 py-2 mb-2 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500 text-sm flex items-center justify-between shadow-sm">
+      <input
+        type="checkbox"
+        className="mt-1 mr-3 w-4 h-4 cursor-pointer"
+        checked={selected}
+        onChange={() => onSelect?.(id, budgetId!)}
+        hidden={!selectMode}
+      />
+
       <div className="flex flex-col flex-1 min-w-0">
         <p className="truncate font-medium">{title}</p>
         {updatedAt && (
