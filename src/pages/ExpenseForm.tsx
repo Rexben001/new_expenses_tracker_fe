@@ -12,7 +12,9 @@ import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
 import SwipeShell from "../components/SwipeShell";
 import { tokenStore } from "../services/tokenStore";
-
+import { Info } from "lucide-react";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 export function ExpenseForm() {
   const { currency, budgets, fetchExpenses } = useItemContext();
 
@@ -32,13 +34,30 @@ export function ExpenseForm() {
     currency,
     budgetId: "",
     upcoming: "false",
+    isRecurring: "false",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [isBudgetRecurring, setIsBudgetRecurring] = useState<boolean | null>();
+
+  const twoMonthsBudgets =
+    budgets.filter((b) => {
+      const budgetDate = new Date(b.updatedAt);
+      const now = new Date();
+      const twoMonthsAgo = new Date(
+        now.getFullYear(),
+        now.getMonth() - 2,
+        now.getDate()
+      );
+      return budgetDate >= twoMonthsAgo && budgetDate <= now;
+    }) ?? 
+    budgets;
 
   useEffect(() => {
     if (isEditMode) {
+      const selectedBudget = budgets.find((b) => b.id === state.id);
+      setIsBudgetRecurring(selectedBudget?.isRecurring ?? null);
       setFormData({
         title: state?.title ?? "",
         amount: Number(state?.amount ?? 0),
@@ -50,9 +69,11 @@ export function ExpenseForm() {
         currency: state?.currency || "EUR",
         budgetId: state?.id ?? "",
         upcoming: state?.upcoming ?? "false",
+        isRecurring: state?.isRecurring?.toString() ?? "false",
       });
     } else if (state?.id) {
       const bud = budgets?.find((b) => b.id === state.id);
+      setIsBudgetRecurring(bud?.isRecurring ?? null);
       setFormData({
         title: "",
         amount: 0,
@@ -62,6 +83,7 @@ export function ExpenseForm() {
         currency: state?.currency || "EUR",
         budgetId: state?.id ?? "",
         upcoming: state?.upcoming ?? "false",
+        isRecurring: state?.isRecurring ?? "false",
       });
     }
   }, [budgets, expenseId, isEditMode, state]);
@@ -75,6 +97,12 @@ export function ExpenseForm() {
   ) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData, [name]: value };
+
+    if (name === "budgetId") {
+      const selectedBudget = budgets.find((b) => b.id === value);
+      console.log({ selectedBudget });
+      setIsBudgetRecurring(selectedBudget?.isRecurring ?? null);
+    }
 
     if (name === "title") {
       const suggestions = value.trim() ? suggestCategories(value) : [];
@@ -91,6 +119,7 @@ export function ExpenseForm() {
     setError("");
   };
 
+  console.log({ state });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
@@ -114,6 +143,7 @@ export function ExpenseForm() {
           ...(oldBudgetId && { oldBudgetId }),
           ...(id && { budgetId: id }),
           upcoming: formData.upcoming === "true",
+          isRecurring: formData.isRecurring === "true",
         },
         id,
         subAccountId
@@ -125,6 +155,7 @@ export function ExpenseForm() {
           amount: Number(formData.amount),
           ...(id && { budgetId: id }),
           upcoming: formData.upcoming === "true",
+          isRecurring: formData.isRecurring === "true",
         },
         id,
         subAccountId
@@ -145,6 +176,8 @@ export function ExpenseForm() {
   const goBack = () => {
     navigate(-1);
   };
+
+  console.log({ isBudgetRecurring: !!isBudgetRecurring });
 
   return (
     <SwipeShell refresh={Promise.resolve}>
@@ -233,7 +266,7 @@ export function ExpenseForm() {
               Budget
             </label>
 
-            {budgets?.length ? (
+            {twoMonthsBudgets?.length ? (
               <select
                 name="budgetId"
                 value={formData.budgetId?.toString() ?? ""}
@@ -243,7 +276,7 @@ export function ExpenseForm() {
                 <option value="" disabled>
                   Select Budget
                 </option>
-                {budgets.map(({ id, title, updatedAt }) => (
+                {twoMonthsBudgets.map(({ id, title, updatedAt }) => (
                   <option key={id} value={id.toString()}>
                     {title} - {getMonthAndYear(updatedAt)}
                   </option>
@@ -264,6 +297,81 @@ export function ExpenseForm() {
             )}
           </div>
 
+          <div className="flex gap-6 justify-between sm:justify-start sm:gap-12">
+            {/* Recurring */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                Recurring
+                <Info
+                  data-tooltip-html={
+                    isBudgetRecurring
+                      ? "<p>If enabled, this expense will <br/> automatically recreate every month.</p>"
+                      : "<p>This expense cannot be recurring. <br/> To enable recurring expenses, <br /> please select a recurring budget.</p>"
+                  }
+                  className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  data-tooltip-id="recurring-tooltip"
+                />
+              </span>
+              <button
+                type="button"
+                disabled={!isBudgetRecurring}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    isRecurring:
+                      formData.isRecurring === "true" ? "false" : "true",
+                  })
+                }
+                className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                  !isBudgetRecurring
+                    ? "opacity-50 cursor-not-allowed"
+                    : formData.isRecurring === "true"
+                    ? "bg-blue-500"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-300 ${
+                    formData.isRecurring === "true" ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Upcoming */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                Upcoming
+                <Info
+                  data-tooltip-html="<p>Mark this as upcoming if it’s <br/> a future expense or not yet active.</p>"
+                  className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  data-tooltip-id="recurring-tooltip"
+                />
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    upcoming: formData.upcoming === "true" ? "false" : "true",
+                  })
+                }
+                className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                  formData.upcoming === "true"
+                    ? "bg-green-500"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-300 ${
+                    formData.upcoming === "true" ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+            <Tooltip id="recurring-tooltip" />
+          </div>
+
           <div>
             <label className="text-sm dark:text-white  text-gray-500 mb-1 block">
               Date
@@ -276,25 +384,6 @@ export function ExpenseForm() {
               required
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
-            <select
-              name="upcoming"
-              value={formData.upcoming}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Select upcoming status
-              </option>
-              {["true", "false"].map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
           </div>
 
           <button
@@ -310,3 +399,5 @@ export function ExpenseForm() {
     </SwipeShell>
   );
 }
+
+// TODO: Only show recurring option if the selected budget is recurring

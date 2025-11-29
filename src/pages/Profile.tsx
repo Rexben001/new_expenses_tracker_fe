@@ -235,12 +235,13 @@ export function Profile() {
 
   const handleCreateSub = async () => {
     createSubAccount();
-    await fetchUser();
-    await fetchBudgets();
-    await fetchExpenses();
-    navigate(0);
+    // await fetchUser();
+    // await fetchBudgets();
+    // await fetchExpenses();
+    // navigate(0);
   };
 
+  console.log({ mainAccount });
   if (loading) return null;
 
   return (
@@ -564,3 +565,5 @@ export function Profile() {
     </SwipeShell>
   );
 }
+
+// TODO: clear local storage on sub-account delete, on logout

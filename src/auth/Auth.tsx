@@ -13,6 +13,7 @@ import {
 } from "aws-amplify/auth";
 import { AuthContext, type Ctx } from "../context/AuthContext";
 import { hasIdToken } from "../services/amplify";
+import { tokenStore } from "../services/tokenStore";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut();
     setAuthed(false);
     setReady(true);
+    tokenStore.remove("subAccountId");
   };
 
   const getAccessToken = async () => {

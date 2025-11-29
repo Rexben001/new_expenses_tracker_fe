@@ -17,15 +17,20 @@ import { useAuth } from "../context/AuthContext";
 import { deleteBudget, updateBudget } from "../services/api";
 import SwipeShell from "../components/SwipeShell";
 
-type TabKey = "ALL" | "FAV" | "UPCOMING";
+type TabKey = "ALL" | "FAV" | "UPCOMING" | "RECURRING";
 
 export function BudgetPage() {
   const location = useLocation();
 
   const auth = useAuth();
 
-  const { fetchBudgets, currency, budgetStartDay, setBudgets, getSubAccountId } =
-    useItemContext();
+  const {
+    fetchBudgets,
+    currency,
+    budgetStartDay,
+    setBudgets,
+    getSubAccountId,
+  } = useItemContext();
 
   const [query, setQuery] = useState("");
   const [total, setTotal] = useState(0);
@@ -52,6 +57,7 @@ export function BudgetPage() {
   const upcomingBudgets = filteredBudgets.filter((b) => b.upcoming);
   const activeBudgets = filteredBudgets.filter((b) => !b.upcoming);
   const favBudgets = filteredBudgets.filter((e) => e?.favorite);
+  const recurringBudgets = filteredBudgets.filter((b) => b.isRecurring);
 
   useEffect(() => {
     const total = getTotal(filteredBudgets);
@@ -118,6 +124,7 @@ export function BudgetPage() {
     ALL: filteredBudgets.length,
     FAV: favBudgets.length,
     UPCOMING: upcomingBudgets.length,
+    RECURRING: recurringBudgets.length,
   };
 
   // Title per tab
@@ -125,6 +132,7 @@ export function BudgetPage() {
     ALL: "All Budgets",
     FAV: "Favorites",
     UPCOMING: "Upcoming",
+    RECURRING: "Recurring",
   };
 
   return (
@@ -150,6 +158,7 @@ export function BudgetPage() {
                 { key: "ALL", label: "All" },
                 { key: "FAV", label: "Favourites" },
                 { key: "UPCOMING", label: "Upcoming" },
+                { key: "RECURRING", label: "Recurring" },
               ] as { key: TabKey; label: string }[]
             ).map(({ key, label }) => {
               const active = tab === key;
@@ -263,6 +272,26 @@ export function BudgetPage() {
               ) : (
                 <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 p-3 text-sm">
                   No upcoming expenses in the selected period.
+                </div>
+              )}
+            </>
+          )}
+          {tab === "RECURRING" && (
+            <>
+              {recurringBudgets.length ? (
+                recurringBudgets.map((budget) => (
+                  <BudgetBox
+                    key={budget.id}
+                    budget={budget}
+                    currency={currency}
+                    showExpense={true}
+                    removeBudget={removeBudget}
+                    updateFavorites={updateFavorites}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 p-3 text-sm">
+                  No recurring budgets in the selected period.
                 </div>
               )}
             </>

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
 import { updateExpense } from "../services/api";
-import { FiStar } from "react-icons/fi";
+import { FiRefreshCcw, FiStar } from "react-icons/fi";
 import { tokenStore } from "../services/tokenStore";
 
 export interface IExpenseBox {
@@ -19,6 +19,7 @@ export interface IExpenseBox {
   budgetId?: string;
   upcoming?: boolean;
   favorite?: boolean;
+  isRecurring?: boolean;
   removeExpense: (id: string, budgetId?: string) => Promise<void>;
   duplicateExpense: (id: string, budgetId?: string) => Promise<void>;
   updateFavorites?: (
@@ -41,6 +42,7 @@ export const ExpenseBox = ({
   favorite,
   duplicateExpense,
   updateFavorites,
+  isRecurring,
 }: IExpenseBox) => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
@@ -118,6 +120,11 @@ export const ExpenseBox = ({
       <div>
         <div className="flex items-center gap-2">
           <p className={`font-semibold text-base ${textColor}`}>{title}</p>
+          <FiRefreshCcw
+            className={`w-4 h-4 ${
+              isRecurring ? "text-blue-500" : "text-gray-300 dark:text-gray-600"
+            }`}
+          />
           <button
             type="button"
             aria-label={favorite ? "Unfavorite" : "Favorite"}
@@ -158,6 +165,7 @@ export const ExpenseBox = ({
                       currency,
                       upcoming,
                       id: budgetId,
+                      isRecurring,
                     },
                   });
                 }}

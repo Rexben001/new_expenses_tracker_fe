@@ -1,8 +1,16 @@
 import { getTokens } from "./amplify";
 
-export const API_BASE_URL =
-  "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
+// export const API_BASE_URL =
+//   "https://ur2x8pmk8c.execute-api.eu-west-2.amazonaws.com/prod/";
+// export const API_BASE_URL =
+//   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
 
+const env = process.env.NODE_ENV || "development";
+
+export const API_BASE_URL =
+  env !== "production"
+    ? "https://ur2x8pmk8c.execute-api.eu-west-2.amazonaws.com/prod/"
+    : "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
 async function fetchApi({
   method,
   path,
@@ -60,10 +68,17 @@ export function createBudget(body: unknown, subId?: string) {
   });
 }
 
-export function updateBudget(id: string, body: unknown, subId?: string) {
+export function updateBudget(
+  id: string,
+  body: unknown,
+  subId?: string,
+  setIsRecurring?: boolean
+) {
+  const path = addSubIdPath(`budgets/${id}`, subId, setIsRecurring);
+  console.log({ setIsRecurring, path });
   return fetchApi({
     method: "PUT",
-    path: addSubIdPath(`budgets/${id}`, subId),
+    path,
     body,
   });
 }
@@ -187,8 +202,14 @@ const getExpensesPath = (id?: string, budgetId?: string, duplicates = "") => {
   return path;
 };
 
-const addSubIdPath = (path: string, id?: string) => {
+const addSubIdPath = (path: string, id?: string, setIsRecurring?: boolean) => {
   if (id) path += path.includes("?") ? `&subId=${id}` : `?subId=${id}`;
+  if (setIsRecurring) {
+    console.log("got here");
+    path += path.includes("?")
+      ? `&setIsRecurring=${setIsRecurring}`
+      : `?setIsRecurring=${setIsRecurring}`;
+  }
 
   return path;
 };

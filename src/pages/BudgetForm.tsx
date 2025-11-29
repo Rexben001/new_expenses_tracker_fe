@@ -11,6 +11,8 @@ import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import SwipeShell from "../components/SwipeShell";
 import { tokenStore } from "../services/tokenStore";
+import { Info } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 export function BudgetForm() {
   const { currency } = useItemContext();
@@ -28,7 +30,7 @@ export function BudgetForm() {
     category: "",
     updatedAt: new Date().toISOString().split("T")[0],
     description: "",
-    period: "monthly",
+    isRecurring: "false",
     upcoming: "false",
     currency: currency || "EUR",
   });
@@ -43,7 +45,7 @@ export function BudgetForm() {
         amount: Number(state?.amount ?? 0),
         category: state?.category ?? "",
         updatedAt: state?.updatedAt?.split("T")[0] ?? "",
-        period: state?.period ?? "monthly",
+        isRecurring: state?.isRecurring?.toString() ?? "false",
         description: "",
         upcoming: state?.upcoming ?? "false",
         currency: state.currency ?? "EUR",
@@ -79,6 +81,9 @@ export function BudgetForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const setIsRecurring =
+      state?.isRecurring && formData.isRecurring === "false";
+
     const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
 
     if (isEditMode)
@@ -88,8 +93,10 @@ export function BudgetForm() {
           ...formData,
           amount: Number(formData.amount),
           upcoming: formData.upcoming === "true",
+          isRecurring: formData.isRecurring === "true",
         },
-        subAccountId
+        subAccountId,
+        !!setIsRecurring
       );
     else {
       await createBudget(
@@ -97,6 +104,7 @@ export function BudgetForm() {
           ...formData,
           amount: Number(formData.amount),
           upcoming: formData.upcoming === "true",
+          isRecurring: formData.isRecurring === "true",
         },
         subAccountId
       );
@@ -178,24 +186,77 @@ export function BudgetForm() {
             </select>
           </div>
 
-          {/* <div>
-          <label className="text-sm text-gray-500 mb-1 block">Period</label>
-          <select
-            name="period"
-            value={formData.period}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              Select period
-            </option>
-            {PERIOD_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div> */}
+          <div className="flex gap-6 justify-between sm:justify-start sm:gap-12">
+            {/* Recurring */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                Recurring
+                <Info
+                  data-tooltip-html={
+                    formData.isRecurring === "true"
+                      ? "<p>If disabled, this budget will be a one-time budget <br /> and all expenses will be non-recurring</p>"
+                      : "<p>If enabled, this budget will <br/> automatically recreate every month.</p>"
+                  }
+                  className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  data-tooltip-id="recurring-tooltip"
+                />
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    isRecurring:
+                      formData.isRecurring === "true" ? "false" : "true",
+                  })
+                }
+                className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                  formData.isRecurring === "true"
+                    ? "bg-blue-500"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-300 ${
+                    formData.isRecurring === "true" ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Upcoming */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                Upcoming
+                <Info
+                  data-tooltip-html="<p>Mark this as upcoming if it’s <br/> a future budget or not yet active.</p>"
+                  className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  data-tooltip-id="recurring-tooltip"
+                />
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    upcoming: formData.upcoming === "true" ? "false" : "true",
+                  })
+                }
+                className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                  formData.upcoming === "true"
+                    ? "bg-green-500"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-300 ${
+                    formData.upcoming === "true" ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+            <Tooltip id="recurring-tooltip" />
+          </div>
 
           <div>
             <label className="text-sm text-gray-500 mb-1 block">Date</label>
@@ -207,24 +268,6 @@ export function BudgetForm() {
               onChange={handleChange}
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="text-sm text-gray-500 mb-1 block">Upcoming</label>
-            <select
-              name="upcoming"
-              value={formData.upcoming}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                Select upcoming status
-              </option>
-              {["true", "false"].map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
           </div>
 
           <button

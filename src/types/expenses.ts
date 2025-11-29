@@ -8,4 +8,5 @@ export type Expense = {
   budgetId?: string;
   upcoming?: boolean;
   favorite?: boolean;
+  isRecurring: boolean;
 };

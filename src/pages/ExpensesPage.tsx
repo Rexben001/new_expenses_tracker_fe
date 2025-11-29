@@ -24,11 +24,16 @@ import { useAuth } from "../context/AuthContext";
 import { hasIdToken } from "../services/amplify";
 import SwipeShell from "../components/SwipeShell";
 
-type TabKey = "ALL" | "FAV" | "UPCOMING";
+type TabKey = "ALL" | "FAV" | "UPCOMING" | "RECURRING";
 
 export function ExpensesPage() {
-  const { fetchExpenses, currency, budgetStartDay, setExpenses, getSubAccountId } =
-    useItemContext();
+  const {
+    fetchExpenses,
+    currency,
+    budgetStartDay,
+    setExpenses,
+    getSubAccountId,
+  } = useItemContext();
   const location = useLocation();
 
   const [query, setQuery] = useState("");
@@ -63,9 +68,14 @@ export function ExpensesPage() {
 
   const filteredExpenses = useExpenseSearch(query, _filterExpenses);
 
+  console.log({
+    filteredExpenses,
+  });
+
   const upcomingExpenses = filteredExpenses.filter((e) => e.upcoming);
   const activeExpenses = filteredExpenses.filter((e) => !e.upcoming);
   const favExpenses = filteredExpenses.filter((e) => e?.favorite);
+  const recurringExpenses = filteredExpenses.filter((e) => e.isRecurring);
 
   useEffect(() => {
     if (location.state?.refresh) fetchExpenses();
@@ -135,6 +145,7 @@ export function ExpensesPage() {
     ALL: filteredExpenses.length,
     FAV: favExpenses.length,
     UPCOMING: upcomingExpenses.length,
+    RECURRING: recurringExpenses.length,
   };
 
   // Title per tab
@@ -142,6 +153,7 @@ export function ExpensesPage() {
     ALL: "All Expenses",
     FAV: "Favorites",
     UPCOMING: "Upcoming",
+    RECURRING: "Recurring",
   };
 
   return (
@@ -168,6 +180,7 @@ export function ExpensesPage() {
                 { key: "ALL", label: "All" },
                 { key: "FAV", label: "Favourites" },
                 { key: "UPCOMING", label: "Upcoming" },
+                { key: "RECURRING", label: "Recurring" },
               ] as { key: TabKey; label: string }[]
             ).map(({ key, label }) => {
               const active = tab === key;
@@ -241,6 +254,7 @@ export function ExpensesPage() {
                     budgetId,
                     upcoming,
                     favorite,
+                    isRecurring,
                   }) => (
                     <ExpenseBox
                       key={id}
@@ -253,6 +267,7 @@ export function ExpensesPage() {
                       budgetId={budgetId}
                       upcoming={upcoming}
                       favorite={favorite}
+                      isRecurring={isRecurring}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
                       updateFavorites={updateFavorites}
@@ -282,6 +297,7 @@ export function ExpensesPage() {
                     budgetId,
                     upcoming,
                     favorite,
+                    isRecurring,
                   }) => (
                     <ExpenseBox
                       key={id}
@@ -294,6 +310,7 @@ export function ExpensesPage() {
                       budgetId={budgetId}
                       upcoming={upcoming}
                       favorite={favorite}
+                      isRecurring={isRecurring}
                       removeExpense={removeExpense}
                       duplicateExpense={duplicateOldExpense}
                       updateFavorites={updateFavorites}
@@ -323,6 +340,46 @@ export function ExpensesPage() {
               ) : (
                 <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 p-3 text-sm">
                   No upcoming expenses in the selected period.
+                </div>
+              )}
+            </>
+          )}
+          {tab === "RECURRING" && (
+            <>
+              {recurringExpenses.length ? (
+                recurringExpenses.map(
+                  ({
+                    id,
+                    title,
+                    category,
+                    amount,
+                    updatedAt,
+                    budgetId,
+                    upcoming,
+                    favorite,
+                    isRecurring,
+                  }) => (
+                    <ExpenseBox
+                      key={id}
+                      id={id}
+                      title={title}
+                      category={category}
+                      amount={amount}
+                      updatedAt={updatedAt}
+                      currency={currency!}
+                      budgetId={budgetId}
+                      upcoming={upcoming}
+                      favorite={favorite}
+                      isRecurring={isRecurring}
+                      removeExpense={removeExpense}
+                      duplicateExpense={duplicateOldExpense}
+                      updateFavorites={updateFavorites}
+                    />
+                  )
+                )
+              ) : (
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60 p-3 text-sm">
+                  No recurring expenses in the selected period.
                 </div>
               )}
             </>
