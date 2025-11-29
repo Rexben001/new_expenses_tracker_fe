@@ -91,5 +91,4 @@ export const CATEGORY_OPTIONS = [
   "Subscriptions",
   "Gifts",
   "Personal Care",
-
 ];

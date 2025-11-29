@@ -13,10 +13,6 @@ type Props = {
   refresh: () => Promise<void>;
 };
 
-const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
-  navigator.userAgent
-);
-
 export default function SwipeShell({
   children,
   toLeft,
@@ -27,6 +23,14 @@ export default function SwipeShell({
   const nav = useNavigate();
   const startXRef = useRef(0);
   const DELTA = 56; // px; minimum horizontal movement
+
+  function isMobileBrowser() {
+    if (typeof navigator === "undefined") return false;
+
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+      navigator.userAgent
+    );
+  }
 
   useEffect(() => {
     if (disabled) return;
@@ -61,7 +65,7 @@ export default function SwipeShell({
       startXRef.current = t?.clientX ?? 0;
     },
     onSwiped: (e) => {
-      if (disabled || !isMobile) return;
+      if (disabled) return;
 
       const target = e.event.target as HTMLElement;
       if (target.closest("input, textarea, select, [contenteditable='true']"))
@@ -84,31 +88,35 @@ export default function SwipeShell({
 
   return (
     <div {...handlers}>
-      <PullToRefresh
-        onRefresh={refresh}
-        pullingContent={
-          <div className="pt-3 pb-1 flex justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
-              <FiArrowDown className="animate-bounce" />
-              <span className="font-medium">Pull to refresh</span>
+      {!isMobileBrowser() ? (
+        <>{children}</>
+      ) : (
+        // 💻 Desktop: Pull to refresh enabled
+        <PullToRefresh
+          onRefresh={refresh}
+          pullingContent={
+            <div className="pt-3 pb-1 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
+                <FiArrowDown className="animate-bounce" />
+                <span className="font-medium">Pull to refresh</span>
+              </div>
             </div>
-          </div>
-        }
-        refreshingContent={
-          <div className="pt-3 pb-1 flex justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
-              <span className="inline-block w-4 h-4 border-2 border-gray-300 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
-              <span className="font-medium">Refreshing…</span>
+          }
+          refreshingContent={
+            <div className="pt-3 pb-1 flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-full bg-gray-100/90 dark:bg-gray-800/80 px-3 py-1 text-xs text-gray-600 dark:text-gray-200 shadow-sm">
+                <span className="inline-block w-4 h-4 border-2 border-gray-300 dark:border-gray-500 border-t-transparent rounded-full animate-spin" />
+                <span className="font-medium">Refreshing…</span>
+              </div>
             </div>
-          </div>
-        }
-        resistance={2.2}
-        pullDownThreshold={64}
-        maxPullDownDistance={96}
-        isPullable={!isMobile}
-      >
-        {children}
-      </PullToRefresh>
+          }
+          resistance={2.2}
+          pullDownThreshold={64}
+          maxPullDownDistance={96}
+        >
+          {children}
+        </PullToRefresh>
+      )}
     </div>
   );
 }
