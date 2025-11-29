@@ -86,12 +86,6 @@ export function BudgetForm() {
 
     const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
 
-    console.log({
-      setIsRecurring,
-      si: state.isRecurring,
-      fi: formData.isRecurring,
-    });
-
     if (isEditMode)
       await updateBudget(
         budgetId!,
@@ -102,7 +96,7 @@ export function BudgetForm() {
           isRecurring: formData.isRecurring === "true",
         },
         subAccountId,
-        setIsRecurring
+        !!setIsRecurring
       );
     else {
       await createBudget(

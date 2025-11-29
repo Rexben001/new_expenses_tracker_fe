@@ -13,6 +13,10 @@ type Props = {
   refresh: () => Promise<void>;
 };
 
+const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+  navigator.userAgent
+);
+
 export default function SwipeShell({
   children,
   toLeft,
@@ -57,7 +61,7 @@ export default function SwipeShell({
       startXRef.current = t?.clientX ?? 0;
     },
     onSwiped: (e) => {
-      if (disabled) return;
+      if (disabled || !isMobile) return;
 
       const target = e.event.target as HTMLElement;
       if (target.closest("input, textarea, select, [contenteditable='true']"))
@@ -101,6 +105,7 @@ export default function SwipeShell({
         resistance={2.2}
         pullDownThreshold={64}
         maxPullDownDistance={96}
+        isPullable={!isMobile}
       >
         {children}
       </PullToRefresh>
