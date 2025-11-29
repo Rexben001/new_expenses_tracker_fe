@@ -41,6 +41,19 @@ export function ExpenseForm() {
   const [error, setError] = useState("");
   const [isBudgetRecurring, setIsBudgetRecurring] = useState<boolean | null>();
 
+  const twoMonthsBudgets =
+    budgets.filter((b) => {
+      const budgetDate = new Date(b.updatedAt);
+      const now = new Date();
+      const twoMonthsAgo = new Date(
+        now.getFullYear(),
+        now.getMonth() - 2,
+        now.getDate()
+      );
+      return budgetDate >= twoMonthsAgo && budgetDate <= now;
+    }) ?? 
+    budgets;
+
   useEffect(() => {
     if (isEditMode) {
       const selectedBudget = budgets.find((b) => b.id === state.id);
@@ -253,7 +266,7 @@ export function ExpenseForm() {
               Budget
             </label>
 
-            {budgets?.length ? (
+            {twoMonthsBudgets?.length ? (
               <select
                 name="budgetId"
                 value={formData.budgetId?.toString() ?? ""}
@@ -263,7 +276,7 @@ export function ExpenseForm() {
                 <option value="" disabled>
                   Select Budget
                 </option>
-                {budgets.map(({ id, title, updatedAt }) => (
+                {twoMonthsBudgets.map(({ id, title, updatedAt }) => (
                   <option key={id} value={id.toString()}>
                     {title} - {getMonthAndYear(updatedAt)}
                   </option>
@@ -293,7 +306,7 @@ export function ExpenseForm() {
                   data-tooltip-html={
                     isBudgetRecurring
                       ? "<p>If enabled, this expense will <br/> automatically recreate every month.</p>"
-                      : "<p>This expense is not recurring. <br/> To enable recurring expenses, <br /> please select a recurring budget.</p>"
+                      : "<p>This expense cannot be recurring. <br/> To enable recurring expenses, <br /> please select a recurring budget.</p>"
                   }
                   className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
                   data-tooltip-id="recurring-tooltip"

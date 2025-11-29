@@ -82,7 +82,7 @@ export function BudgetForm() {
     setIsSubmitting(true);
 
     const setIsRecurring =
-      state.isRecurring && formData.isRecurring === "false";
+      state?.isRecurring && formData.isRecurring === "false";
 
     const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
 
