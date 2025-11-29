@@ -116,7 +116,8 @@ export function ExpenseChart() {
           yearOfBudget = getYear(shiftedDate);
         }
         if (yearOfBudget === Number(year)) {
-          monthlyTotals[monthIndex + 1].budgetsTotal += b.amount;
+          const targetIndex = monthIndex === 11 ? 0 : monthIndex + 1;
+          monthlyTotals[targetIndex].budgetsTotal += b.amount;
         }
       });
 
@@ -137,7 +138,8 @@ export function ExpenseChart() {
         }
 
         if (yearOfExpense === Number(year)) {
-          monthlyTotals[monthIndex + 1].expensesTotal += exp.amount;
+          const targetIndex = monthIndex === 11 ? 0 : monthIndex + 1;
+          monthlyTotals[targetIndex].expensesTotal += exp.amount;
         }
       });
 
