@@ -2,3 +2,5 @@ node_modules
 dist
 .DS_store
 src/assets/.DS_store
+.env
+.env.local

@@ -2,18 +2,15 @@
 import { Amplify } from "aws-amplify";
 import { signIn, fetchAuthSession, confirmSignIn } from "aws-amplify/auth";
 
-const env = process.env.NODE_ENV || "development";
+const details = {
+  userPoolId:
+    import.meta.env.VITE_COGNITO_USER_POOL_ID ?? "eu-west-1_jun0ZG2Eg",
+  userPoolClientId:
+    import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID ??
+    "3ot8dopkkdbs6gj759q3tk8jsk",
+};
 
-const details =
-  env !== "development"
-    ? {
-        userPoolId: "eu-west-1_jun0ZG2Eg",
-        userPoolClientId: "3ot8dopkkdbs6gj759q3tk8jsk",
-      }
-    : {
-        userPoolId: "eu-west-2_YZvYB6Uts",
-        userPoolClientId: "3n416nns5itn8da938nqu10gff",
-      };
+console.log({details})
 
 Amplify.configure({
   Auth: {

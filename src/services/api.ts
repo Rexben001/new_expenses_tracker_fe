@@ -1,16 +1,8 @@
 import { getTokens } from "./amplify";
 
-// export const API_BASE_URL =
-//   "https://ur2x8pmk8c.execute-api.eu-west-2.amazonaws.com/prod/";
-// export const API_BASE_URL =
-//   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
-
-const env = process.env.NODE_ENV || "development";
-
 export const API_BASE_URL =
-  env !== "production"
-    ? "https://ur2x8pmk8c.execute-api.eu-west-2.amazonaws.com/prod/"
-    : "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
+  import.meta.env.VITE_API_BASE_URL ??
+  "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
 async function fetchApi({
   method,
   path,
@@ -158,6 +150,43 @@ export function deleteExpense(id: string, budgetId?: string, subId?: string) {
   return fetchApi({
     method: "DELETE",
     path: addSubIdPath(getExpensesPath(id, budgetId), subId),
+  });
+}
+
+export function getTasks(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("tasks", subId),
+  });
+}
+
+export function getTask(id: string, subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath(`tasks/${id}`, subId),
+  });
+}
+
+export function createTask(body: unknown, subId?: string) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("tasks", subId),
+    body,
+  });
+}
+
+export function updateTask(id: string, body: unknown, subId?: string) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath(`tasks/${id}`, subId),
+    body,
+  });
+}
+
+export function deleteTask(id: string, subId?: string) {
+  return fetchApi({
+    method: "DELETE",
+    path: addSubIdPath(`tasks/${id}`, subId),
   });
 }
 

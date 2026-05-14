@@ -25,27 +25,29 @@ export const UpcomingBox = ({
   onSelect?: ((id: string, budgetId: string) => void) | ((id: string) => void);
 }) => {
   return (
-    <div className="stacked-card stacked-card--upcoming mb-3">
-      <div className="stacked-card__panel flex items-center justify-between gap-3 px-4 py-3 text-sm">
+    <div className="mb-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex items-center justify-between gap-3">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 bg-white/80 accent-sky-600 dark:border-white/20 dark:bg-slate-900/30 dark:accent-sky-400"
+          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 bg-white accent-blue-600 dark:border-gray-700 dark:bg-gray-900"
           checked={selected}
           onChange={() => onSelect?.(id, budgetId!)}
           hidden={!selectMode}
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <p className="stacked-card__title truncate font-medium">{title}</p>
+          <p className="truncate font-medium text-gray-950 dark:text-gray-50">
+            {title}
+          </p>
           {updatedAt && (
-            <p className="stacked-card__muted mt-0.5 text-[11px]">
+            <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
               {formatRelativeDate(updatedAt)}
             </p>
           )}
         </div>
 
         <div className="ml-4 flex items-center gap-3">
-          <p className="stacked-card__amount text-sm font-semibold">
+          <p className="text-sm font-semibold text-gray-950 dark:text-gray-50">
             {formatCurrency(amount, currency)}
           </p>
 

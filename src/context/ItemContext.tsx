@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getBudgets, getExpenses, getUser } from "../services/api";
+import { getBudgets, getExpenses, getTasks, getUser } from "../services/api";
 import type { Budget } from "../types/budgets";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
@@ -10,12 +10,14 @@ import { getTokens } from "../services/amplify";
 import { useAuth } from "./AuthContext";
 import type { Account, User } from "../types/user";
 import { tokenStore } from "../services/tokenStore";
+import type { Task } from "../types/tasks";
 
 export function ItemContextProvider(
   props: Readonly<{ children: React.ReactNode }>
 ) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [user, setUser] = useState<User>({
     userName: undefined,
     currency: undefined,
@@ -58,6 +60,7 @@ export function ItemContextProvider(
   useEffect(() => {
     fetchBudgets();
     fetchExpenses();
+    fetchTasks();
     fetchUser();
     getDeviceType().then((type) => setDeviceType(type));
     getTokens().then((t) => {
@@ -97,6 +100,20 @@ export function ItemContextProvider(
       try {
         const expenses = await getExpenses(undefined, subId);
         setExpenses(expenses);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    [getSubAccountId]
+  );
+
+  const fetchTasks = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+
+      try {
+        const tasks = await getTasks(subId);
+        setTasks(tasks);
       } catch (error) {
         console.log({ error });
       }
@@ -145,13 +162,16 @@ export function ItemContextProvider(
     () => ({
       budgets,
       expenses,
+      tasks,
       setBudgets,
       setExpenses,
+      setTasks,
       loading,
       setLoading,
       currentMonthExpensesTotal,
       fetchExpenses,
       fetchBudgets,
+      fetchTasks,
       user,
       currency,
       fetchUser,
@@ -169,10 +189,12 @@ export function ItemContextProvider(
     [
       budgets,
       expenses,
+      tasks,
       loading,
       currentMonthExpensesTotal,
       fetchExpenses,
       fetchBudgets,
+      fetchTasks,
       user,
       currency,
       fetchUser,

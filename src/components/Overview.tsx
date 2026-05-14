@@ -58,7 +58,7 @@ export function OverviewBoard({
   }, [computedMaxYear, computedMinYear]);
 
   return (
-    <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-indigo-200 dark:to-indigo-300 dark:text-blue-800 text-white px-2 py-3 rounded-xl shadow">
+    <div className="relative rounded-xl border border-gray-200 bg-white px-3 py-3 text-gray-950 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-50">
       {/* Month/Year Selects */}
       <div className="absolute top-1.5 right-2 flex items-center gap-1">
         <label className="sr-only" htmlFor="budget-month">
@@ -70,9 +70,9 @@ export function OverviewBoard({
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             className="appearance-none text-[11px] font-medium px-2 py-1 rounded-full
-                          bg-white/25 text-white shadow-sm backdrop-blur
-                          dark:bg-blue-600/90 dark:text-white
-                          focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-0 pr-4"
+                          bg-gray-100 text-gray-700 shadow-sm
+                          dark:bg-gray-800 dark:text-gray-200
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 pr-4"
             aria-label="Select month"
           >
             {MONTHS.map((m, idx) => (
@@ -86,7 +86,7 @@ export function OverviewBoard({
             ))}
           </select>
           <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[10px] opacity-80">
-            ▼
+            v
           </span>
         </div>
 
@@ -102,9 +102,9 @@ export function OverviewBoard({
               setYear(e.target.value)
             }
             className="appearance-none text-[11px] font-medium px-2 py-1 rounded-full
-                          bg-white/25 text-white shadow-sm backdrop-blur
-                          dark:bg-blue-600/90 dark:text-white
-                          focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-0 pr-4"
+                          bg-gray-100 text-gray-700 shadow-sm
+                          dark:bg-gray-800 dark:text-gray-200
+                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 pr-4"
             aria-label="Select year"
           >
             {yearOptions.map((y) => (
@@ -114,14 +114,14 @@ export function OverviewBoard({
             ))}
           </select>
           <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[10px] opacity-80">
-            ▼
+            v
           </span>
         </div>
       </div>
 
       {/* optional enlarge icon */}
       <button
-        className="absolute bottom-2 right-2 text-white/80 hover:text-white dark:text-blue-900/70 dark:hover:text-blue-900"
+        className="absolute bottom-2 right-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         onClick={() => setOpenStats(true)}
         aria-label="Expand amounts"
         type="button"
@@ -135,11 +135,11 @@ export function OverviewBoard({
         <button
           type="button"
           onClick={() => setOpenStats(true)}
-          className="flex items-center gap-2 flex-1 text-left"
+          className="flex items-center gap-2 flex-1 rounded-lg p-1 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
         >
-          <FiPieChart className="text-lg opacity-80 shrink-0" />
+          <FiPieChart className="text-lg text-blue-500 shrink-0" />
           <div className="min-w-0">
-            <p className="text-xs opacity-80">Budget</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Budget</p>
             <span className="font-bold text-[13px] sm:text-sm leading-tight block">
               {formatCurrency(totalBudget || 0, currency, false)}
             </span>
@@ -150,11 +150,11 @@ export function OverviewBoard({
         <button
           type="button"
           onClick={() => setOpenStats(true)}
-          className="flex items-center gap-2 flex-1 text-left"
+          className="flex items-center gap-2 flex-1 rounded-lg p-1 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
         >
-          <FiTrendingDown className="text-lg opacity-80 shrink-0" />
+          <FiTrendingDown className="text-lg text-red-500 shrink-0" />
           <div className="min-w-0">
-            <p className="text-xs opacity-80">Expenses</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Expenses</p>
             <span className="font-bold text-[13px] sm:text-sm leading-tight block">
               {formatCurrency(totalExpenses || 0, currency, false)}
             </span>
@@ -165,11 +165,11 @@ export function OverviewBoard({
         <button
           type="button"
           onClick={() => setOpenStats(true)}
-          className="flex items-center gap-2 flex-1 text-left"
+          className="flex items-center gap-2 flex-1 rounded-lg p-1 text-left hover:bg-gray-50 dark:hover:bg-gray-800"
         >
-          <FiTrendingUp className="text-lg opacity-80 shrink-0" />
+          <FiTrendingUp className="text-lg text-emerald-500 shrink-0" />
           <div className="min-w-0">
-            <p className="text-xs opacity-80">Remaining</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Remaining</p>
             <span className="font-bold text-[13px] sm:text-sm leading-tight block">
               {formatCurrency(remaining || 0, currency, false)}
             </span>
@@ -178,7 +178,7 @@ export function OverviewBoard({
       </div>
 
       {/* Mini Progress Bar */}
-      <div className="w-full bg-white/30 dark:bg-gray-300 rounded-full h-1 mt-3">
+      <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-3">
         <div className={progressBarClass} style={{ width: `${totalWidth}%` }} />
       </div>
     </div>

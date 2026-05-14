@@ -210,27 +210,27 @@ export function Dashboard() {
           </div>
 
           {expense ? (
-            <div key={expense?.id} className="stacked-card stacked-card--expense mb-3">
-              <div className="stacked-card__panel flex items-start justify-between gap-4 p-4">
+            <div
+              key={expense?.id}
+              className="mb-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+              <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="stacked-card__title truncate font-semibold text-base">
+                  <p className="truncate font-semibold text-base text-gray-950 dark:text-gray-50">
                     {expense?.title}
                   </p>
                   <CategoryComponent category={expense.category} />
-                  <p className="stacked-card__muted mt-2 text-xs">
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                     {formatRelativeDate(expense?.updatedAt)}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="stacked-card__amount text-lg font-bold">
-                    {formatCurrency(expense?.amount, user.currency)}
-                  </p>
-                  <div className="mt-2 flex justify-end gap-2"></div>
-                </div>
+                <p className="shrink-0 text-right text-lg font-bold text-gray-950 dark:text-gray-50">
+                  {formatCurrency(expense?.amount, user.currency)}
+                </p>
               </div>
             </div>
           ) : (
-            <div className="bg-gray-100 text-center text-sm text-gray-500 p-4 rounded-xl">
+            <div className="rounded-xl border border-dashed border-gray-300 bg-white p-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
               <p>You don’t have any expense for this month</p>
               <button className="mt-2 text-blue-500">
                 <Link to="/expenses/new">+ Add an expense</Link>

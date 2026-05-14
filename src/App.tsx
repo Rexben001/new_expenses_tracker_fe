@@ -1,5 +1,6 @@
 import { Dashboard } from "./pages/Dashboard";
 import { ExpenseForm } from "./pages/ExpenseForm";
+import { HomePage } from "./pages/HomePage";
 import {
   Route,
   Routes,
@@ -9,6 +10,8 @@ import {
 } from "react-router-dom";
 import { BudgetPage } from "./pages/BudgetPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
+import { TaskForm } from "./pages/TaskForm";
+import { TasksPage } from "./pages/TasksPage";
 import { BudgetForm } from "./pages/BudgetForm";
 import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
@@ -84,13 +87,17 @@ export default function App() {
               </>
             ) : (
               <>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/expenses" element={<ExpensesPage />} />
                 <Route path="/expenses/new" element={<ExpenseForm />} />
                 <Route
                   path="/expenses/:expenseId/edit"
                   element={<ExpenseForm />}
                 />
+                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/tasks/new" element={<TaskForm />} />
+                <Route path="/tasks/:taskId/edit" element={<TaskForm />} />
                 <Route path="/budgets" element={<BudgetPage />} />
                 <Route path="/budgets/:budgetId" element={<BudgetIdPage />} />
                 <Route path="/budgets/new" element={<BudgetForm />} />
@@ -105,7 +112,7 @@ export default function App() {
                 {isNative ? (
                   <Route
                     path="*"
-                    element={<Navigate to="/expenses" replace />}
+                    element={<Navigate to="/" replace />}
                   />
                 ) : (
                   <Route path="*" element={<NotFound />} />

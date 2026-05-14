@@ -1,4 +1,4 @@
-import { FaHome, FaList, FaWallet, FaTools } from "react-icons/fa";
+import { FaChartPie, FaHome, FaList, FaTasks, FaWallet } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 export function FooterNav() {
@@ -8,9 +8,10 @@ export function FooterNav() {
 
   const links = [
     { to: "/", icon: FaHome, label: "Home", end: true }, // end=true so "/" doesn’t match everything
+    { to: "/dashboard", icon: FaChartPie, label: "Dashboard" },
     { to: "/expenses", icon: FaList, label: "Expenses" },
     { to: "/budgets", icon: FaWallet, label: "Budgets" },
-    { to: "/settings", icon: FaTools, label: "Settings" },
+    { to: "/tasks", icon: FaTasks, label: "Tasks" },
   ];
 
   return (
@@ -27,7 +28,7 @@ export function FooterNav() {
             `${base} ${isActive ? active : inactive}`
           }
         >
-          <Icon className="text-2xl pt-0.5" />
+          <Icon className="text-xl pt-0.5" />
           <span className="text-xs">{label}</span>
         </NavLink>
       ))}

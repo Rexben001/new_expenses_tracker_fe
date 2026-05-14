@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
 import { updateExpense } from "../services/api";
-import { FiRefreshCcw, FiStar } from "react-icons/fi";
+import { FiCalendar, FiRefreshCcw, FiStar } from "react-icons/fi";
 import { tokenStore } from "../services/tokenStore";
 
 export interface IExpenseBox {
@@ -113,28 +113,28 @@ export const ExpenseBox = ({
     <div
       key={id}
       ref={menuRef}
-      className="stacked-card stacked-card--expense mb-4"
+      className="relative mb-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition dark:border-gray-800 dark:bg-gray-900"
       onClick={(e) => {
         e.stopPropagation();
         setShowMenu(false);
       }}
     >
-      <div className="stacked-card__panel flex items-start gap-3 p-4">
+      <div className="flex items-start gap-3">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-white/20 bg-slate-900/40 accent-teal-300"
+          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 bg-white accent-blue-600 dark:border-gray-700 dark:bg-gray-900"
           checked={selected}
           onChange={() => onSelect?.(id, budgetId!)}
           hidden={!selectMode}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="stacked-card__title truncate font-semibold text-base">
+            <p className="truncate font-semibold text-base text-gray-950 dark:text-gray-50">
               {title}
             </p>
             <FiRefreshCcw
               className={`h-4 w-4 ${
-                isRecurring ? "text-teal-300" : "stacked-card__icon opacity-35"
+                isRecurring ? "text-blue-500" : "text-gray-300 dark:text-gray-600"
               }`}
             />
             <button
@@ -145,8 +145,8 @@ export const ExpenseBox = ({
                 if (typeof updateFavorites === "function")
                   updateFavorites(id, budgetId!, !favorite);
               }}
-              className={`rounded-full p-0.5 text-amber-300 transition ${
-                favorite ? "opacity-100" : "opacity-35 hover:opacity-65"
+              className={`rounded-full p-0.5 text-amber-400 transition ${
+                favorite ? "opacity-100" : "opacity-40 hover:opacity-75"
               }`}
             >
               <FiStar
@@ -156,7 +156,8 @@ export const ExpenseBox = ({
             </button>
           </div>
           <CategoryComponent category={category} isUpcoming={upcoming} />
-          <p className="stacked-card__muted mt-2 text-xs">
+          <p className="mt-2 inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <FiCalendar className="h-3.5 w-3.5" />
             {formatRelativeDate(updatedAt)}
           </p>
         </div>
@@ -229,9 +230,9 @@ export const ExpenseBox = ({
               setShowMenu(true);
             }}
           >
-            <HiDotsVertical className="stacked-card__icon h-5 w-5" />
+            <HiDotsVertical className="h-5 w-5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" />
           </div>
-          <p className="stacked-card__amount text-lg font-bold">
+          <p className="mt-2 text-lg font-bold text-gray-950 dark:text-gray-50">
             {formatCurrency(amount, currency)}
           </p>
         </div>

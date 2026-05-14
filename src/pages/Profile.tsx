@@ -14,6 +14,19 @@ import SwipeShell from "../components/SwipeShell";
 import type { SubAccount, User } from "../types/user";
 import { tokenStore } from "../services/tokenStore";
 
+const cardClass =
+  "rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900";
+const labelClass =
+  "mb-1 block text-sm font-medium text-gray-600 dark:text-gray-300";
+const inputClass =
+  "w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-950 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-50 dark:disabled:bg-gray-800";
+const primaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60";
+const secondaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:hover:bg-gray-800";
+const dangerButtonClass =
+  "inline-flex min-h-10 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60";
+
 const CURRENCY_OPTIONS = [
   "EUR",
   "USD",
@@ -46,6 +59,7 @@ export function Profile() {
     currentAccount,
     fetchBudgets,
     fetchExpenses,
+    fetchTasks,
   } = useItemContext();
 
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${
@@ -59,8 +73,10 @@ export function Profile() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [mainAccount, setMainAccount] = useState<User | undefined>(undefined);
+  const [activeSubAccountId, setActiveSubAccountId] = useState<string | null>(
+    null
+  );
 
-  // NEW state for confirm modal
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingSub, setDeletingSub] = useState<{
     id: string;
@@ -68,29 +84,26 @@ export function Profile() {
   } | null>(null);
   const [deletingBusy, setDeletingBusy] = useState(false);
 
-  // Open confirm
   const requestDeleteSub = (sub: { subAccountId: string; name?: string }) => {
     setDeletingSub({ id: sub.subAccountId, name: sub.name });
     setConfirmOpen(true);
   };
 
-  // Close confirm
   const cancelDelete = () => {
     setConfirmOpen(false);
     setDeletingSub(null);
   };
 
-  // Confirm + delete (replaces handledDeleteSub usage)
   const confirmDelete = async () => {
     if (!deletingSub?.id) return;
     setDeletingBusy(true);
     try {
       await deleteSubAccount(deletingSub.id);
 
-      // Refresh data & reload screen as you already do elsewhere
       await fetchUser();
-      await fetchBudgets(); // optional: refresh main budgets
-      await fetchExpenses(); // optional: refresh main expenses
+      await fetchBudgets();
+      await fetchExpenses();
+      await fetchTasks();
       navigate(0);
     } finally {
       setDeletingBusy(false);
@@ -102,13 +115,21 @@ export function Profile() {
   useEffect(() => {
     async function fetchSubAccount() {
       const subAccountId = await tokenStore.get("subAccountId");
+      setActiveSubAccountId(subAccountId);
+
       if (subAccountId) {
+        const activeSubAccount =
+          currentAccount?.subAccounts?.find(
+            (sub) => sub.subAccountId === subAccountId
+          ) ?? currentAccount?.subAccounts?.[0];
+
         setMainAccount({
-          ...currentAccount?.subAccounts?.[0],
-          userName: currentAccount?.subAccounts?.[0].name,
+          ...activeSubAccount,
+          userName: activeSubAccount?.name,
           accountType: "Sub",
         });
       } else {
+        setActiveSubAccountId(null);
         setMainAccount(user);
       }
     }
@@ -119,6 +140,10 @@ export function Profile() {
     currentAccount?.subAccounts,
     user,
   ]);
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   const toggleDarkMode = () => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -146,9 +171,11 @@ export function Profile() {
       }))
     : [];
 
-  const isSubAccount = user.accountType === "Sub"; // Replace with actual logic to determine if viewing a sub-account
-  const currentSub = subAccounts.length > 0 ? subAccounts[0] : undefined; // Replace with actual current sub-account data
-  const mainProfile = user; // Main profile data
+  const isSubAccount = Boolean(activeSubAccountId) || user.accountType === "Sub";
+  const currentSub =
+    subAccounts.find((sub) => sub.subAccountId === activeSubAccountId) ??
+    subAccounts[0];
+  const mainProfile = user;
 
   const [mainForm, setMainForm] = useState({
     userName: mainAccount?.userName || "",
@@ -191,13 +218,21 @@ export function Profile() {
   const handleMainChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setMainForm({ ...mainForm, [e.target.name]: e.target.value });
+    const value =
+      e.target.name === "budgetStartDay"
+        ? Number(e.target.value)
+        : e.target.value;
+    setMainForm({ ...mainForm, [e.target.name]: value });
   };
 
   const handleSubChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setSubForm({ ...subForm, [e.target.name]: e.target.value });
+    const value =
+      e.target.name === "budgetStartDay"
+        ? Number(e.target.value)
+        : e.target.value;
+    setSubForm({ ...subForm, [e.target.name]: value });
   };
 
   const handleSaveMain = async (e: React.FormEvent) => {
@@ -213,110 +248,140 @@ export function Profile() {
     setIsSubmitting(true);
 
     const subAccountId = await tokenStore.get("subAccountId");
-    updateUser(subForm, subAccountId!);
+    await updateUser(subForm, subAccountId!);
+    await fetchUser(subAccountId ?? undefined);
 
     setIsSubmitting(false);
   };
-  const handleSwitchToMain = () => {
-    // Logic to switch to main account view
-    tokenStore.remove("subAccountId");
-    fetchUser();
-    navigate(0);
+  const handleSwitchToMain = async () => {
+    setIsSubmitting(true);
+    try {
+      await tokenStore.remove("subAccountId");
+      setActiveSubAccountId(null);
+      await Promise.all([
+        fetchUser(),
+        fetchBudgets(),
+        fetchExpenses(),
+        fetchTasks(),
+      ]);
+      navigate(0);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSwitchToSub = async (subAccountId: string) => {
-    // Logic to switch to selected sub-account view
-    tokenStore.set("subAccountId", subAccountId);
-    await fetchUser(subAccountId);
-    await fetchBudgets(subAccountId);
-    await fetchExpenses(subAccountId);
-    navigate(0);
+    setIsSubmitting(true);
+    try {
+      await tokenStore.set("subAccountId", subAccountId);
+      setActiveSubAccountId(subAccountId);
+      await fetchUser(subAccountId);
+      await fetchBudgets(subAccountId);
+      await fetchExpenses(subAccountId);
+      await fetchTasks(subAccountId);
+      navigate(0);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCreateSub = async () => {
-    createSubAccount();
-    // await fetchUser();
-    // await fetchBudgets();
-    // await fetchExpenses();
-    // navigate(0);
+    setIsSubmitting(true);
+    try {
+      await createSubAccount();
+      await fetchUser();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  console.log({ mainAccount });
   if (loading) return null;
 
   return (
-    <SwipeShell toRight="/budgets" refresh={fetchUser}>
+    <SwipeShell toRight="/" refresh={fetchUser}>
       <HeaderComponent>
-        <header className="flex items-center justify-between">
-          <div
-            className="flex items-center gap-3"
+        <header className="flex items-center justify-between pb-2">
+          <button
+            type="button"
+            className="flex min-w-0 items-center gap-3 text-left"
             onClick={() => navigate("/")}
           >
             <img
               src={avatarUrl}
               alt="Avatar"
-              className="w-10 h-10 rounded-full"
+              className="h-10 w-10 rounded-full object-cover"
             />
-            <div className="text-left">
-              <p className="text-xs text-gray-500">Good {getTimeOfTheDay()}</p>
-              <p className="font-medium">
+            <div className="min-w-0">
+              <p className="text-sm text-gray-500">Good {getTimeOfTheDay()}</p>
+              <p className="truncate font-medium">
                 {isSubAccount
                   ? currentSub?.name ?? "Sub Account"
                   : mainProfile?.userName}
               </p>
-              {isSubAccount ? (
-                <span className="text-[10px] text-gray-500">Sub account</span>
-              ) : (
-                <span className="text-[10px] text-gray-500">Main account</span>
-              )}
+              <span className="text-xs text-gray-500">
+                {isSubAccount ? "Sub account" : "Main account"}
+              </span>
             </div>
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
+            aria-label="Toggle color theme"
             onClick={toggleDarkMode}
-            className="w-14 h-8 flex items-center bg-gray-300 dark:bg-gray-600 rounded-full p-1 cursor-pointer relative transition-colors"
+            className="relative flex h-8 w-14 items-center rounded-full bg-gray-200 p-1 transition-colors dark:bg-gray-700"
           >
             <div
-              className={`w-6 h-6 flex items-center justify-center rounded-full shadow-md transform transition-transform duration-300 ${
+              className={`flex h-6 w-6 items-center justify-center rounded-full shadow-sm transition-transform duration-300 ${
                 isDark
-                  ? "translate-x-6 bg-gray-800 text-yellow-400"
-                  : "translate-x-0 bg-yellow-400 text-white"
+                  ? "translate-x-6 bg-gray-900 text-yellow-300"
+                  : "translate-x-0 bg-white text-yellow-600"
               }`}
             >
               {isDark ? <FiMoon size={14} /> : <FiSun size={14} />}
             </div>
-          </div>
+          </button>
         </header>
       </HeaderComponent>
 
-      <div className="flex flex-col space-y-6 min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-13">
+      <main className="mx-auto mt-24 flex min-h-screen max-w-md flex-col gap-4 px-4 pb-28 pt-6 dark:text-white">
+        <div>
+          <p className="text-sm font-medium text-blue-600 dark:text-blue-300">
+            Settings
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold text-gray-950 dark:text-gray-50">
+            Account preferences
+          </h1>
+        </div>
+
         {!isSubAccount ? (
-          // MAIN ACCOUNT DETAILS
-          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
-            <h2 className="text-base font-semibold mb-4">Main profile</h2>
+          <section className={cardClass}>
+            <div className="mb-4">
+              <h2 className="text-base font-semibold text-gray-950 dark:text-gray-50">
+                Main profile
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Used for expenses, budgets, and tasks.
+              </p>
+            </div>
             <form className="space-y-4" onSubmit={handleSaveMain}>
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Username
-                </label>
+                <label className={labelClass}>Username</label>
                 <input
                   name="userName"
                   value={mainForm.userName}
                   onChange={handleMainChange}
                   placeholder="Enter name"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Currency
-                </label>
+                <label className={labelClass}>Currency</label>
                 <select
                   name="currency"
                   value={mainForm.currency}
                   onChange={handleMainChange}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 >
                   <option value="" disabled>
                     Select Currency
@@ -330,14 +395,12 @@ export function Profile() {
               </div>
 
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Budget Start Day
-                </label>
+                <label className={labelClass}>Budget start day</label>
                 <select
                   name="budgetStartDay"
                   value={String(mainForm.budgetStartDay)}
                   onChange={handleMainChange}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 >
                   <option value="" disabled>
                     Select Month Start Day
@@ -351,20 +414,18 @@ export function Profile() {
               </div>
 
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Email Address
-                </label>
+                <label className={labelClass}>Email address</label>
                 <input
                   name="email"
                   value={mainProfile?.email || ""}
                   disabled
-                  className="w-full p-3 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold disabled:opacity-60"
+                className={`${primaryButtonClass} w-full`}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Saving..." : "Save main settings"}
@@ -372,30 +433,34 @@ export function Profile() {
             </form>
           </section>
         ) : (
-          // SUB ACCOUNT DETAILS
-          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
-            <h2 className="text-base font-semibold mb-4">Sub account</h2>
+          <section className={cardClass}>
+            <div className="mb-4">
+              <h2 className="text-base font-semibold text-gray-950 dark:text-gray-50">
+                Sub account
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                These settings only apply while this account is active.
+              </p>
+            </div>
             <form className="space-y-4" onSubmit={handleSaveSub}>
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">Name</label>
+                <label className={labelClass}>Name</label>
                 <input
                   name="name"
                   value={subForm.name}
                   onChange={handleSubChange}
                   placeholder="e.g. Default"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Currency
-                </label>
+                <label className={labelClass}>Currency</label>
                 <select
                   name="currency"
                   value={subForm.currency}
                   onChange={handleSubChange}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 >
                   <option value="" disabled>
                     Select Currency
@@ -409,14 +474,12 @@ export function Profile() {
               </div>
 
               <div>
-                <label className="text-sm text-gray-500 mb-1 block">
-                  Budget Start Day
-                </label>
+                <label className={labelClass}>Budget start day</label>
                 <select
                   name="budgetStartDay"
                   value={String(subForm.budgetStartDay)}
                   onChange={handleSubChange}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
+                  className={inputClass}
                 >
                   <option value="" disabled>
                     Select Month Start Day
@@ -429,10 +492,10 @@ export function Profile() {
                 </select>
               </div>
 
-              <div className="flex gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-full hover:bg-blue-700 font-semibold disabled:opacity-60"
+                  className={primaryButtonClass}
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Saving..." : "Save sub settings"}
@@ -441,7 +504,7 @@ export function Profile() {
                 <button
                   type="button"
                   onClick={handleSwitchToMain}
-                  className="flex-1 bg-gray-900 text-white py-3 rounded-full hover:bg-black font-semibold disabled:opacity-60 inline-flex items-center justify-center gap-2"
+                  className={secondaryButtonClass}
                   disabled={isSubmitting}
                 >
                   Switch to main
@@ -451,34 +514,47 @@ export function Profile() {
           </section>
         )}
 
-        {/* --- Sub Accounts List + Create --- */}
         {!isSubAccount && (
-          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-semibold">Sub accounts</h3>
-              <span className="text-xs text-gray-500">
+          <section className={cardClass}>
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold text-gray-950 dark:text-gray-50">
+                  Sub accounts
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Switch between separate spending and task spaces.
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                 {subAccounts.length} total
               </span>
             </div>
 
             {subAccounts.length === 0 ? (
-              <p className="text-sm text-gray-500">No sub accounts yet.</p>
+              <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500 dark:border-gray-800">
+                No sub accounts yet.
+              </div>
             ) : (
               <ul className="space-y-2">
                 {subAccounts.map((sub) => (
                   <li
                     key={sub.subAccountId}
-                    className="flex items-center justify-between p-3 border rounded-xl dark:border-gray-800 gap-2"
+                    className="flex flex-col gap-3 rounded-xl border border-gray-200 p-3 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
-                      <p className="font-medium truncate">{sub.name}</p>
-                      <p className="text-xs text-gray-500">{sub.currency}</p>
+                      <p className="truncate font-medium text-gray-950 dark:text-gray-50">
+                        {sub.name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {sub.currency || "No currency"}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                       <button
+                        type="button"
                         onClick={() => handleSwitchToSub(sub.subAccountId)}
-                        className="h-9 px-3 rounded-full bg-blue-600 text-white hover:bg-black text-sm font-medium disabled:opacity-60 inline-flex items-center gap-2"
+                        className={secondaryButtonClass}
                         disabled={isSubmitting}
                         title="Switch to this sub account"
                       >
@@ -486,8 +562,9 @@ export function Profile() {
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => requestDeleteSub(sub)}
-                        className="h-9 px-3 rounded-full bg-red-600 text-white hover:bg-red-700 text-sm font-medium disabled:opacity-60"
+                        className={dangerButtonClass}
                         disabled={isSubmitting}
                         title="Delete sub account"
                       >
@@ -500,8 +577,9 @@ export function Profile() {
             )}
 
             <button
+              type="button"
               onClick={handleCreateSub}
-              className="mt-4 w-full h-10 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              className={`${primaryButtonClass} mt-4 w-full gap-2`}
               disabled={isSubmitting}
             >
               <FiUserPlus className="w-4 h-4" />
@@ -509,29 +587,28 @@ export function Profile() {
             </button>
           </section>
         )}
-      </div>
+      </main>
 
-      {/* Confirm Delete Modal */}
       {confirmOpen && (
         <div
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center"
         >
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
             onClick={cancelDelete}
           />
-          {/* Modal content */}
-          <div className="relative z-10 w-[90%] max-w-md rounded-2xl bg-white dark:bg-gray-900 p-5 border border-gray-200 dark:border-gray-800 shadow-xl">
-            <h3 className="text-lg font-semibold mb-2">Delete sub account?</h3>
+          <div className="relative z-10 w-[90%] max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <h3 className="mb-2 text-lg font-semibold text-gray-950 dark:text-gray-50">
+              Delete sub account?
+            </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
               This will permanently delete
               {deletingSub?.name ? (
                 <>
                   {" "}
-                  <span className="font-medium">“{deletingSub.name}”</span>
+                  <span className="font-medium">"{deletingSub.name}"</span>
                 </>
               ) : (
                 <> this sub account</>
@@ -541,17 +618,19 @@ export function Profile() {
               associated with it. This action cannot be undone.
             </p>
 
-            <div className="mt-5 flex gap-3">
+            <div className="mt-5 grid grid-cols-2 gap-3">
               <button
+                type="button"
                 onClick={cancelDelete}
-                className="flex-1 h-10 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                className={secondaryButtonClass}
                 disabled={deletingBusy}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmDelete}
-                className="flex-1 h-10 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-60"
+                className={dangerButtonClass}
                 disabled={deletingBusy}
               >
                 {deletingBusy ? "Deleting..." : "Yes, delete"}
