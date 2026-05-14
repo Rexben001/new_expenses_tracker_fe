@@ -33,28 +33,28 @@ export const CollapsibleUpcoming = ({
   return (
     upcomingItems.length > 0 && (
       <div className="mb-4">
-        <button
-          onClick={() => setShowUpcoming((s) => !s)}
-          className="w-full flex items-center justify-between bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2 text-sm"
-        >
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">Upcoming</span>
-            <span className="text-gray-500 dark:text-gray-400">
-              ({upcomingItems.length})
-            </span>
-          </div>
+        <div className="stacked-card stacked-card--upcoming">
+          <button
+            onClick={() => setShowUpcoming((s) => !s)}
+            className="stacked-card__panel flex w-full items-center justify-between px-4 py-3 text-sm"
+          >
+            <div className="flex items-center gap-2">
+              <span className="stacked-card__title font-semibold">Upcoming</span>
+              <span className="stacked-card__muted">({upcomingItems.length})</span>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-gray-700 dark:text-gray-200 font-semibold">
-              {formatCurrency(totalUpcoming, currency)}
-            </span>
-            <FiChevronDown
-              className={`h-4 w-4 transition-transform ${
-                showUpcoming ? "rotate-180" : "rotate-0"
-              }`}
-            />
-          </div>
-        </button>
+            <div className="flex items-center gap-3">
+              <span className="stacked-card__amount font-semibold">
+                {formatCurrency(totalUpcoming, currency)}
+              </span>
+              <FiChevronDown
+                className={`stacked-card__icon h-4 w-4 transition-transform ${
+                  showUpcoming ? "rotate-180" : "rotate-0"
+                }`}
+              />
+            </div>
+          </button>
+        </div>
 
         {/* Collapsible content */}
         <div

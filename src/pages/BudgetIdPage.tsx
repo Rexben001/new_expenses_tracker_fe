@@ -217,9 +217,14 @@ export function BudgetIdPage() {
         }`}
       >
         {budget && (
-          <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 dark:shadow-amber-50 rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer">
-            <div className="flex-1">
-              <p>Overall Budget Progress</p>
+          <div className="stacked-card stacked-card--budget mb-6">
+            <div className="stacked-card__panel p-5">
+              <p className="stacked-card__muted text-[11px] font-semibold uppercase tracking-[0.18em]">
+                Overall Budget Progress
+              </p>
+              <h2 className="stacked-card__title mt-1 text-lg font-semibold">
+                {displayTitle()}
+              </h2>
               <ProgressBar
                 budget={{
                   ...budget,

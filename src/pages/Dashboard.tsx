@@ -210,22 +210,23 @@ export function Dashboard() {
           </div>
 
           {expense ? (
-            <div
-              key={expense?.id}
-              className="dark:text-white dark:shadow-amber-50 rounded-xl p-4 shadow flex justify-between items-start mb-3"
-            >
-              <div>
-                <p className="font-semibold text-base">{expense?.title}</p>
-                {<CategoryComponent category={expense.category} />}
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatRelativeDate(expense?.updatedAt)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-bold text-gray-800 dark:text-white">
-                  {formatCurrency(expense?.amount, user.currency)}
-                </p>
-                <div className="flex justify-end gap-2 mt-2"></div>
+            <div key={expense?.id} className="stacked-card stacked-card--expense mb-3">
+              <div className="stacked-card__panel flex items-start justify-between gap-4 p-4">
+                <div className="min-w-0">
+                  <p className="stacked-card__title truncate font-semibold text-base">
+                    {expense?.title}
+                  </p>
+                  <CategoryComponent category={expense.category} />
+                  <p className="stacked-card__muted mt-2 text-xs">
+                    {formatRelativeDate(expense?.updatedAt)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="stacked-card__amount text-lg font-bold">
+                    {formatCurrency(expense?.amount, user.currency)}
+                  </p>
+                  <div className="mt-2 flex justify-end gap-2"></div>
+                </div>
               </div>
             </div>
           ) : (

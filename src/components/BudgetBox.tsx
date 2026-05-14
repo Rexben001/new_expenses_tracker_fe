@@ -97,14 +97,6 @@ export const BudgetBox = ({
     favorite,
   } = budget;
 
-  const bgColor = upcoming
-    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-700 cursor-not-allowed"
-    : "bg-white dark:bg-gray-900 dark:shadow-amber-50 text-black dark:text-white";
-
-  const textColor = upcoming
-    ? "text-gray-250 dark:text-gray-500"
-    : "text-black dark:text-white";
-
   const updateItem = async () => {
     const subId = await getSubAccountId();
     await updateBudget(
@@ -153,240 +145,236 @@ export const BudgetBox = ({
     <div
       key={budget.id}
       ref={menuRef}
-      className={`rounded-2xl shadow p-5 flex justify-between items-start mb-6 cursor-pointer 
-    ${bgColor}`}
+      className="stacked-card stacked-card--budget mb-6 cursor-pointer"
       onClick={(e) => {
         e.stopPropagation();
         setShowMenu(false);
       }}
     >
-      <input
-        type="checkbox"
-        className="mt-1 mr-3 w-4 h-4 cursor-pointer"
-        checked={selected}
-        onChange={() => onSelect?.(budget.id)}
-        hidden={!selectMode}
-      />
+      <div className="stacked-card__panel flex items-start gap-3 p-5">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-white/20 bg-slate-900/40 accent-cyan-300"
+          checked={selected}
+          onChange={() => onSelect?.(budget.id)}
+          hidden={!selectMode}
+        />
 
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className={`font-bold text-lg mb-1 ${textColor}`}>
-                {budget?.title}
-              </p>
-              <FiRefreshCcw
-                className={`w-4 h-4 ${
-                  isRecurring
-                    ? "text-blue-500"
-                    : "text-gray-300 dark:text-gray-600"
-                }`}
-              />
-              <button
-                type="button"
-                aria-label={favorite ? "Unfavorite" : "Favorite"}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (typeof updateFavorites === "function")
-                    updateFavorites(id, !favorite)!;
-                }}
-                className={`transition p-0.5 rounded-full text-yellow-400 ${
-                  favorite ? "opacity-100" : "opacity-30 hover:opacity-60"
-                }`}
-              >
-                <FiStar
-                  className="w-4 h-4"
-                  fill={favorite ? "currentColor" : "none"}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="stacked-card__title mb-1 truncate font-bold text-lg">
+                  {budget?.title}
+                </p>
+                <FiRefreshCcw
+                  className={`h-4 w-4 ${
+                    isRecurring ? "text-cyan-300" : "stacked-card__icon opacity-35"
+                  }`}
                 />
-              </button>
-            </div>
-            {
+                <button
+                  type="button"
+                  aria-label={favorite ? "Unfavorite" : "Favorite"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (typeof updateFavorites === "function")
+                      updateFavorites(id, !favorite)!;
+                  }}
+                  className={`rounded-full p-0.5 text-amber-300 transition ${
+                    favorite ? "opacity-100" : "opacity-35 hover:opacity-65"
+                  }`}
+                >
+                  <FiStar
+                    className="h-4 w-4"
+                    fill={favorite ? "currentColor" : "none"}
+                  />
+                </button>
+              </div>
               <CategoryComponent
                 category={budget?.category ?? ""}
                 isUpcoming={budget.upcoming}
               />
-            }
 
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {formatRelativeDate(budget?.updatedAt)}
-            </p>
+              <p className="stacked-card__muted mt-2 text-sm">
+                {formatRelativeDate(budget?.updatedAt)}
+              </p>
+            </div>
+            {showMenu && (
+              <div className="absolute right-4 top-14 z-100 w-36 rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                <ul className="text-sm text-gray-700 dark:text-white">
+                  <li>
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        navigate(`/budgets/${id}/edit`, {
+                          state: {
+                            category,
+                            amount,
+                            title,
+                            updatedAt,
+                            currency,
+                            id,
+                            upcoming,
+                            isRecurring,
+                          },
+                        });
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await removeBudget(budget.id);
+                        setShowMenu(false);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </li>
+
+                  <li>
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => {
+                        if (typeof updateFavorites === "function")
+                          updateFavorites(id, !favorite)!;
+                        setShowMenu(false);
+                      }}
+                    >
+                      {favorite ? " Remove from Favorites" : " Add to Favorites"}
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        const subId = await getSubAccountId();
+                        await duplicateBudget(budget.id, false, subId);
+
+                        await fetchBudgets(subId);
+                      }}
+                    >
+                      Copy All
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        const subId = await getSubAccountId();
+                        await duplicateBudget(budget.id, true, subId);
+                        await fetchBudgets();
+                      }}
+                    >
+                      Copy Budget Only
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            )}
+
+            <div className="ml-4 flex flex-col items-end">
+              <div className="text-right">
+                <div
+                  className="flex justify-end"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMenu(true);
+                  }}
+                >
+                  <HiDotsVertical className="stacked-card__icon h-5 w-5" />
+                </div>
+              </div>
+
+              <p className={`text-lg font-bold ${textColorClass}`}>
+                {formatCurrency(amount, currency)}
+              </p>
+            </div>
           </div>
-          {showMenu && (
-            <div className="absolute right-3.5 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-100">
-              <ul className="text-sm text-gray-700 dark:text-white">
-                <li>
-                  <button
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      navigate(`/budgets/${id}/edit`, {
-                        state: {
-                          category,
-                          amount,
-                          title,
-                          updatedAt,
-                          currency,
-                          id,
-                          upcoming,
-                          isRecurring,
-                        },
-                      });
-                    }}
-                  >
-                    Edit
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      await removeBudget(budget.id);
-                      setShowMenu(false);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
 
-                <li>
-                  <button
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                    onClick={() => {
-                      if (typeof updateFavorites === "function")
-                        updateFavorites(id, !favorite)!;
-                      setShowMenu(false);
-                    }}
-                  >
-                    {favorite ? " Remove from Favorites" : " Add to Favorites"}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                      const subId = await getSubAccountId();
-                      await duplicateBudget(budget.id, false, subId);
-
-                      await fetchBudgets(subId);
-
-                      // window.location.reload();
-                    }}
-                  >
-                    Copy All
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                      const subId = await getSubAccountId();
-                      await duplicateBudget(budget.id, true, subId);
-                      await fetchBudgets();
-                      // window.location.reload();
-                    }}
-                  >
-                    Copy Budget Only
-                  </button>
-                </li>
-              </ul>
+          {showDetails && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <ProgressBar
+                budget={{
+                  ...budget,
+                  title: budget.title ?? "",
+                  category: budget.category ?? "",
+                  amount: budget.amount ?? 0,
+                  isRecurring: budget.isRecurring ?? false,
+                  updatedAt: budget.updatedAt ?? "",
+                  currency: budget.currency ?? "",
+                }}
+                remaining={remaining}
+                currency={currency!}
+              />
             </div>
           )}
 
-          <div className="flex flex-col items-end ml-4">
-            <div className="text-right">
-              <div
-                className="flex justify-end"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu(true);
-                }}
+          {showDetails && showExpense && (
+            <div
+              className="stacked-card__link mt-4 flex items-center justify-end text-sm font-bold hover:underline"
+              onClick={() => {
+                navigate(`/budgets/${id}`, {
+                  state: {
+                    title,
+                    category,
+                    isRecurring: isRecurring?.toString(),
+                    updatedAt,
+                    amount,
+                    currency,
+                  },
+                });
+              }}
+            >
+              <p className="mr-1">View expenses</p>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
               >
-                <HiDotsVertical className={`h-5 w-5 ${textColor}`} />
-              </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </div>
+          )}
 
-            <p className={`text-lg font-bold ${textColorClass}`}>
-              {formatCurrency(amount, currency)}
-            </p>
-          </div>
-        </div>
-
-        {showDetails && (
-          <ProgressBar
-            budget={{
-              ...budget,
-              title: budget.title ?? "",
-              category: budget.category ?? "",
-              amount: budget.amount ?? 0,
-              isRecurring: budget.isRecurring ?? false,
-              updatedAt: budget.updatedAt ?? "",
-              currency: budget.currency ?? "",
-            }}
-            remaining={remaining}
-            currency={currency!}
-          />
-        )}
-
-        {showDetails && showExpense && (
-          <div
-            className={`mt-4 flex justify-end items-center text-sm ${textColor} hover:underline font-bold`}
-            onClick={() => {
-              navigate(`/budgets/${id}`, {
-                state: {
-                  title,
-                  category,
-                  isRecurring: isRecurring?.toString(),
-                  updatedAt,
-                  amount,
-                  currency,
-                },
-              });
-            }}
-          >
-            <p className="mr-1 text-blue-500">View expenses</p>
-            <svg
-              className="w-4 h-4 text-blue-500"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
+          <div className="mt-3 flex justify-center">
+            <button
+              onClick={() => setShowDetails((prev) => !prev)}
+              className="stacked-card__link flex items-center text-sm hover:underline"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+              {showDetails ? "See less" : "See more"}
+              <svg
+                className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+                  showDetails ? "rotate-180" : "rotate-0"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
           </div>
-        )}
-
-        <div className="mt-2 flex justify-center">
-          <button
-            onClick={() => setShowDetails((prev) => !prev)}
-            className="flex items-center text-sm text-blue-400 hover:underline"
-          >
-            {showDetails ? "See less" : "See more"}
-            <svg
-              className={`w-4 h-4 ml-1 transition-transform duration-200 ${
-                showDetails ? "rotate-180" : "rotate-0"
-              }`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
         </div>
       </div>
     </div>

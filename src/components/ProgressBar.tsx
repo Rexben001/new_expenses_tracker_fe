@@ -23,20 +23,20 @@ export const ProgressBar = ({
 
   return (
     <>
-      <div className="w-full bg-gray-200 h-2 rounded-full mt-3 mb-3">
+      <div className="stacked-card__progress-track mt-3 mb-4 h-2 w-full overflow-hidden rounded-full">
         <div className={progressBarClass} style={{ width: `${totalWidth}%` }} />
       </div>
 
-      <div className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+      <div className="flex justify-between text-sm">
         <div>
-          <p>Spent</p>
-          <p className="font-bold text-black dark:text-white">
+          <p className="stacked-card__stat-label">Spent</p>
+          <p className="stacked-card__stat-value font-bold">
             {formatCurrency(spent, currency)}
           </p>
         </div>
         <div className="text-right">
-          <p>Remaining</p>
-          <p className="font-bold text-black dark:text-white">
+          <p className="stacked-card__stat-label">Remaining</p>
+          <p className="stacked-card__stat-value font-bold">
             {formatCurrency(budget.amount! - spent, currency)}
           </p>
         </div>
