@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   addMonths,
   eachDayOfInterval,
@@ -15,6 +15,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
+import Fuse from "fuse.js";
 import {
   FiCheckCircle,
   FiCalendar,
@@ -27,6 +28,7 @@ import {
   FiMic,
   FiPlus,
   FiSearch,
+  FiX,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { HeaderComponent } from "../components/HeaderComponent";
@@ -35,6 +37,12 @@ import SwipeShell from "../components/SwipeShell";
 import { useItemContext } from "../hooks/useItemContext";
 import { useTaskSearch } from "../hooks/useTasksSearch";
 import { createTask, deleteTask, updateTask } from "../services/api";
+import {
+  getSpeechRecognition,
+  parseVoiceDueDate,
+  parseVoiceDueTime,
+  parseVoiceCommand,
+} from "../services/taskVoice";
 import type { Task, TaskPriority } from "../types/tasks";
 import { AddNewItem } from "../components/NoItem";
 import { TaskBox } from "../components/TaskBox";
@@ -73,6 +81,43 @@ function getTaskTags(task: Task) {
   return Array.from(
     new Set([...(task.tags ?? []), task.group].filter(Boolean) as string[])
   );
+}
+
+function normalizeVoiceText(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\b(\w+)ies\b/g, "$1y")
+    .replace(/\b(\w{4,})s\b/g, "$1");
+}
+
+function findTaskByTitle(tasks: Task[], query: string, openOnly = false) {
+  const normalizedQuery = normalizeVoiceText(query);
+  const matchingTasks = openOnly
+    ? tasks.filter((task) => !task.completed)
+    : tasks;
+
+  const directMatch =
+    matchingTasks.find(
+      (task) => normalizeVoiceText(task.title) === normalizedQuery
+    ) ??
+    matchingTasks.find((task) =>
+      normalizeVoiceText(task.title).startsWith(normalizedQuery)
+    ) ??
+    matchingTasks.find((task) =>
+      normalizeVoiceText(task.title).includes(normalizedQuery)
+    );
+
+  if (directMatch) return directMatch;
+
+  const [fuzzyMatch] = new Fuse(matchingTasks, {
+    keys: ["title"],
+    threshold: 0.4,
+    ignoreLocation: true,
+  }).search(query);
+
+  return fuzzyMatch?.item;
 }
 
 function getDueDate(task: Task) {
@@ -161,6 +206,7 @@ function groupTasks(tasks: Task[], groupMode: GroupMode): TaskSection[] {
 
 export function TasksPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const auth = useAuth();
   const { tasks, setTasks, fetchTasks, getSubAccountId } = useItemContext();
   const [query, setQuery] = useState("");
@@ -175,8 +221,15 @@ export function TasksPage() {
   const [calendarMonth, setCalendarMonth] = useState(() =>
     startOfMonth(new Date())
   );
-  const [openMenu, setOpenMenu] = useState(false);
+  const [isVoiceModeActive, setIsVoiceModeActive] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
+  const [voiceMessage, setVoiceMessage] = useState("");
+  const [voiceError, setVoiceError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
+  const tasksRef = useRef(tasks);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const voiceModeActiveRef = useRef(false);
+  const voiceSupported = Boolean(getSpeechRecognition());
 
   useEffect(() => {
     if (location.state?.refresh) fetchTasks();
@@ -185,6 +238,10 @@ export function TasksPage() {
   useEffect(() => {
     window.history.replaceState({}, document.title);
   }, []);
+
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   const searchedTasks = useTaskSearch(query, tasks);
 
@@ -270,7 +327,9 @@ export function TasksPage() {
 
   const updateCompletion = async (id: string, completed: boolean) => {
     setTasks(
-      tasks.map((task) => (task.id === id ? { ...task, completed } : task))
+      tasksRef.current.map((task) =>
+        task.id === id ? { ...task, completed } : task
+      )
     );
 
     try {
@@ -279,6 +338,34 @@ export function TasksPage() {
         id,
         {
           completed,
+          updatedAt: new Date().toISOString(),
+        },
+        subId
+      );
+      await fetchTasks();
+    } catch {
+      await fetchTasks();
+    }
+  };
+
+  const updateTaskFields = async (
+    task: Task,
+    fields: Partial<
+      Pick<Task, "tags" | "dueDate" | "dueTime" | "description" | "priority">
+    >
+  ) => {
+    setTasks(
+      tasksRef.current.map((currentTask) =>
+        currentTask.id === task.id ? { ...currentTask, ...fields } : currentTask
+      )
+    );
+
+    try {
+      const subId = await getSubAccountId();
+      await updateTask(
+        task.id,
+        {
+          ...fields,
           updatedAt: new Date().toISOString(),
         },
         subId
@@ -330,6 +417,7 @@ export function TasksPage() {
         ...(task.description ? { description: task.description } : {}),
         tags,
         dueDate: task.dueDate,
+        dueTime: task.dueTime,
         priority: task.priority ?? "medium",
         completed: Boolean(task.completed),
         subtasks: (task.subtasks ?? []).map((subtask) => ({
@@ -342,6 +430,212 @@ export function TasksPage() {
     );
     await fetchTasks();
   };
+
+  const handleVoiceCommand = async (transcript: string) => {
+    const command = parseVoiceCommand(transcript);
+
+    if (command.type === "open-create") {
+      voiceModeActiveRef.current = false;
+      recognitionRef.current?.stop();
+      setIsVoiceModeActive(false);
+      navigate("/tasks/new?voice=1");
+      return;
+    }
+
+    if (command.type === "create") {
+      if (!command.task.title) {
+        setVoiceMessage("Say add followed by the task name.");
+        return;
+      }
+
+      const subId = await getSubAccountId();
+      await createTask(
+        {
+          title: command.task.title,
+          tags: command.task.tags,
+          dueDate: command.task.dueDate,
+          dueTime: command.task.dueTime,
+          priority: command.task.priority ?? "medium",
+          completed: false,
+          updatedAt: new Date().toISOString(),
+        },
+        subId
+      );
+      await fetchTasks();
+      setVoiceMessage(`Added "${command.task.title}".`);
+      return;
+    }
+
+    if (command.type === "complete") {
+      const task = findTaskByTitle(tasksRef.current, command.query, true);
+      if (!task) {
+        setVoiceMessage(`No open task matched "${command.query}".`);
+        return;
+      }
+
+      await updateCompletion(task.id, true);
+      setVoiceMessage(`Completed "${task.title}".`);
+      return;
+    }
+
+    if (command.type === "add-tag") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      const tags = Array.from(new Set([...getTaskTags(task), command.tag]));
+      await updateTaskFields(task, { tags });
+      setVoiceMessage(`Added "${command.tag}" tag to "${task.title}".`);
+      return;
+    }
+
+    if (command.type === "update-time") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      const parsedTime = parseVoiceDueTime(command.value, task.dueDate);
+      if (!parsedTime.dueTime) {
+        setVoiceMessage(`I could not read the time "${command.value}".`);
+        return;
+      }
+
+      await updateTaskFields(task, {
+        dueDate: task.dueDate ?? parsedTime.dueDate,
+        dueTime: parsedTime.dueTime,
+      });
+      setVoiceMessage(`Updated time for "${task.title}".`);
+      return;
+    }
+
+    if (command.type === "update-date") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      const parsedDate = parseVoiceDueDate(command.value);
+      if (!parsedDate.dueDate) {
+        setVoiceMessage(`I could not read the date "${command.value}".`);
+        return;
+      }
+
+      await updateTaskFields(task, { dueDate: parsedDate.dueDate });
+      setVoiceMessage(`Updated date for "${task.title}".`);
+      return;
+    }
+
+    if (command.type === "update-priority") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      await updateTaskFields(task, { priority: command.priority });
+      setVoiceMessage(
+        `Updated priority for "${task.title}" to ${command.priority}.`
+      );
+      return;
+    }
+
+    if (command.type === "update-description") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      await updateTaskFields(task, { description: command.description });
+      setVoiceMessage(`Updated description for "${task.title}".`);
+      return;
+    }
+
+    if (command.type === "open-description") {
+      const task = findTaskByTitle(tasksRef.current, command.query);
+      if (!task) {
+        setVoiceMessage(`No task matched "${command.query}".`);
+        return;
+      }
+
+      stopVoiceMode();
+      navigate(`/tasks/${task.id}/edit`, { state: task });
+      return;
+    }
+
+    setVoiceMessage(
+      'Try "add buy milk tomorrow", "complete buy milk", or "add home tag to buy milk".'
+    );
+  };
+
+  const stopVoiceMode = () => {
+    voiceModeActiveRef.current = false;
+    recognitionRef.current?.stop();
+    setIsVoiceModeActive(false);
+  };
+
+  const closeVoiceBanner = () => {
+    stopVoiceMode();
+    setVoiceTranscript("");
+    setVoiceMessage("");
+    setVoiceError("");
+  };
+
+  const startVoiceMode = () => {
+    const Recognition = getSpeechRecognition();
+    if (!Recognition) {
+      setVoiceError("Voice mode is not supported in this browser.");
+      return;
+    }
+
+    setVoiceError("");
+    setVoiceMessage('Listening. Say "add...", "complete...", or edit a task.');
+    setVoiceTranscript("");
+    voiceModeActiveRef.current = true;
+
+    const recognition = new Recognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.onstart = () => setIsVoiceModeActive(true);
+    recognition.onerror = () => {
+      setVoiceError("Could not capture your voice. Try again.");
+      stopVoiceMode();
+    };
+    recognition.onend = () => {
+      if (voiceModeActiveRef.current) {
+        window.setTimeout(() => {
+          if (voiceModeActiveRef.current) recognition.start();
+        }, 150);
+        return;
+      }
+      setIsVoiceModeActive(false);
+    };
+    recognition.onresult = (event) => {
+      const latestResult = event.results[event.results.length - 1];
+      const transcript = latestResult?.[0]?.transcript?.trim() ?? "";
+      setVoiceTranscript(transcript);
+
+      if (latestResult?.isFinal && transcript) {
+        void handleVoiceCommand(transcript);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  useEffect(() => {
+    return () => {
+      voiceModeActiveRef.current = false;
+      recognitionRef.current?.abort();
+    };
+  }, []);
 
   if (!auth?.ready) return null;
 
@@ -560,6 +854,41 @@ export function TasksPage() {
           filtersOpen ? (tags.length > 0 ? "mt-[23rem]" : "mt-80") : "mt-52"
         }`}
       >
+        {(isVoiceModeActive || voiceTranscript || voiceMessage || voiceError) && (
+          <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-medium text-gray-950 dark:text-gray-50">
+                  Voice mode {isVoiceModeActive ? "on" : "off"}
+                </p>
+                {voiceTranscript && (
+                  <p className="mt-1 truncate text-gray-500 dark:text-gray-400">
+                    {voiceTranscript}
+                  </p>
+                )}
+                {voiceMessage && (
+                  <p className="mt-1 text-blue-600 dark:text-blue-300">
+                    {voiceMessage}
+                  </p>
+                )}
+                {voiceError && (
+                  <p className="mt-1 text-red-600 dark:text-red-300">
+                    {voiceError}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Close voice mode"
+                onClick={closeVoiceBanner}
+                className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              >
+                <FiX className="h-4 w-4" />
+              </button>
+            </div>
+          </section>
+        )}
+
         {viewMode === "CALENDAR" && (
           <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div className="mb-2 flex items-center justify-between">
@@ -689,39 +1018,36 @@ export function TasksPage() {
         )}
 
         <div className="fixed bottom-24 inset-x-0 z-50">
-          <div className="relative mx-auto flex max-w-md justify-end px-4">
-            {openMenu && (
-              <div className="absolute bottom-16 right-5 flex flex-col items-end space-y-3">
-                <Link
-                  to="/tasks/new?voice=1"
-                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-lg hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
-                  onClick={() => setOpenMenu(false)}
-                >
-                  <FiMic />
-                  <span>Add by Voice</span>
-                </Link>
-                <Link
-                  to="/tasks/new"
-                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-lg hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
-                  onClick={() => setOpenMenu(false)}
-                >
-                  <FiPlus />
-                  <span>Add Manually</span>
-                </Link>
-              </div>
-            )}
+          <div className="relative mx-auto flex max-w-md justify-end gap-3 px-4">
+  
             <button
               type="button"
+              aria-label={
+                isVoiceModeActive ? "Stop voice mode" : "Start voice mode"
+              }
+              disabled={!voiceSupported}
+              onClick={() =>
+                isVoiceModeActive ? stopVoiceMode() : startVoiceMode()
+              }
+              className={`flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition disabled:opacity-50 ${
+                isVoiceModeActive
+                  ? "bg-red-600 shadow-red-600/25"
+                  : "bg-emerald-600 shadow-emerald-600/25"
+              }`}
+            >
+              <FiMic className="text-2xl" />
+            </button>
+            <Link
+              type="button"
               aria-label="Add a task"
-              onClick={() => setOpenMenu((open) => !open)}
+                              to="/tasks/new"
+
               className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/25 transition-transform focus:outline-none"
             >
               <FiPlus
-                className={`text-2xl transition-transform ${
-                  openMenu ? "rotate-45" : ""
-                }`}
+                className={`text-2xl`}
               />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

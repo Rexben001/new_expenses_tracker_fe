@@ -4,6 +4,7 @@ import {
   FiCalendar,
   FiCheckCircle,
   FiCircle,
+  FiClock,
   FiCopy,
   FiEdit2,
   FiTag,
@@ -32,11 +33,84 @@ const priorityClass: Record<string, string> = {
   high: "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900",
 };
 
+const dueToneClass = {
+  none: {
+    card: "border-gray-200",
+    chip:
+      "bg-gray-50 text-gray-600 ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700",
+  },
+  future: {
+    card: "border-emerald-200 dark:border-emerald-900",
+    chip:
+      "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:ring-emerald-900",
+  },
+  today: {
+    card: "border-amber-200 dark:border-amber-900",
+    chip:
+      "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900",
+  },
+  soon: {
+    card: "border-orange-300 dark:border-orange-900",
+    chip:
+      "bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:ring-orange-900",
+  },
+  overdue: {
+    card: "border-red-300 dark:border-red-900",
+    chip:
+      "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900",
+  },
+} as const;
+
 function formatTaskDate(date?: string) {
   if (!date) return "No due date";
   const parsedDate = parseISO(date);
   if (Number.isNaN(parsedDate.getTime())) return "No due date";
   return format(parsedDate, "MMM d");
+}
+
+function formatTaskTime(time?: string) {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":").map(Number);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return "";
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return format(date, "h:mm a");
+}
+
+function parseTaskDueAt(task: Task) {
+  if (!task.dueDate) return undefined;
+  const date = parseISO(task.dueDate);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  if (task.dueTime) {
+    const [hours, minutes] = task.dueTime.split(":").map(Number);
+    if (!Number.isNaN(hours) && !Number.isNaN(minutes)) {
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    }
+  }
+
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
+function getDueTone(task: Task) {
+  if (task.completed) return dueToneClass.none;
+
+  const dueAt = parseTaskDueAt(task);
+  if (!dueAt) return dueToneClass.none;
+
+  const now = new Date();
+  const hoursUntilDue = (dueAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+  const isSameDay =
+    dueAt.getFullYear() === now.getFullYear() &&
+    dueAt.getMonth() === now.getMonth() &&
+    dueAt.getDate() === now.getDate();
+
+  if (hoursUntilDue < 0) return dueToneClass.overdue;
+  if (hoursUntilDue <= 2) return dueToneClass.soon;
+  if (isSameDay) return dueToneClass.today;
+  return dueToneClass.future;
 }
 
 function getTaskTags(task: Task) {
@@ -64,6 +138,7 @@ export function TaskBox({
   const completedSubtasks = subtasks.filter((subtask) => subtask.completed);
   const visibleSubtasks = subtasks.slice(0, 3);
   const hiddenSubtaskCount = subtasks.length - visibleSubtasks.length;
+  const dueTone = getDueTone(task);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -84,7 +159,7 @@ export function TaskBox({
       className={`relative mb-2 rounded-xl border bg-white p-3 shadow-sm transition dark:border-gray-800 dark:bg-gray-900 ${
         completed
           ? "border-gray-100 opacity-75 dark:border-gray-800"
-          : "border-gray-200"
+          : dueTone.card
       }`}
       onClick={(e) => {
         e.stopPropagation();
@@ -196,10 +271,20 @@ export function TaskBox({
             >
               {priority}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-gray-600 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ring-1 ${dueTone.chip}`}
+            >
               <FiCalendar className="h-3.5 w-3.5" />
               {formatTaskDate(task.dueDate)}
             </span>
+            {task.dueTime && (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ring-1 ${dueTone.chip}`}
+              >
+                <FiClock className="h-3.5 w-3.5" />
+                {formatTaskTime(task.dueTime)}
+              </span>
+            )}
             {visibleTags.map((tag) => (
               <span
                 key={tag}

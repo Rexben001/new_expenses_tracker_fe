@@ -13,13 +13,14 @@ import SwipeShell from "../components/SwipeShell";
 import { createTask, updateTask } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import type { SubTask, Task, TaskPriority } from "../types/tasks";
-import { parseVoiceTask } from "../services/taskVoice";
+import { getSpeechRecognition, parseVoiceTask } from "../services/taskVoice";
 
 type TaskFormData = {
   title: string;
   description: string;
   tags: string;
   dueDate: string;
+  dueTime: string;
   priority: TaskPriority;
   completed: string;
 };
@@ -83,10 +84,6 @@ function todayInputValue() {
   return new Date().toISOString().split("T")[0];
 }
 
-function getSpeechRecognition() {
-  return window.SpeechRecognition || window.webkitSpeechRecognition;
-}
-
 function tagsToString(tags?: string[]) {
   return tags?.join(", ") ?? "";
 }
@@ -145,6 +142,7 @@ export function TaskForm() {
     description: "",
     tags: "",
     dueDate: defaultDueDate,
+    dueTime: "",
     priority: "medium",
     completed: "false",
   });
@@ -164,6 +162,7 @@ export function TaskForm() {
       description: task.description ?? "",
       tags: tagsToString(mergedTaskTags(task)),
       dueDate: task.dueDate?.split("T")[0] ?? defaultDueDate,
+      dueTime: task.dueTime ?? "",
       priority: task.priority ?? "medium",
       completed: task.completed ? "true" : "false",
     });
@@ -197,6 +196,7 @@ export function TaskForm() {
       title: parsed.title || current.title,
       tags: parsed.tags.length ? parsed.tags.join(", ") : current.tags,
       dueDate: parsed.dueDate ?? current.dueDate,
+      dueTime: parsed.dueTime ?? current.dueTime,
       priority: parsed.priority ?? current.priority,
     }));
   }, []);
@@ -304,6 +304,7 @@ export function TaskForm() {
       ...(description || isEditMode ? { description } : {}),
       tags,
       dueDate: formData.dueDate || undefined,
+      dueTime: formData.dueTime || undefined,
       priority: formData.priority,
       completed: formData.completed === "true",
       subtasks: normalizeSubtasks(subtasks),
@@ -392,17 +393,34 @@ export function TaskForm() {
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-gray-500 dark:text-white">
-              Due Date
-            </label>
-            <input
-              name="dueDate"
-              type="date"
-              value={formData.dueDate}
-              onChange={handleChange}
-              className={inputClass}
-            />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm text-gray-500 dark:text-white">
+                Due Date
+              </label>
+              <input
+                name="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-gray-500 dark:text-white">
+                Time{" "}
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Optional
+                </span>
+              </label>
+              <input
+                name="dueTime"
+                type="time"
+                value={formData.dueTime}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

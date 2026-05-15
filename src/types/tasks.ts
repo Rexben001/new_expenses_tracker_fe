@@ -14,6 +14,7 @@ export type Task = {
   tags?: string[];
   subtasks?: SubTask[];
   dueDate?: string;
+  dueTime?: string;
   completed?: boolean;
   priority?: TaskPriority;
   updatedAt: string;
