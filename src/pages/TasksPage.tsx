@@ -1,4 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { SpeechRecognition as NativeSpeechRecognition } from "@capacitor-community/speech-recognition";
 import {
   addMonths,
   eachDayOfInterval,
@@ -24,6 +26,7 @@ import {
   FiChevronRight,
   FiCircle,
   FiFilter,
+  FiBell,
   FiList,
   FiMic,
   FiPlus,
@@ -46,6 +49,14 @@ import {
 import type { Task, TaskPriority } from "../types/tasks";
 import { AddNewItem } from "../components/NoItem";
 import { TaskBox } from "../components/TaskBox";
+import {
+  getTaskNotificationStatus,
+  getTaskNotificationStatusAsync,
+  hasSchedulableTaskReminder,
+  requestTaskReminderPermission,
+  TASK_REMINDER_EVENT,
+  type TaskNotificationStatus,
+} from "../services/taskNotifications";
 
 type TabKey = "OPEN" | "DONE" | "ALL";
 type GroupMode = "DAY" | "TAG";
@@ -81,6 +92,20 @@ function getTaskTags(task: Task) {
   return Array.from(
     new Set([...(task.tags ?? []), task.group].filter(Boolean) as string[])
   );
+}
+
+function getDefaultTaskDueAt() {
+  const date = new Date();
+  date.setHours(date.getHours() + 1, date.getMinutes(), 0, 0);
+  return date;
+}
+
+function toDateInputValue(date: Date) {
+  return format(date, "yyyy-MM-dd");
+}
+
+function toTimeInputValue(date: Date) {
+  return format(date, "HH:mm");
 }
 
 function normalizeVoiceText(value: string) {
@@ -225,11 +250,14 @@ export function TasksPage() {
   const [voiceTranscript, setVoiceTranscript] = useState("");
   const [voiceMessage, setVoiceMessage] = useState("");
   const [voiceError, setVoiceError] = useState("");
+  const [notificationStatus, setNotificationStatus] =
+    useState<TaskNotificationStatus>(() => getTaskNotificationStatus());
   const listRef = useRef<HTMLDivElement>(null);
   const tasksRef = useRef(tasks);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceModeActiveRef = useRef(false);
-  const voiceSupported = Boolean(getSpeechRecognition());
+  const nativeVoiceSupported = Capacitor.isNativePlatform();
+  const voiceSupported = nativeVoiceSupported || Boolean(getSpeechRecognition());
 
   useEffect(() => {
     if (location.state?.refresh) fetchTasks();
@@ -242,6 +270,27 @@ export function TasksPage() {
   useEffect(() => {
     tasksRef.current = tasks;
   }, [tasks]);
+
+  useEffect(() => {
+    const refreshNotificationStatus = () => {
+      void getTaskNotificationStatusAsync().then(setNotificationStatus);
+    };
+
+    refreshNotificationStatus();
+    window.addEventListener(TASK_REMINDER_EVENT, refreshNotificationStatus);
+    document.addEventListener("visibilitychange", refreshNotificationStatus);
+
+    return () => {
+      window.removeEventListener(
+        TASK_REMINDER_EVENT,
+        refreshNotificationStatus
+      );
+      document.removeEventListener(
+        "visibilitychange",
+        refreshNotificationStatus
+      );
+    };
+  }, []);
 
   const searchedTasks = useTaskSearch(query, tasks);
 
@@ -298,6 +347,20 @@ export function TasksPage() {
   const highPriorityCount = searchedTasks.filter(
     (task) => !task.completed && (task.priority ?? "medium") === "high"
   ).length;
+  const shouldShowNotificationPrompt =
+    hasSchedulableTaskReminder(tasks) &&
+    notificationStatus !== "unsupported";
+  const contentTopOffset = filtersOpen
+    ? shouldShowNotificationPrompt
+      ? tags.length > 0
+        ? "mt-[27rem]"
+        : "mt-96"
+      : tags.length > 0
+        ? "mt-[23rem]"
+        : "mt-80"
+    : shouldShowNotificationPrompt
+      ? "mt-64"
+      : "mt-52";
 
   const selectCalendarDay = (day: Date) => {
     const dayKey = format(day, "yyyy-MM-dd");
@@ -419,6 +482,7 @@ export function TasksPage() {
         dueDate: task.dueDate,
         dueTime: task.dueTime,
         priority: task.priority ?? "medium",
+        reminderOffsetMinutes: task.reminderOffsetMinutes ?? 10,
         completed: Boolean(task.completed),
         subtasks: (task.subtasks ?? []).map((subtask) => ({
           ...subtask,
@@ -449,13 +513,15 @@ export function TasksPage() {
       }
 
       const subId = await getSubAccountId();
+      const defaultDueAt = getDefaultTaskDueAt();
       await createTask(
         {
           title: command.task.title,
           tags: command.task.tags,
-          dueDate: command.task.dueDate,
-          dueTime: command.task.dueTime,
+          dueDate: command.task.dueDate ?? toDateInputValue(defaultDueAt),
+          dueTime: command.task.dueTime ?? toTimeInputValue(defaultDueAt),
           priority: command.task.priority ?? "medium",
+          reminderOffsetMinutes: 10,
           completed: false,
           updatedAt: new Date().toISOString(),
         },
@@ -576,6 +642,9 @@ export function TasksPage() {
   const stopVoiceMode = () => {
     voiceModeActiveRef.current = false;
     recognitionRef.current?.stop();
+    if (nativeVoiceSupported) {
+      void NativeSpeechRecognition.stop().catch(() => undefined);
+    }
     setIsVoiceModeActive(false);
   };
 
@@ -586,7 +655,62 @@ export function TasksPage() {
     setVoiceError("");
   };
 
+  const startNativeVoiceMode = async () => {
+    setVoiceError("");
+    setVoiceMessage('Listening. Say "add...", "complete...", or edit a task.');
+    setVoiceTranscript("");
+    voiceModeActiveRef.current = true;
+    setIsVoiceModeActive(true);
+
+    try {
+      const { available } = await NativeSpeechRecognition.available();
+      if (!available) {
+        throw new Error("native-speech-unavailable");
+      }
+
+      const permission = await NativeSpeechRecognition.requestPermissions();
+      if (permission.speechRecognition !== "granted") {
+        setVoiceError("Microphone permission is required for voice mode.");
+        stopVoiceMode();
+        return;
+      }
+
+      while (voiceModeActiveRef.current) {
+        const result = await NativeSpeechRecognition.start({
+          language: "en-US",
+          maxResults: 3,
+          partialResults: false,
+          popup: false,
+          prompt: "Say a task command",
+        });
+        const transcript = result.matches?.[0]?.trim() ?? "";
+
+        if (transcript) {
+          setVoiceTranscript(transcript);
+          await handleVoiceCommand(transcript);
+        }
+
+        if (voiceModeActiveRef.current) {
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
+        }
+      }
+    } catch {
+      if (voiceModeActiveRef.current) {
+        setVoiceError(
+          "Could not capture your voice. Check microphone permission and try again."
+        );
+      }
+      voiceModeActiveRef.current = false;
+      setIsVoiceModeActive(false);
+    }
+  };
+
   const startVoiceMode = () => {
+    if (nativeVoiceSupported) {
+      void startNativeVoiceMode();
+      return;
+    }
+
     const Recognition = getSpeechRecognition();
     if (!Recognition) {
       setVoiceError("Voice mode is not supported in this browser.");
@@ -634,8 +758,11 @@ export function TasksPage() {
     return () => {
       voiceModeActiveRef.current = false;
       recognitionRef.current?.abort();
+      if (nativeVoiceSupported) {
+        void NativeSpeechRecognition.stop().catch(() => undefined);
+      }
     };
-  }, []);
+  }, [nativeVoiceSupported]);
 
   if (!auth?.ready) return null;
 
@@ -850,9 +977,7 @@ export function TasksPage() {
       </HeaderComponent>
 
       <div
-        className={`relative mx-auto min-h-screen max-w-md px-4 pt-4 dark:text-white ${
-          filtersOpen ? (tags.length > 0 ? "mt-[23rem]" : "mt-80") : "mt-52"
-        }`}
+        className={`relative mx-auto min-h-screen max-w-md px-4 pt-4 dark:text-white ${contentTopOffset}`}
       >
         {(isVoiceModeActive || voiceTranscript || voiceMessage || voiceError) && (
           <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
@@ -885,6 +1010,46 @@ export function TasksPage() {
               >
                 <FiX className="h-4 w-4" />
               </button>
+            </div>
+          </section>
+        )}
+
+        {shouldShowNotificationPrompt && (
+          <section className="mx-1 mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 shadow-sm dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            <div className="flex items-start gap-3">
+              <FiBell className="mt-0.5 h-4 w-4 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">Task reminders</p>
+                <p className="mt-1 text-xs">
+                  Tasks default to 10-minute reminders. Edit a task to change
+                  its reminder time. Native reminders include snooze and dismiss
+                  actions.
+                </p>
+              </div>
+              {notificationStatus === "denied" ? (
+                <span className="shrink-0 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold dark:bg-gray-900/60">
+                  Blocked
+                </span>
+              ) : notificationStatus === "granted" ? (
+                <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200">
+                  Enabled
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const permission = await requestTaskReminderPermission();
+                    setNotificationStatus(
+                      permission === "unsupported"
+                        ? "unsupported"
+                        : await getTaskNotificationStatusAsync()
+                    );
+                  }}
+                  className="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                >
+                  Enable
+                </button>
+              )}
             </div>
           </section>
         )}

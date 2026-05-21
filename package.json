@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.15.1",
+    "@capacitor-community/speech-recognition": "^7.0.1",
     "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
     "@capacitor/browser": "^7.0.2",
@@ -41,6 +42,7 @@
     "@capacitor/device": "^7.0.2",
     "@capacitor/ios": "^7.4.3",
     "@capacitor/keyboard": "^7.0.3",
+    "@capacitor/local-notifications": "^7.0.6",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@tailwindcss/postcss": "^4.1.8",

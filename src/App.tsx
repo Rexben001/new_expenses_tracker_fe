@@ -26,6 +26,7 @@ import { useEffect } from "react";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { hasIdToken } from "./services/amplify";
+import { TaskNotificationLayer } from "./components/TaskNotificationLayer";
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -71,6 +72,7 @@ export default function App() {
     <ItemContextProvider>
       <RouterComponent>
         <Wrapper>
+          <TaskNotificationLayer />
           <Routes>
             {!authed ? (
               <>

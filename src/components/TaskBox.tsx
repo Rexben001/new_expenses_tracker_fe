@@ -2,6 +2,7 @@ import { format, parseISO } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import {
   FiCalendar,
+  FiBell,
   FiCheckCircle,
   FiCircle,
   FiClock,
@@ -75,6 +76,14 @@ function formatTaskTime(time?: string) {
   const date = new Date();
   date.setHours(hours, minutes, 0, 0);
   return format(date, "h:mm a");
+}
+
+function formatReminderOffset(minutes = 10) {
+  if (minutes === 1) return "1m before";
+  if (minutes < 60) return `${minutes}m before`;
+  if (minutes === 60) return "1h before";
+  if (minutes < 1440) return `${minutes / 60}h before`;
+  return "1d before";
 }
 
 function parseTaskDueAt(task: Task) {
@@ -283,6 +292,12 @@ export function TaskBox({
               >
                 <FiClock className="h-3.5 w-3.5" />
                 {formatTaskTime(task.dueTime)}
+              </span>
+            )}
+            {task.dueTime && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-900">
+                <FiBell className="h-3.5 w-3.5" />
+                {formatReminderOffset(task.reminderOffsetMinutes ?? 10)}
               </span>
             )}
             {visibleTags.map((tag) => (

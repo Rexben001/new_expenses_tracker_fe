@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { SpeechRecognition as NativeSpeechRecognition } from "@capacitor-community/speech-recognition";
 import {
   useLocation,
   useNavigate,
@@ -14,6 +16,7 @@ import { createTask, updateTask } from "../services/api";
 import { useItemContext } from "../hooks/useItemContext";
 import type { SubTask, Task, TaskPriority } from "../types/tasks";
 import { getSpeechRecognition, parseVoiceTask } from "../services/taskVoice";
+import { TASK_REMINDER_OFFSET_OPTIONS } from "../services/taskNotifications";
 
 type TaskFormData = {
   title: string;
@@ -21,6 +24,7 @@ type TaskFormData = {
   tags: string;
   dueDate: string;
   dueTime: string;
+  reminderOffsetMinutes: string;
   priority: TaskPriority;
   completed: string;
 };
@@ -80,8 +84,23 @@ const selectStyles: StylesConfig<SelectOption, true> = {
   }),
 };
 
-function todayInputValue() {
-  return new Date().toISOString().split("T")[0];
+function getDefaultDueAt() {
+  const date = new Date();
+  date.setHours(date.getHours() + 1, date.getMinutes(), 0, 0);
+  return date;
+}
+
+function toDateInputValue(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function toTimeInputValue(date: Date) {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes()
+  ).padStart(2, "0")}`;
 }
 
 function tagsToString(tags?: string[]) {
@@ -135,14 +154,17 @@ export function TaskForm() {
 
   const existingTask = tasks.find((task) => task.id === taskId);
   const task = state ?? existingTask;
-  const defaultDueDate = todayInputValue();
+  const defaultDueAt = useMemo(() => getDefaultDueAt(), []);
+  const defaultDueDate = toDateInputValue(defaultDueAt);
+  const defaultDueTime = toTimeInputValue(defaultDueAt);
 
   const [formData, setFormData] = useState<TaskFormData>({
     title: "",
     description: "",
     tags: "",
     dueDate: defaultDueDate,
-    dueTime: "",
+    dueTime: defaultDueTime,
+    reminderOffsetMinutes: "10",
     priority: "medium",
     completed: "false",
   });
@@ -153,7 +175,8 @@ export function TaskForm() {
   const [subtasks, setSubtasks] = useState<SubTask[]>([]);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
-  const voiceSupported = Boolean(getSpeechRecognition());
+  const nativeVoiceSupported = Capacitor.isNativePlatform();
+  const voiceSupported = nativeVoiceSupported || Boolean(getSpeechRecognition());
 
   useEffect(() => {
     if (!isEditMode || !task) return;
@@ -163,6 +186,7 @@ export function TaskForm() {
       tags: tagsToString(mergedTaskTags(task)),
       dueDate: task.dueDate?.split("T")[0] ?? defaultDueDate,
       dueTime: task.dueTime ?? "",
+      reminderOffsetMinutes: String(task.reminderOffsetMinutes ?? 10),
       priority: task.priority ?? "medium",
       completed: task.completed ? "true" : "false",
     });
@@ -201,7 +225,48 @@ export function TaskForm() {
     }));
   }, []);
 
+  const startNativeVoiceCapture = useCallback(async () => {
+    setVoiceError("");
+    setVoiceTranscript("");
+    setIsListening(true);
+
+    try {
+      const { available } = await NativeSpeechRecognition.available();
+      if (!available) {
+        throw new Error("native-speech-unavailable");
+      }
+
+      const permission = await NativeSpeechRecognition.requestPermissions();
+      if (permission.speechRecognition !== "granted") {
+        setVoiceError("Microphone permission is required for voice input.");
+        setIsListening(false);
+        return;
+      }
+
+      const result = await NativeSpeechRecognition.start({
+        language: "en-US",
+        maxResults: 3,
+        partialResults: false,
+        popup: false,
+        prompt: "Say the task",
+      });
+      const transcript = result.matches?.[0]?.trim() ?? "";
+
+      setVoiceTranscript(transcript);
+      if (transcript) applyTranscript(transcript);
+    } catch {
+      setVoiceError("Could not capture your voice. Try again or type the task.");
+    } finally {
+      setIsListening(false);
+    }
+  }, [applyTranscript]);
+
   const startVoiceCapture = useCallback(() => {
+    if (nativeVoiceSupported) {
+      void startNativeVoiceCapture();
+      return;
+    }
+
     const Recognition = getSpeechRecognition();
     if (!Recognition) {
       setVoiceError("Voice input is not supported in this browser.");
@@ -241,15 +306,20 @@ export function TaskForm() {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [applyTranscript]);
+  }, [applyTranscript, nativeVoiceSupported, startNativeVoiceCapture]);
 
   useEffect(() => {
     if (searchParams.get("voice") === "1" && !isEditMode) {
       startVoiceCapture();
     }
 
-    return () => recognitionRef.current?.abort();
-  }, [isEditMode, searchParams, startVoiceCapture]);
+    return () => {
+      recognitionRef.current?.abort();
+      if (nativeVoiceSupported) {
+        void NativeSpeechRecognition.stop().catch(() => undefined);
+      }
+    };
+  }, [isEditMode, nativeVoiceSupported, searchParams, startVoiceCapture]);
 
   const handleChange = (
     event: React.ChangeEvent<
@@ -305,6 +375,7 @@ export function TaskForm() {
       tags,
       dueDate: formData.dueDate || undefined,
       dueTime: formData.dueTime || undefined,
+      reminderOffsetMinutes: Number(formData.reminderOffsetMinutes) || 10,
       priority: formData.priority,
       completed: formData.completed === "true",
       subtasks: normalizeSubtasks(subtasks),
@@ -366,7 +437,11 @@ export function TaskForm() {
                   disabled={!voiceSupported}
                   onClick={() =>
                     isListening
-                      ? recognitionRef.current?.stop()
+                      ? nativeVoiceSupported
+                        ? void NativeSpeechRecognition.stop().catch(
+                            () => undefined
+                          )
+                        : recognitionRef.current?.stop()
                       : startVoiceCapture()
                   }
                   className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-sm disabled:opacity-50 ${
@@ -393,7 +468,7 @@ export function TaskForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label className="mb-1 block text-sm text-gray-500 dark:text-white">
                 Due Date
@@ -420,6 +495,23 @@ export function TaskForm() {
                 onChange={handleChange}
                 className={inputClass}
               />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-gray-500 dark:text-white">
+                Reminder
+              </label>
+              <select
+                name="reminderOffsetMinutes"
+                value={formData.reminderOffsetMinutes}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                {TASK_REMINDER_OFFSET_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

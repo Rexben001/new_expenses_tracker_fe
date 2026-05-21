@@ -15,6 +15,7 @@ export type Task = {
   subtasks?: SubTask[];
   dueDate?: string;
   dueTime?: string;
+  reminderOffsetMinutes?: number;
   completed?: boolean;
   priority?: TaskPriority;
   updatedAt: string;
