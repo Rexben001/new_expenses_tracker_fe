@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import { BudgetPage } from "./pages/BudgetPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
+import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
 import { BudgetForm } from "./pages/BudgetForm";
@@ -17,6 +18,7 @@ import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
 import { Profile } from "./pages/Profile";
 import ScanReceiptRoute from "./pages/ScanReceiptRoute";
+import ScanReceiptV2Route from "./pages/ScanReceiptV2Route";
 import NotFound from "./pages/NotFound";
 import { Capacitor } from "@capacitor/core";
 import { Wrapper } from "./components/Wrapper";
@@ -92,6 +94,10 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/expenses" element={<ExpensesPage />} />
+                <Route
+                  path="/expenses/insights"
+                  element={<ExpenseInsightsPage />}
+                />
                 <Route path="/expenses/new" element={<ExpenseForm />} />
                 <Route
                   path="/expenses/:expenseId/edit"
@@ -109,6 +115,10 @@ export default function App() {
                 />
                 <Route path="/settings" element={<Profile />} />
                 <Route path="/expenses/scan" element={<ScanReceiptRoute />} />
+                <Route
+                  path="/expenses/scan-v2"
+                  element={<ScanReceiptV2Route />}
+                />
 
                 {/* web-only 404, mobile redirects (if you want that behavior) */}
                 {isNative ? (

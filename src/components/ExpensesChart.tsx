@@ -161,7 +161,7 @@ export function ExpenseChart() {
           fill="white"
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={12}
+          fontSize={10}
           opacity={percent > 0.05 ? 1 : 0.4} // faint if small
         >
           {`${(percent * 100).toFixed(1)}%`}
@@ -172,40 +172,49 @@ export function ExpenseChart() {
   );
 
   return (
-    <div className="rounded-xl shadow px-1 py-4">
-      <h2 className="text-lg font-semibold mb-4">Expenses Overview</h2>
+    <section className="mx-1 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-950 dark:text-gray-50">
+            Spending breakdown
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {chartType === "pie" ? "By category" : "Budget vs expenses"}
+          </p>
+        </div>
 
-      {/* Chart Type Toggle */}
-      <div className="flex gap-4 mb-4">
-        <label>
-          <input
-            type="radio"
-            value="pie"
-            checked={chartType === "pie"}
-            onChange={() => setChartType("pie")}
-            className="mr-2"
-          />
-          Pie Chart
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="bar"
-            checked={chartType === "bar"}
-            onChange={() => setChartType("bar")}
-            className="mr-2"
-          />
-          Bar Chart
-        </label>
+        <div className="inline-flex rounded-md bg-gray-100 p-0.5 text-xs dark:bg-gray-800">
+          <button
+            type="button"
+            onClick={() => setChartType("pie")}
+            className={`rounded px-2 py-1 ${
+              chartType === "pie"
+                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-300"
+                : "text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            Pie
+          </button>
+          <button
+            type="button"
+            onClick={() => setChartType("bar")}
+            className={`rounded px-2 py-1 ${
+              chartType === "bar"
+                ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900 dark:text-blue-300"
+                : "text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            Bar
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="mb-3 grid grid-cols-2 gap-2">
         <select
           value={month}
           onChange={(e) => setMonth(e.target.value)}
           disabled={chartType === "bar"} // disable when bar chart is active
-          className="border rounded-lg  p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900"
         >
           <option value="">All Months</option>
           {Array.from({ length: 12 }, (_, i) => (
@@ -218,7 +227,7 @@ export function ExpenseChart() {
         <select
           value={year}
           onChange={(e) => setYear(e.target.value)}
-          className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
         >
           <option value="">All Years</option>
           {Array.from({ length: 3 }, (_, i) => {
@@ -236,14 +245,14 @@ export function ExpenseChart() {
       {chartType === "pie" ? (
         pieData.length > 0 ? (
           <>
-            <ResponsiveContainer width="100%" height={335}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={120}
+                  innerRadius={46}
+                  outerRadius={82}
                   paddingAngle={2}
                   dataKey="value"
                   label={renderLabel}
@@ -265,26 +274,25 @@ export function ExpenseChart() {
                     ).toFixed(1)}%)`
                   }
                 />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
-            <p className="mt-4 text-center text-gray-700 dark:text-gray-300 font-semibold">
+            <p className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300">
               Total: €{total.toFixed(2)}
             </p>
           </>
         ) : (
-          <p className="text-gray-500 text-center">
+          <p className="py-8 text-center text-sm text-gray-500">
             No expenses found for the selected period.
           </p>
         )
       ) : (
-        <ResponsiveContainer width="100%" height={275}>
+        <ResponsiveContainer width="100%" height={210}>
           <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" fontSize={10} tickLine={false} />
+            <YAxis width={36} fontSize={10} tickLine={false} />
             <Tooltip formatter={(value: number) => `€${value.toFixed(2)}`} />
-            <Legend verticalAlign="top" height={36} />
+            <Legend verticalAlign="top" height={28} iconSize={8} />
 
             {/* Expenses Bar */}
             <Bar
@@ -304,6 +312,6 @@ export function ExpenseChart() {
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </section>
   );
 }

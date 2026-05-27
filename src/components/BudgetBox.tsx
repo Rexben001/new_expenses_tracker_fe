@@ -6,12 +6,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { duplicateBudget, getExpenses, updateBudget } from "../services/api";
 import { formatRelativeDate } from "../services/formatDate";
 import { useItemContext } from "../hooks/useItemContext";
-import { ProgressBar } from "./ProgressBar";
 import { calculateRemaining } from "../services/item";
 import { HiDotsVertical } from "react-icons/hi";
 import { CategoryComponent } from "./Category";
 import { UpcomingBox } from "./UpcomingBox";
-import { FiStar, FiRefreshCcw } from "react-icons/fi";
+import {
+  FiCalendar,
+  FiChevronDown,
+  FiCopy,
+  FiEdit2,
+  FiRefreshCcw,
+  FiStar,
+  FiTrash2,
+} from "react-icons/fi";
 
 export const BudgetBox = ({
   budget,
@@ -115,7 +122,8 @@ export const BudgetBox = ({
     window.location.reload();
   };
 
-  const percent = (spent / budget.amount!) * 100;
+  const percent = budget.amount ? (spent / budget.amount) * 100 : 0;
+  const clampedPercent = Math.max(0, Math.min(percent, 100));
 
   const textColorClass =
     percent > 95
@@ -142,36 +150,34 @@ export const BudgetBox = ({
   }
 
   return (
-    <div
+    <article
       key={budget.id}
       ref={menuRef}
-      className="stacked-card stacked-card--budget mb-6 cursor-pointer"
+      className="relative mb-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-blue-200 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-blue-900"
       onClick={(e) => {
         e.stopPropagation();
         setShowMenu(false);
       }}
     >
-      <div className="stacked-card__panel flex items-start gap-3 p-5">
+      <div className="flex items-start gap-2">
         <input
           type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-white/20 bg-slate-900/40 accent-cyan-300"
+          className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 bg-white accent-blue-600 dark:border-gray-700 dark:bg-gray-900"
           checked={selected}
           onChange={() => onSelect?.(budget.id)}
           hidden={!selectMode}
         />
 
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="stacked-card__title mb-1 truncate font-bold text-lg">
+        <div className="min-w-0 flex-1">
+          <div className="flex justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-sm font-semibold text-gray-950 dark:text-gray-50">
                   {budget?.title}
                 </p>
-                <FiRefreshCcw
-                  className={`h-4 w-4 ${
-                    isRecurring ? "text-cyan-300" : "stacked-card__icon opacity-35"
-                  }`}
-                />
+                {isRecurring && (
+                  <FiRefreshCcw className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+                )}
                 <button
                   type="button"
                   aria-label={favorite ? "Unfavorite" : "Favorite"}
@@ -180,31 +186,33 @@ export const BudgetBox = ({
                     if (typeof updateFavorites === "function")
                       updateFavorites(id, !favorite)!;
                   }}
-                  className={`rounded-full p-0.5 text-amber-300 transition ${
-                    favorite ? "opacity-100" : "opacity-35 hover:opacity-65"
+                  className={`rounded-full p-0.5 text-amber-400 transition ${
+                    favorite ? "opacity-100" : "opacity-40 hover:opacity-75"
                   }`}
                 >
                   <FiStar
                     className="h-4 w-4"
                     fill={favorite ? "currentColor" : "none"}
-                  />
+                />
                 </button>
               </div>
-              <CategoryComponent
-                category={budget?.category ?? ""}
-                isUpcoming={budget.upcoming}
-              />
-
-              <p className="stacked-card__muted mt-2 text-sm">
-                {formatRelativeDate(budget?.updatedAt)}
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <CategoryComponent
+                  category={budget?.category ?? ""}
+                  isUpcoming={budget.upcoming}
+                />
+                <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                  <FiCalendar className="h-3 w-3" />
+                  {formatRelativeDate(budget?.updatedAt)}
+                </span>
+              </div>
             </div>
             {showMenu && (
-              <div className="absolute right-4 top-14 z-100 w-36 rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+              <div className="absolute right-3 top-10 z-100 w-44 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
                 <ul className="text-sm text-gray-700 dark:text-white">
                   <li>
                     <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={async (e) => {
                         e.stopPropagation();
                         navigate(`/budgets/${id}/edit`, {
@@ -221,37 +229,40 @@ export const BudgetBox = ({
                         });
                       }}
                     >
+                      <FiEdit2 className="h-4 w-4" />
                       Edit
                     </button>
                   </li>
                   <li>
                     <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={async (e) => {
                         e.stopPropagation();
                         await removeBudget(budget.id);
                         setShowMenu(false);
                       }}
                     >
+                      <FiTrash2 className="h-4 w-4" />
                       Delete
                     </button>
                   </li>
 
                   <li>
                     <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={() => {
                         if (typeof updateFavorites === "function")
                           updateFavorites(id, !favorite)!;
                         setShowMenu(false);
                       }}
                     >
-                      {favorite ? " Remove from Favorites" : " Add to Favorites"}
+                      <FiStar className="h-4 w-4" />
+                      {favorite ? "Unfavorite" : "Favorite"}
                     </button>
                   </li>
                   <li>
                     <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={async (e) => {
                         e.stopPropagation();
                         setShowMenu(false);
@@ -261,12 +272,13 @@ export const BudgetBox = ({
                         await fetchBudgets(subId);
                       }}
                     >
+                      <FiCopy className="h-4 w-4" />
                       Copy All
                     </button>
                   </li>
                   <li>
                     <button
-                      className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                       onClick={async (e) => {
                         e.stopPropagation();
                         setShowMenu(false);
@@ -275,6 +287,7 @@ export const BudgetBox = ({
                         await fetchBudgets();
                       }}
                     >
+                      <FiCopy className="h-4 w-4" />
                       Copy Budget Only
                     </button>
                   </li>
@@ -282,46 +295,64 @@ export const BudgetBox = ({
               </div>
             )}
 
-            <div className="ml-4 flex flex-col items-end">
-              <div className="text-right">
-                <div
-                  className="flex justify-end"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMenu(true);
-                  }}
-                >
-                  <HiDotsVertical className="stacked-card__icon h-5 w-5" />
-                </div>
-              </div>
+            <div className="shrink-0 text-right">
+              <button
+                type="button"
+                className="ml-auto grid h-7 w-7 place-items-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu((open) => !open);
+                }}
+              >
+                <HiDotsVertical className="h-4 w-4" />
+              </button>
 
-              <p className={`text-lg font-bold ${textColorClass}`}>
+              <p className={`mt-1 text-base font-bold ${textColorClass}`}>
                 {formatCurrency(amount, currency)}
               </p>
             </div>
           </div>
 
-          {showDetails && (
-            <div className="mt-4 border-t border-white/10 pt-4">
-              <ProgressBar
-                budget={{
-                  ...budget,
-                  title: budget.title ?? "",
-                  category: budget.category ?? "",
-                  amount: budget.amount ?? 0,
-                  isRecurring: budget.isRecurring ?? false,
-                  updatedAt: budget.updatedAt ?? "",
-                  currency: budget.currency ?? "",
-                }}
-                remaining={remaining}
-                currency={currency!}
+          <div className="mt-3">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+              <div
+                className={`h-full rounded-full ${
+                  percent > 95
+                    ? "bg-red-500"
+                    : percent > 60
+                    ? "bg-yellow-500"
+                    : "bg-green-500"
+                }`}
+                style={{ width: `${clampedPercent}%` }}
               />
+            </div>
+            <div className="mt-1 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>{Math.round(percent)}% used</span>
+              <span>{formatCurrency(remaining, currency)} left</span>
+            </div>
+          </div>
+
+          {showDetails && (
+            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 text-xs dark:border-gray-800">
+              <div className="rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-800">
+                <p className="text-gray-500 dark:text-gray-400">Spent</p>
+                <p className="font-semibold text-gray-950 dark:text-gray-50">
+                  {formatCurrency(spent, currency)}
+                </p>
+              </div>
+              <div className="rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-800">
+                <p className="text-gray-500 dark:text-gray-400">Remaining</p>
+                <p className="font-semibold text-gray-950 dark:text-gray-50">
+                  {formatCurrency(remaining, currency)}
+                </p>
+              </div>
             </div>
           )}
 
           {showDetails && showExpense && (
-            <div
-              className="stacked-card__link mt-4 flex items-center justify-end text-sm font-bold hover:underline"
+            <button
+              type="button"
+              className="mt-3 flex w-full items-center justify-end text-sm font-semibold text-blue-600 hover:underline dark:text-blue-300"
               onClick={() => {
                 navigate(`/budgets/${id}`, {
                   state: {
@@ -335,7 +366,7 @@ export const BudgetBox = ({
                 });
               }}
             >
-              <p className="mr-1">View expenses</p>
+              <span className="mr-1">View expenses</span>
               <svg
                 className="h-4 w-4"
                 fill="none"
@@ -349,35 +380,26 @@ export const BudgetBox = ({
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </div>
+            </button>
           )}
 
-          <div className="mt-3 flex justify-center">
+          <div className="mt-2 flex justify-center">
             <button
+              type="button"
               onClick={() => setShowDetails((prev) => !prev)}
-              className="stacked-card__link flex items-center text-sm hover:underline"
+              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300"
             >
               {showDetails ? "See less" : "See more"}
-              <svg
-                className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+              <FiChevronDown
+                className={`h-4 w-4 transition-transform duration-200 ${
                   showDetails ? "rotate-180" : "rotate-0"
                 }`}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              />
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 };
 

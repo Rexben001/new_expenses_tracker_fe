@@ -11,7 +11,7 @@ import { formatCurrency } from "../services/formatCurrency";
 import { getTotal } from "../services/item";
 import { CategoryComponent } from "../components/Category";
 import { ExpenseChart } from "../components/ExpensesChart";
-import { FiTrendingDown, FiPieChart, FiTrendingUp } from "react-icons/fi";
+import { FiTrendingDown, FiPieChart, FiTrendingUp, FiZap } from "react-icons/fi";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import { useAuth } from "../context/AuthContext";
@@ -105,21 +105,23 @@ export function Dashboard() {
       <HeaderComponent>
         <header className="flex items-center justify-between pb-2">
           <div
-            className="flex items-center gap-3"
+            className="flex min-w-0 items-center gap-3"
             onClick={() => navigate("/settings")}
           >
             <img
               src={avatarUrl}
               alt="User avatar"
-              className="w-10 h-10 rounded-full object-cover"
+              className="h-9 w-9 rounded-full object-cover"
             />
-            <div>
-              <p className="text-sm text-gray-500">Good {getTimeOfTheDay()}</p>
-              <p className="font-medium">{user?.userName || user?.email}</p>
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500">Good {getTimeOfTheDay()}</p>
+              <p className="truncate text-sm font-semibold">
+                {user?.userName || user?.email}
+              </p>
             </div>
           </div>
           <button
-            className="text-gray-500 hover:text-black dark:text-white"
+            className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-white hover:text-black dark:text-white dark:hover:bg-gray-800"
             onClick={() => {
               auth?.logout();
             }}
@@ -200,11 +202,24 @@ export function Dashboard() {
         </div>
       </Modal>
 
-      <div className="flex flex-col space-y-4 min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-35">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col space-y-3 px-4 pt-48 pb-24 dark:text-white">
+        <Link
+          to="/expenses/insights"
+          className="mx-1 mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-gray-900 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100"
+        >
+          <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-200">
+              <FiZap />
+            </span>
+            <span className="truncate">AI expense insights</span>
+          </span>
+          <span className="text-xs text-blue-600 dark:text-blue-300">View</span>
+        </Link>
+
         <section className="mx-1">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="font-semibold">Recent Expenses</h3>
-            <button className="text-sm text-blue-500">
+            <h3 className="text-sm font-semibold">Recent expense</h3>
+            <button className="text-xs text-blue-500">
               <Link to={"/expenses"}>View all</Link>
             </button>
           </div>
@@ -212,19 +227,19 @@ export function Dashboard() {
           {expense ? (
             <div
               key={expense?.id}
-              className="mb-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+              className="mb-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-base text-gray-950 dark:text-gray-50">
+                  <p className="truncate text-sm font-semibold text-gray-950 dark:text-gray-50">
                     {expense?.title}
                   </p>
                   <CategoryComponent category={expense.category} />
-                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     {formatRelativeDate(expense?.updatedAt)}
                   </p>
                 </div>
-                <p className="shrink-0 text-right text-lg font-bold text-gray-950 dark:text-gray-50">
+                <p className="shrink-0 text-right text-base font-bold text-gray-950 dark:text-gray-50">
                   {formatCurrency(expense?.amount, user.currency)}
                 </p>
               </div>

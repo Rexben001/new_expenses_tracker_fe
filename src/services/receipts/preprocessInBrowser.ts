@@ -27,11 +27,7 @@ export function webpSupported(): boolean {
 }
 
 export async function normalizeHeicToJpeg(file: File | Blob): Promise<Blob> {
-  const name = (file as File).name || "";
-  const type = (file as File).type || "";
-  const isHeic = /image\/hei[cf]/i.test(type) || /\.(heic|heif)$/i.test(name);
-
-  if (!isHeic) return file;
+  if (!isHeicImage(file)) return file;
 
   try {
     const { default: heic2any } = await import("heic2any");
@@ -45,6 +41,13 @@ export async function normalizeHeicToJpeg(file: File | Blob): Promise<Blob> {
     // Safari can often decode HEIC directly; let downstream try.
     return file;
   }
+}
+
+export function isHeicImage(file: File | Blob) {
+  const name = (file as File).name || "";
+  const type = (file as File).type || "";
+
+  return /image\/hei[cf]/i.test(type) || /\.(heic|heif)$/i.test(name);
 }
 
 // NOTE: setting src *before* waiting is important—calling decode() too early was the bug.

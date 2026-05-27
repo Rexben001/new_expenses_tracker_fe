@@ -166,26 +166,34 @@ export function BudgetPage() {
   return (
     <SwipeShell toLeft="/settings" toRight="/expenses" refresh={fetchBudgets}>
       <HeaderComponent>
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold">
-            {titleMap[tab]}{" "}
-            <span className="text-blue-500">({counts[tab]})</span>
-          </h1>
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold">Budgets</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {counts[tab]} {titleMap[tab].toLowerCase()} ·{" "}
+              {formatCurrency(total, currency)}
+            </p>
+          </div>
 
           <button
-            className="text-gray-500 dark:text-white hover:text-gray-800"
+            className={`grid h-9 w-9 place-items-center rounded-lg border text-gray-500 hover:text-gray-800 dark:text-white ${
+              showPopup
+                ? "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-900 dark:bg-blue-950/40"
+                : "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+            }`}
             onClick={() => setShowPopup(!showPopup)}
+            aria-label="Filter budgets"
           >
-            <FiFilter className="text-xl" />
+            <FiFilter className="text-lg" />
           </button>
         </div>
 
-        <div className="mb-3">
-          <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 p-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur">
+        <div className="mb-2 overflow-x-auto">
+          <div className="inline-flex min-w-full rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-900">
             {(
               [
                 { key: "ALL", label: "All" },
-                { key: "FAV", label: "Favourites" },
+                { key: "FAV", label: "Fav" },
                 { key: "UPCOMING", label: "Upcoming" },
                 { key: "RECURRING", label: "Recurring" },
               ] as { key: TabKey; label: string }[]
@@ -198,10 +206,10 @@ export function BudgetPage() {
                     setTab(key);
                     selectAll([]);
                   }}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition
+                  className={`flex-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition
                     ${
                       active
-                        ? "bg-blue-600 text-white shadow"
+                        ? "bg-blue-600 text-white shadow-sm"
                         : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                 >
@@ -226,13 +234,7 @@ export function BudgetPage() {
           />
         )}
 
-        <div className="flex items-center gap-3 justify-between">
-          <p className="my-1.5 text-blue-500">
-            Total Budgets:{"  "}
-            <span className="font-bold text-black dark:text-white">
-              {formatCurrency(total, currency)}
-            </span>
-          </p>
+        <div className="flex items-center justify-end gap-3">
           <div className="flex items-center gap-4">
             {selectMode && (
               <button
@@ -256,8 +258,8 @@ export function BudgetPage() {
       </HeaderComponent>
 
       <div
-        className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-63" : "mt-44"
+        className={`relative min-h-screen dark:text-white px-4 pt-4 pb-24 max-w-md mx-auto ${
+          showPopup ? "mt-56" : "mt-40"
         }`}
       >
         <div className="mx-1 pt-2">

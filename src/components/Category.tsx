@@ -37,7 +37,7 @@ export const CategoryComponent = ({
     : COLOR_CODES[category as CategoryType] || "bg-gray-100 dark:bg-gray-800";
   return (
     <p
-      className={`inline-block w-fit text-sm ${color} border-0 rounded-full px-2 py-0.5`}
+      className={`inline-block w-fit text-xs ${color} border-0 rounded-full px-2 py-0.5`}
       onClick={onClick}
     >
       {category}

@@ -3,6 +3,59 @@ import { getTokens } from "./amplify";
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   "https://ybnvf6a6ce.execute-api.eu-west-1.amazonaws.com/prod/";
+
+export type ReceiptScanV2Result = {
+  source: "textract";
+  merchant: string | null;
+  total: number | null;
+  date: string | null;
+  rawText: string;
+  confidence: number | null;
+};
+
+export type ExpenseInsight = {
+  id: string;
+  type:
+    | "summary"
+    | "category"
+    | "budget"
+    | "unusual"
+    | "recurring"
+    | "projection"
+    | "merchant"
+    | "duplicate";
+  severity: "info" | "success" | "warning" | "danger";
+  title: string;
+  message: string;
+  value?: number;
+  category?: string;
+  budgetId?: string;
+  expenseId?: string;
+};
+
+export type ExpenseInsightsResponse = {
+  generatedAt: string;
+  currency: string;
+  period: {
+    current: string;
+    previous: string;
+    budgetStartDay?: number;
+  };
+  totals: {
+    currentMonth: number;
+    previousMonth: number;
+    currentBudget: number;
+    remainingBudget: number;
+    changePercent: number | null;
+  };
+  categories: {
+    category: string;
+    amount: number;
+    percent: number;
+  }[];
+  insights: ExpenseInsight[];
+};
+
 async function fetchApi({
   method,
   path,
@@ -101,6 +154,13 @@ export function getExpenses(budgetId?: string, subId?: string) {
     method: "GET",
     path: addSubIdPath(path, subId),
   });
+}
+
+export function getExpenseInsights(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("expenses/insights", subId),
+  }) as Promise<ExpenseInsightsResponse>;
 }
 
 export function getExpense(id?: string, budgetId?: string, subId?: string) {
@@ -217,6 +277,21 @@ export async function deleteSubAccount(subId: string) {
     method: "DELETE",
     path: `users?subId=${subId}`,
   });
+}
+
+export function scanReceiptV2(
+  body: {
+    imageBase64: string;
+    contentType: string;
+    fileName?: string;
+  },
+  subId?: string
+) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("receipts/scan-v2", subId),
+    body,
+  }) as Promise<ReceiptScanV2Result>;
 }
 
 const getExpensesPath = (id?: string, budgetId?: string, duplicates = "") => {
