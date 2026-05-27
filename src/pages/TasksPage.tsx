@@ -977,7 +977,7 @@ export function TasksPage() {
       </HeaderComponent>
 
       <div
-        className={`relative mx-auto min-h-screen max-w-md px-4 pt-4 dark:text-white ${contentTopOffset}`}
+        className={`relative mx-auto min-h-screen max-w-md px-4 dark:text-white ${contentTopOffset}`}
       >
         {(isVoiceModeActive || voiceTranscript || voiceMessage || voiceError) && (
           <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">
