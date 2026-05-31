@@ -285,6 +285,60 @@ function drawTextFit(
   context.fillText(`${truncated}...`, x, y);
 }
 
+function getScreenshotPalette() {
+  const darkMode = document.documentElement.classList.contains("dark");
+
+  if (darkMode) {
+    return {
+      page: "#020617",
+      title: "#f8fafc",
+      subtitle: "#cbd5e1",
+      weekday: "#94a3b8",
+      date: "#f8fafc",
+      today: "#3b82f6",
+      todayText: "#ffffff",
+      outsideBg: "#0f172a",
+      outsideBorder: "#1f2937",
+      outsideText: "#475569",
+      bookedBg: "#450a0a",
+      bookedBorder: "#991b1b",
+      bookedText: "#fecaca",
+      bookedPillBg: "#7f1d1d",
+      bookedPillText: "#fee2e2",
+      availableBg: "#052e16",
+      availableBorder: "#166534",
+      availableText: "#bbf7d0",
+      unavailableBg: "#111827",
+      unavailableBorder: "#374151",
+      unavailableText: "#94a3b8",
+    };
+  }
+
+  return {
+    page: "#f8fafc",
+    title: "#0f172a",
+    subtitle: "#475569",
+    weekday: "#64748b",
+    date: "#0f172a",
+    today: "#2563eb",
+    todayText: "#ffffff",
+    outsideBg: "#f1f5f9",
+    outsideBorder: "#e2e8f0",
+    outsideText: "#94a3b8",
+    bookedBg: "#fee2e2",
+    bookedBorder: "#fecaca",
+    bookedText: "#b91c1c",
+    bookedPillBg: "#ffffff",
+    bookedPillText: "#b91c1c",
+    availableBg: "#dcfce7",
+    availableBorder: "#bbf7d0",
+    availableText: "#15803d",
+    unavailableBg: "#f8fafc",
+    unavailableBorder: "#e2e8f0",
+    unavailableText: "#64748b",
+  };
+}
+
 function drawCalendarPng({
   calendarDays,
   calendarMonth,
@@ -306,6 +360,7 @@ function drawCalendarPng({
   const rows = Math.ceil(calendarDays.length / 7);
   const height = gridTop + rows * cellHeight + (rows - 1) * gap + 80;
   const scale = 2;
+  const palette = getScreenshotPalette();
   const canvas = document.createElement("canvas");
   canvas.width = width * scale;
   canvas.height = height * scale;
@@ -316,10 +371,10 @@ function drawCalendarPng({
   }
 
   context.scale(scale, scale);
-  context.fillStyle = "#f8fafc";
+  context.fillStyle = palette.page;
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = "#0f172a";
+  context.fillStyle = palette.title;
   context.font =
     "700 42px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
   context.fillText(
@@ -328,12 +383,12 @@ function drawCalendarPng({
     74
   );
 
-  context.fillStyle = "#475569";
+  context.fillStyle = palette.subtitle;
   context.font =
     "500 22px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
   context.fillText(format(calendarMonth, "MMMM yyyy"), padding, 112);
 
-  context.fillStyle = "#64748b";
+  context.fillStyle = palette.weekday;
   context.textAlign = "center";
   context.font =
     "700 18px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
@@ -355,29 +410,29 @@ function drawCalendarPng({
     const inMonth = isSameMonth(day, calendarMonth);
 
     context.fillStyle = !inMonth
-      ? "#f1f5f9"
+      ? palette.outsideBg
       : status === "booked"
-      ? "#fee2e2"
+      ? palette.bookedBg
       : status === "available"
-      ? "#dcfce7"
-      : "#f8fafc";
+      ? palette.availableBg
+      : palette.unavailableBg;
     fillRoundRect(context, x, y, cellWidth, cellHeight, 18);
     context.strokeStyle = !inMonth
-      ? "#e2e8f0"
+      ? palette.outsideBorder
       : status === "booked"
-      ? "#fecaca"
+      ? palette.bookedBorder
       : status === "available"
-      ? "#bbf7d0"
-      : "#e2e8f0";
+      ? palette.availableBorder
+      : palette.unavailableBorder;
     context.lineWidth = 2;
     strokeRoundRect(context, x, y, cellWidth, cellHeight, 18);
 
     if (isToday(day)) {
-      context.fillStyle = "#2563eb";
+      context.fillStyle = palette.today;
       fillRoundRect(context, x + 14, y + 12, 36, 30, 15);
-      context.fillStyle = "#ffffff";
+      context.fillStyle = palette.todayText;
     } else {
-      context.fillStyle = inMonth ? "#0f172a" : "#94a3b8";
+      context.fillStyle = inMonth ? palette.date : palette.outsideText;
     }
     context.font =
       "700 22px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
@@ -388,10 +443,10 @@ function drawCalendarPng({
     if (calendarView === "STATUS") {
       context.fillStyle =
         status === "booked"
-          ? "#b91c1c"
+          ? palette.bookedText
           : status === "available"
-          ? "#15803d"
-          : "#64748b";
+          ? palette.availableText
+          : palette.unavailableText;
       context.font =
         "700 18px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
       context.fillText(
@@ -411,9 +466,9 @@ function drawCalendarPng({
         "700 15px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
       clients.slice(0, 3).forEach((client, clientIndex) => {
         const pillY = y + 52 + clientIndex * 28;
-        context.fillStyle = "#ffffff";
+        context.fillStyle = palette.bookedPillBg;
         fillRoundRect(context, x + 12, pillY, cellWidth - 24, 23, 8);
-        context.fillStyle = "#b91c1c";
+        context.fillStyle = palette.bookedPillText;
         drawTextFit(
           context,
           formatClientCell(client),
@@ -424,11 +479,12 @@ function drawCalendarPng({
       });
 
       if (clients.length > 3) {
-        context.fillStyle = "#b91c1c";
+        context.fillStyle = palette.bookedText;
         context.fillText(`+${clients.length - 3} more`, x + 18, y + 142);
       }
     } else {
-      context.fillStyle = status === "available" ? "#15803d" : "#64748b";
+      context.fillStyle =
+        status === "available" ? palette.availableText : palette.unavailableText;
       context.font =
         "700 17px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
       context.fillText(
