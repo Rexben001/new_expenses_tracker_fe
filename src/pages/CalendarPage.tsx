@@ -186,6 +186,11 @@ function formatClientCell(client: CalendarClient) {
   return `${time}${client.name} - ${hairStyle.size} ${hairStyle.style}`;
 }
 
+function formatCompactClientCell(client: CalendarClient) {
+  const time = client.startTime ? `${client.startTime} ` : "";
+  return `${time}${client.name}`;
+}
+
 function buildClients(clients: CalendarClient[]) {
   return clients
     .map((client) => ({
@@ -892,14 +897,14 @@ export function CalendarPage() {
           </p>
         )}
 
-        <section className="mx-1 rounded-lg border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-gray-400">
+        <section className="mx-1 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="mb-1 grid grid-cols-7 gap-0.5 text-center text-[10px] font-semibold text-gray-400">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
               <span key={day}>{day}</span>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5">
             {calendarDays.map((day) => {
               const dayKey = toDateKey(day);
               const entries = entriesByDate.get(dayKey) ?? [];
@@ -907,7 +912,7 @@ export function CalendarPage() {
               const status = getDayStatus(day, entries);
               const selected = selectedDateKey === dayKey;
               const inMonth = isSameMonth(day, calendarMonth);
-              const visibleClients = clients.slice(0, 2);
+              const visibleClients = clients.slice(0, 1);
               const hiddenClientCount = clients.length - visibleClients.length;
               const tone = !inMonth
                 ? "border-gray-100 bg-gray-50 text-gray-300 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-600"
@@ -922,14 +927,14 @@ export function CalendarPage() {
                   key={dayKey}
                   type="button"
                   onClick={() => selectDay(day)}
-                  className={`flex min-h-[5.5rem] min-w-0 flex-col rounded-lg border p-1 text-left transition hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900 ${tone} ${
+                  className={`flex min-h-[3.9rem] min-w-0 flex-col rounded-md border p-0.5 text-left transition hover:ring-2 hover:ring-blue-200 dark:hover:ring-blue-900 ${tone} ${
                     selected
                       ? "ring-2 ring-blue-600 ring-offset-1 ring-offset-white dark:ring-blue-300 dark:ring-offset-gray-950"
                       : ""
                   }`}
                 >
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold ${
                       isToday(day)
                         ? "bg-blue-600 text-white dark:bg-blue-500"
                         : ""
@@ -953,17 +958,17 @@ export function CalendarPage() {
                   )}
 
                   {inMonth && calendarView === "DETAILS" && status === "booked" && (
-                    <span className="mt-1 flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="mt-auto flex min-w-0 flex-col gap-0.5">
                       {visibleClients.map((client) => (
                         <span
                           key={`${dayKey}-${client.id ?? client.name}`}
-                          className="block max-w-full truncate rounded bg-white/70 px-1 py-0.5 text-[9px] font-semibold leading-3 text-red-700 dark:bg-red-900/40 dark:text-red-100"
+                          className="block max-w-full truncate rounded bg-white/70 px-0.5 py-px text-[8px] font-semibold leading-3 text-red-700 dark:bg-red-900/40 dark:text-red-100"
                         >
-                          {formatClientCell(client)}
+                          {formatCompactClientCell(client)}
                         </span>
                       ))}
                       {hiddenClientCount > 0 && (
-                        <span className="text-[9px] font-semibold text-red-700 dark:text-red-100">
+                        <span className="text-[8px] font-semibold leading-3 text-red-700 dark:text-red-100">
                           +{hiddenClientCount}
                         </span>
                       )}
@@ -987,13 +992,13 @@ export function CalendarPage() {
           </div>
         </section>
 
-        <section className="mx-1 mt-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="mb-3 flex items-start justify-between gap-3">
+        <section className="mx-1 mt-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="mb-2 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="truncate text-base font-semibold text-gray-950 dark:text-gray-50">
+              <h2 className="truncate text-sm font-semibold text-gray-950 dark:text-gray-50">
                 {selectedDateLabel}
               </h2>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
                 {format(selectedDate, "yyyy-MM-dd")}
               </p>
             </div>
@@ -1011,15 +1016,15 @@ export function CalendarPage() {
           </div>
 
           {selectedStatus === "booked" ? (
-            <div className="space-y-3">
-              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+            <div className="space-y-2">
+              <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
                 <FiUsers className="h-4 w-4 text-red-500" />
                 Clients
               </div>
               {selectedClients.map((client) => (
                 <div
                   key={client.id ?? client.name}
-                  className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/30"
+                  className="rounded-lg border border-red-100 bg-red-50 p-2 text-xs dark:border-red-900 dark:bg-red-950/30"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <p className="min-w-0 truncate font-semibold text-red-800 dark:text-red-100">
@@ -1036,7 +1041,7 @@ export function CalendarPage() {
                     {formatHairStyle(client.hairStyle)}
                   </p>
                   {client.hairStyle?.additionalDetails && (
-                    <p className="mt-2 text-xs text-red-700 dark:text-red-100">
+                    <p className="mt-1 line-clamp-2 text-xs text-red-700 dark:text-red-100">
                       {client.hairStyle.additionalDetails}
                     </p>
                   )}
@@ -1044,23 +1049,23 @@ export function CalendarPage() {
               ))}
 
               {selectedEntry?.notes && (
-                <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <p className="rounded-lg bg-gray-50 p-2 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                   {selectedEntry.notes}
                 </p>
               )}
             </div>
           ) : selectedStatus === "available" ? (
-            <p className="rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-100">
+            <p className="rounded-lg bg-emerald-50 p-2 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-100">
               Available for bookings.
             </p>
           ) : (
-            <p className="rounded-lg bg-gray-50 p-3 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+            <p className="rounded-lg bg-gray-50 p-2 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
               Unavailable by default. Set this date available if you want to take
               clients.
             </p>
           )}
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             {selectedStatus === "unavailable" ? (
               <button
                 type="button"

@@ -1056,25 +1056,30 @@ export function TasksPage() {
 
         {viewMode === "CALENDAR" && (
           <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-blue-50 px-2 py-2 dark:bg-blue-950/30">
               <button
                 type="button"
                 aria-label="Previous month"
                 onClick={() => setCalendarMonth((month) => addMonths(month, -1))}
-                className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-lg bg-white text-blue-600 shadow-sm transition hover:bg-blue-100 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-blue-950/50"
               >
-                <FiChevronLeft className="h-4 w-4" />
+                <FiChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-sm font-semibold text-gray-950 dark:text-gray-50">
-                {format(calendarMonth, "MMMM yyyy")}
-              </h2>
+              <div className="min-w-0 text-center">
+                <h2 className="truncate text-lg font-bold leading-5 text-gray-950 dark:text-gray-50">
+                  {format(calendarMonth, "MMMM")}
+                </h2>
+                <p className="mt-0.5 text-xs font-semibold text-blue-600 dark:text-blue-300">
+                  {format(calendarMonth, "yyyy")}
+                </p>
+              </div>
               <button
                 type="button"
                 aria-label="Next month"
                 onClick={() => setCalendarMonth((month) => addMonths(month, 1))}
-                className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-gray-800 dark:hover:text-white"
+                className="grid h-9 w-9 place-items-center rounded-lg bg-white text-blue-600 shadow-sm transition hover:bg-blue-100 dark:bg-gray-900 dark:text-blue-300 dark:hover:bg-blue-950/50"
               >
-                <FiChevronRight className="h-4 w-4" />
+                <FiChevronRight className="h-5 w-5" />
               </button>
             </div>
 
