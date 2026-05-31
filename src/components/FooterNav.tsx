@@ -1,4 +1,11 @@
-import { FaChartPie, FaHome, FaList, FaTasks, FaWallet } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaChartPie,
+  FaHome,
+  FaList,
+  FaTasks,
+  FaWallet,
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 export function FooterNav() {
@@ -12,6 +19,7 @@ export function FooterNav() {
     { to: "/expenses", icon: FaList, label: "Expenses" },
     { to: "/budgets", icon: FaWallet, label: "Budgets" },
     { to: "/tasks", icon: FaTasks, label: "Tasks" },
+    { to: "/calendar", icon: FaCalendarAlt, label: "Calendar" },
   ];
 
   return (

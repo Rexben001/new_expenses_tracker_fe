@@ -11,6 +11,7 @@ import {
 import { BudgetPage } from "./pages/BudgetPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
+import { CalendarPage } from "./pages/CalendarPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
 import { BudgetForm } from "./pages/BudgetForm";
@@ -86,6 +87,10 @@ export default function App() {
                   path="/expenses/*"
                   element={<Navigate to="/login" replace />}
                 />
+                <Route
+                  path="/calendar/*"
+                  element={<Navigate to="/login" replace />}
+                />
                 {/* ...you can guard other private paths similarly */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
               </>
@@ -106,6 +111,7 @@ export default function App() {
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/tasks/new" element={<TaskForm />} />
                 <Route path="/tasks/:taskId/edit" element={<TaskForm />} />
+                <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/budgets" element={<BudgetPage />} />
                 <Route path="/budgets/:budgetId" element={<BudgetIdPage />} />
                 <Route path="/budgets/new" element={<BudgetForm />} />

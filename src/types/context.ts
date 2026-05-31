@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import type { Budget } from "./budgets";
+import type { CalendarEntry } from "./calendar";
 import type { Expense } from "./expenses";
 import type { Task } from "./tasks";
 import type { Account, User } from "./user";
@@ -8,15 +9,18 @@ interface IItemContext {
   budgets: Budget[];
   expenses: Expense[];
   tasks: Task[];
+  calendarEntries: CalendarEntry[];
   setBudgets(budgets: Budget[]): void;
   setExpenses(expenses: Expense[]): void;
   setTasks(tasks: Task[]): void;
+  setCalendarEntries(calendarEntries: CalendarEntry[]): void;
   currentMonthExpensesTotal: number;
   loading: boolean;
   setLoading(loading: boolean): void;
   fetchExpenses(subId?: string): Promise<void>;
   fetchBudgets(subId?: string): Promise<void>;
   fetchTasks(subId?: string): Promise<void>;
+  fetchCalendarEntries(subId?: string): Promise<void>;
   fetchUser(subId?: string): Promise<void>;
   user: User;
   currency?: string;

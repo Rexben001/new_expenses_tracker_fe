@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaList, FaTasks, FaTools } from "react-icons/fa";
+import { FaCalendarAlt, FaList, FaTasks, FaTools } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
@@ -23,6 +23,12 @@ const homeLinks = [
       "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
   },
   {
+    to: "/calendar",
+    label: "Calendar",
+    icon: FaCalendarAlt,
+    color: "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-200",
+  },
+  {
     to: "/settings",
     label: "Settings",
     icon: FaTools,
@@ -34,7 +40,8 @@ const homeLinks = [
 export function HomePage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const { user, fetchExpenses, fetchBudgets, fetchTasks } = useItemContext();
+  const { user, fetchExpenses, fetchBudgets, fetchTasks, fetchCalendarEntries } =
+    useItemContext();
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user?.userName}`;
 
   if (!auth?.authed) return null;
@@ -43,7 +50,12 @@ export function HomePage() {
     <SwipeShell
       toLeft="/dashboard"
       refresh={async () => {
-        await Promise.all([fetchExpenses(), fetchBudgets(), fetchTasks()]);
+        await Promise.all([
+          fetchExpenses(),
+          fetchBudgets(),
+          fetchTasks(),
+          fetchCalendarEntries(),
+        ]);
       }}
     >
       <HeaderComponent>

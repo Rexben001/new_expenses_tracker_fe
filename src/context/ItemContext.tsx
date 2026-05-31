@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getBudgets, getExpenses, getTasks, getUser } from "../services/api";
+import {
+  getBudgets,
+  getCalendarEntries,
+  getExpenses,
+  getTasks,
+  getUser,
+} from "../services/api";
 import type { Budget } from "../types/budgets";
+import type { CalendarEntry } from "../types/calendar";
 import type { Expense } from "../types/expenses";
 import { ItemContext } from "../types/context";
 import { getMonthlyTotal, getYearlyTotally } from "../services/item";
@@ -18,6 +25,7 @@ export function ItemContextProvider(
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
   const [user, setUser] = useState<User>({
     userName: undefined,
     currency: undefined,
@@ -61,6 +69,7 @@ export function ItemContextProvider(
     fetchBudgets();
     fetchExpenses();
     fetchTasks();
+    fetchCalendarEntries();
     fetchUser();
     getDeviceType().then((type) => setDeviceType(type));
     getTokens().then((t) => {
@@ -121,6 +130,20 @@ export function ItemContextProvider(
     [getSubAccountId]
   );
 
+  const fetchCalendarEntries = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+
+      try {
+        const entries = await getCalendarEntries(subId);
+        setCalendarEntries(entries);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    [getSubAccountId]
+  );
+
   const fetchUser = useCallback(
     async (_subId?: string) => {
       const subId = _subId ?? (await getSubAccountId());
@@ -163,15 +186,18 @@ export function ItemContextProvider(
       budgets,
       expenses,
       tasks,
+      calendarEntries,
       setBudgets,
       setExpenses,
       setTasks,
+      setCalendarEntries,
       loading,
       setLoading,
       currentMonthExpensesTotal,
       fetchExpenses,
       fetchBudgets,
       fetchTasks,
+      fetchCalendarEntries,
       user,
       currency,
       fetchUser,
@@ -190,11 +216,13 @@ export function ItemContextProvider(
       budgets,
       expenses,
       tasks,
+      calendarEntries,
       loading,
       currentMonthExpensesTotal,
       fetchExpenses,
       fetchBudgets,
       fetchTasks,
+      fetchCalendarEntries,
       user,
       currency,
       fetchUser,

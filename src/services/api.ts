@@ -1,4 +1,5 @@
 import { getTokens } from "./amplify";
+import type { CalendarEntry } from "../types/calendar";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -247,6 +248,47 @@ export function deleteTask(id: string, subId?: string) {
   return fetchApi({
     method: "DELETE",
     path: addSubIdPath(`tasks/${id}`, subId),
+  });
+}
+
+export function getCalendarEntries(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("calendar", subId),
+  }) as Promise<CalendarEntry[]>;
+}
+
+export function getCalendarEntry(id: string, subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath(`calendar/${id}`, subId),
+  }) as Promise<CalendarEntry[]>;
+}
+
+export function createCalendarEntry(body: unknown, subId?: string) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("calendar", subId),
+    body,
+  });
+}
+
+export function updateCalendarEntry(
+  id: string,
+  body: unknown,
+  subId?: string
+) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath(`calendar/${id}`, subId),
+    body,
+  });
+}
+
+export function deleteCalendarEntry(id: string, subId?: string) {
+  return fetchApi({
+    method: "DELETE",
+    path: addSubIdPath(`calendar/${id}`, subId),
   });
 }
 
