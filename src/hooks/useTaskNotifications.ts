@@ -17,9 +17,7 @@ export function useTaskNotifications(
 
   useEffect(() => {
     tasksRef.current = tasks;
-    void syncTaskReminders(tasks).catch((error) => {
-      console.warn("Failed to sync task reminders", error);
-    });
+    void syncTaskReminders(tasks).catch(() => undefined);
   }, [tasks]);
 
   useEffect(() => {
@@ -34,9 +32,7 @@ export function useTaskNotifications(
     });
 
     const check = () =>
-      void syncTaskReminders(tasksRef.current).catch((error) => {
-        console.warn("Failed to sync task reminders", error);
-      });
+      void syncTaskReminders(tasksRef.current).catch(() => undefined);
 
     check();
     const intervalId = isNativeTaskReminderPlatform()

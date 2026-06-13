@@ -56,8 +56,7 @@ export function ExpenseInsightsPage() {
     try {
       const subId = await getSubAccountId();
       setData(await getExpenseInsights(subId));
-    } catch (error) {
-      console.log({ error });
+    } catch {
       setError("Could not load expense insights.");
     } finally {
       setLoading(false);

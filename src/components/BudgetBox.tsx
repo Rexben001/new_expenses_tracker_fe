@@ -82,8 +82,8 @@ export const BudgetBox = ({
       const expenses = await getExpenses(budget.id, subId);
 
       setExpenses(expenses);
-    } catch (error) {
-      console.log({ error });
+    } catch {
+      setExpenses([]);
     }
   }, [budget.id, getSubAccountId]);
 
@@ -298,6 +298,7 @@ export const BudgetBox = ({
             <div className="shrink-0 text-right">
               <button
                 type="button"
+                aria-label="Open budget actions"
                 className="ml-auto grid h-7 w-7 place-items-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                 onClick={(e) => {
                   e.stopPropagation();

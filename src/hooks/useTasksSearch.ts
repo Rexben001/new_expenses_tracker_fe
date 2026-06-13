@@ -5,7 +5,14 @@ import type { Task } from "../types/tasks";
 export function useTaskSearch(query: string, tasks: Task[]) {
   const fuse = useMemo(() => {
     return new Fuse(tasks, {
-      keys: ["title", "description", "group", "tags", "subtasks.title"],
+      keys: [
+        "title",
+        "description",
+        "assignedTo",
+        "group",
+        "tags",
+        "subtasks.title",
+      ],
       threshold: 0.3,
     });
   }, [tasks]);

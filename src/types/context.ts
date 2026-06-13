@@ -5,6 +5,16 @@ import type { Expense } from "./expenses";
 import type { Task } from "./tasks";
 import type { Account, User } from "./user";
 
+export type ResourceKey =
+  | "budgets"
+  | "expenses"
+  | "tasks"
+  | "calendarEntries"
+  | "user";
+
+export type ResourceLoadingState = Record<ResourceKey, boolean>;
+export type ResourceErrorState = Partial<Record<ResourceKey, string>>;
+
 interface IItemContext {
   budgets: Budget[];
   expenses: Expense[];
@@ -16,7 +26,10 @@ interface IItemContext {
   setCalendarEntries(calendarEntries: CalendarEntry[]): void;
   currentMonthExpensesTotal: number;
   loading: boolean;
+  resourceLoading: ResourceLoadingState;
+  resourceErrors: ResourceErrorState;
   setLoading(loading: boolean): void;
+  refreshAll(): Promise<void>;
   fetchExpenses(subId?: string): Promise<void>;
   fetchBudgets(subId?: string): Promise<void>;
   fetchTasks(subId?: string): Promise<void>;

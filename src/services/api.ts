@@ -57,46 +57,92 @@ export type ExpenseInsightsResponse = {
   insights: ExpenseInsight[];
 };
 
+type ApiErrorPayload = {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+  details?: unknown;
+};
+
+export class ApiError extends Error {
+  statusCode: number;
+  details?: unknown;
+
+  constructor(message: string, statusCode: number, details?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.statusCode = statusCode;
+    this.details = details;
+  }
+}
+
+async function readResponseBody(response: Response) {
+  const text = await response.text();
+  if (!text) return undefined;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function toApiError(response: Response, payload: unknown) {
+  const errorPayload =
+    payload && typeof payload === "object" ? (payload as ApiErrorPayload) : {};
+  const message =
+    errorPayload.message ??
+    errorPayload.error ??
+    (typeof payload === "string" ? payload : response.statusText) ??
+    "Request failed";
+
+  return new ApiError(
+    message,
+    errorPayload.statusCode ?? response.status,
+    errorPayload.details
+  );
+}
+
+export function getErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong."
+) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 async function fetchApi({
   method,
   path,
   body,
+  useIdToken = true,
 }: {
   path: string;
   method: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
   useIdToken?: boolean;
 }) {
-  try {
-    const token = await getTokens();
+  const token = await getTokens();
+  const authToken = useIdToken ? token?.idToken : token?.accessToken;
 
-    if (!token?.idToken) {
-      throw new Error("No ID token available");
-    }
-
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...(body ? { body: JSON.stringify(body) } : {}),
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.idToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-
-      // if (error.message === "Unauthorized") {
-      //   throw new Error("Unauthorized");
-      // }
-
-      throw new Error(error);
-    }
-    return response.json();
-  } catch (error) {
-    console.error("Error fetching data:", String(error));
-    throw error;
+  if (!authToken) {
+    throw new ApiError("No auth token available", 401);
   }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...(body ? { body: JSON.stringify(body) } : {}),
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+  const payload = await readResponseBody(response);
+
+  if (!response.ok) {
+    throw toApiError(response, payload);
+  }
+
+  return payload;
 }
 
 export function getBudgets(subId?: string) {
@@ -121,7 +167,6 @@ export function updateBudget(
   setIsRecurring?: boolean
 ) {
   const path = addSubIdPath(`budgets/${id}`, subId, setIsRecurring);
-  console.log({ setIsRecurring, path });
   return fetchApi({
     method: "PUT",
     path,
@@ -349,9 +394,12 @@ const getExpensesPath = (id?: string, budgetId?: string, duplicates = "") => {
 };
 
 const addSubIdPath = (path: string, id?: string, setIsRecurring?: boolean) => {
-  if (id) path += path.includes("?") ? `&subId=${id}` : `?subId=${id}`;
+  if (id) {
+    path += path.includes("?")
+      ? `&subId=${encodeURIComponent(id)}`
+      : `?subId=${encodeURIComponent(id)}`;
+  }
   if (setIsRecurring) {
-    console.log("got here");
     path += path.includes("?")
       ? `&setIsRecurring=${setIsRecurring}`
       : `?setIsRecurring=${setIsRecurring}`;

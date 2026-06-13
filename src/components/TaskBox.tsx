@@ -8,6 +8,7 @@ import {
   FiClock,
   FiCopy,
   FiEdit2,
+  FiUser,
   FiTag,
   FiTrash2,
 } from "react-icons/fi";
@@ -298,6 +299,12 @@ export function TaskBox({
               <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-900">
                 <FiBell className="h-3.5 w-3.5" />
                 {formatReminderOffset(task.reminderOffsetMinutes ?? 10)}
+              </span>
+            )}
+            {task.assignedTo && (
+              <span className="inline-flex min-w-0 max-w-[10rem] items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-900">
+                <FiUser className="h-3.5 w-3.5" />
+                <span className="truncate">{task.assignedTo}</span>
               </span>
             )}
             {visibleTags.map((tag) => (

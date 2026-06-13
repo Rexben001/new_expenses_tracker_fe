@@ -31,6 +31,7 @@ import {
   FiMic,
   FiPlus,
   FiSearch,
+  FiUser,
   FiX,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
@@ -237,6 +238,7 @@ export function TasksPage() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<TabKey>("OPEN");
   const [selectedTag, setSelectedTag] = useState("");
+  const [selectedAssignee, setSelectedAssignee] = useState("");
   const [selectedPriority, setSelectedPriority] =
     useState<PriorityFilter>("ALL");
   const [groupMode, setGroupMode] = useState<GroupMode>("DAY");
@@ -298,6 +300,10 @@ export function TasksPage() {
     () => uniqueValues(tasks.flatMap(getTaskTags)),
     [tasks]
   );
+  const assignees = useMemo(
+    () => uniqueValues(tasks.map((task) => task.assignedTo)),
+    [tasks]
+  );
 
   const baseFilteredTasks = searchedTasks.filter((task) => {
     const matchesTab =
@@ -305,11 +311,14 @@ export function TasksPage() {
     const matchesTag = selectedTag
       ? getTaskTags(task).includes(selectedTag)
       : true;
+    const matchesAssignee = selectedAssignee
+      ? task.assignedTo?.trim() === selectedAssignee
+      : true;
     const matchesPriority =
       selectedPriority === "ALL"
         ? true
         : (task.priority ?? "medium") === selectedPriority;
-    return matchesTab && matchesTag && matchesPriority;
+    return matchesTab && matchesTag && matchesAssignee && matchesPriority;
   });
 
   const filteredTasks = selectedDayKey
@@ -350,12 +359,13 @@ export function TasksPage() {
   const shouldShowNotificationPrompt =
     hasSchedulableTaskReminder(tasks) &&
     notificationStatus !== "unsupported";
+  const hasFilterChips = tags.length > 0 || assignees.length > 0;
   const contentTopOffset = filtersOpen
     ? shouldShowNotificationPrompt
-      ? tags.length > 0
+      ? hasFilterChips
         ? "mt-[27rem]"
         : "mt-96"
-      : tags.length > 0
+      : hasFilterChips
         ? "mt-[23rem]"
         : "mt-80"
     : shouldShowNotificationPrompt
@@ -414,7 +424,10 @@ export function TasksPage() {
   const updateTaskFields = async (
     task: Task,
     fields: Partial<
-      Pick<Task, "tags" | "dueDate" | "dueTime" | "description" | "priority">
+      Pick<
+        Task,
+        "tags" | "dueDate" | "dueTime" | "description" | "priority" | "assignedTo"
+      >
     >
   ) => {
     setTasks(
@@ -478,6 +491,7 @@ export function TasksPage() {
       {
         title: task.title,
         ...(task.description ? { description: task.description } : {}),
+        ...(task.assignedTo ? { assignedTo: task.assignedTo } : {}),
         tags,
         dueDate: task.dueDate,
         dueTime: task.dueTime,
@@ -783,6 +797,7 @@ export function TasksPage() {
           <div className="flex items-center gap-2">
             {(query ||
               selectedTag ||
+              selectedAssignee ||
               selectedDayKey ||
               selectedPriority !== "ALL") && (
               <button
@@ -790,6 +805,7 @@ export function TasksPage() {
                 className="rounded-full border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-500 shadow-sm transition hover:text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                 onClick={() => {
                   setSelectedTag("");
+                  setSelectedAssignee("");
                   setQuery("");
                   setSelectedDayKey("");
                   setSelectedPriority("ALL");
@@ -881,6 +897,38 @@ export function TasksPage() {
                 }`}
               >
                 {tag}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {filtersOpen && assignees.length > 0 && (
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+            <button
+              type="button"
+              onClick={() => setSelectedAssignee("")}
+              className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ${
+                selectedAssignee
+                  ? "bg-white text-gray-600 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-700"
+                  : "bg-blue-600 text-white"
+              }`}
+            >
+              <FiUser className="h-3.5 w-3.5" />
+              Everyone
+            </button>
+            {assignees.map((assignee) => (
+              <button
+                key={assignee}
+                type="button"
+                onClick={() => setSelectedAssignee(assignee)}
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ${
+                  selectedAssignee === assignee
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600 ring-1 ring-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:ring-gray-700"
+                }`}
+              >
+                <FiUser className="h-3.5 w-3.5" />
+                {assignee}
               </button>
             ))}
           </div>

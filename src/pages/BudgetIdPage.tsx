@@ -90,8 +90,7 @@ export function BudgetIdPage() {
       const expenses = await getExpense("", budgetId, subAccountId);
 
       setExpenses(expenses);
-    } catch (error) {
-      console.log({ error });
+    } catch {
       setExpenses([]);
     }
   }, [budgetId]);

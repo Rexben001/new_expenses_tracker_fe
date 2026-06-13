@@ -100,7 +100,6 @@ export function ExpenseForm() {
 
     if (name === "budgetId") {
       const selectedBudget = budgets.find((b) => b.id === value);
-      console.log({ selectedBudget });
       setIsBudgetRecurring(selectedBudget?.isRecurring ?? null);
     }
 
@@ -119,7 +118,6 @@ export function ExpenseForm() {
     setError("");
   };
 
-  console.log({ state });
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const subAccountId = (await tokenStore.get("subAccountId")) || undefined;
@@ -176,8 +174,6 @@ export function ExpenseForm() {
   const goBack = () => {
     navigate(-1);
   };
-
-  console.log({ isBudgetRecurring: !!isBudgetRecurring });
 
   return (
     <SwipeShell refresh={Promise.resolve}>

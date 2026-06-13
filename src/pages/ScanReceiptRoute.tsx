@@ -72,7 +72,6 @@ export default function ScanReceiptRoute() {
         },
       });
     } catch (e: unknown) {
-      console.log({ e });
       setError(e instanceof Error ? e.message : "OCR failed");
     } finally {
       setIsScanning(false);

@@ -21,6 +21,7 @@ import { TASK_REMINDER_OFFSET_OPTIONS } from "../services/taskNotifications";
 type TaskFormData = {
   title: string;
   description: string;
+  assignedTo: string;
   tags: string;
   dueDate: string;
   dueTime: string;
@@ -161,6 +162,7 @@ export function TaskForm() {
   const [formData, setFormData] = useState<TaskFormData>({
     title: "",
     description: "",
+    assignedTo: "",
     tags: "",
     dueDate: defaultDueDate,
     dueTime: defaultDueTime,
@@ -183,6 +185,7 @@ export function TaskForm() {
     setFormData({
       title: task.title ?? "",
       description: task.description ?? "",
+      assignedTo: task.assignedTo ?? "",
       tags: tagsToString(mergedTaskTags(task)),
       dueDate: task.dueDate?.split("T")[0] ?? defaultDueDate,
       dueTime: task.dueTime ?? "",
@@ -368,10 +371,12 @@ export function TaskForm() {
     setIsSubmitting(true);
 
     const description = formData.description.trim();
+    const assignedTo = formData.assignedTo.trim();
     const tags = splitTags(formData.tags);
     const body = {
       title: formData.title.trim(),
       ...(description || isEditMode ? { description } : {}),
+      ...(assignedTo || isEditMode ? { assignedTo } : {}),
       tags,
       dueDate: formData.dueDate || undefined,
       dueTime: formData.dueTime || undefined,
@@ -464,6 +469,22 @@ export function TaskForm() {
               onChange={handleChange}
               placeholder="Enter task"
               required
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm text-gray-500 dark:text-white">
+              Assigned to{" "}
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                Optional
+              </span>
+            </label>
+            <input
+              name="assignedTo"
+              value={formData.assignedTo}
+              onChange={handleChange}
+              placeholder="Person responsible"
               className={inputClass}
             />
           </div>

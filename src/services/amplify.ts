@@ -10,8 +10,6 @@ const details = {
     "3ot8dopkkdbs6gj759q3tk8jsk",
 };
 
-console.log({details})
-
 Amplify.configure({
   Auth: {
     Cognito: {
