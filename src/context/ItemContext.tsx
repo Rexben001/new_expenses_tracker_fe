@@ -204,20 +204,8 @@ export function ItemContextProvider(
   );
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([
-      fetchBudgets(),
-      fetchExpenses(),
-      fetchTasks(),
-      fetchCalendarEntries(),
-      fetchUser(),
-    ]);
-  }, [
-    fetchBudgets,
-    fetchExpenses,
-    fetchTasks,
-    fetchCalendarEntries,
-    fetchUser,
-  ]);
+    await Promise.all([fetchBudgets(), fetchExpenses(), fetchTasks(), fetchUser()]);
+  }, [fetchBudgets, fetchExpenses, fetchTasks, fetchUser]);
 
   useEffect(() => {
     getDeviceType().then((type) => setDeviceType(type));

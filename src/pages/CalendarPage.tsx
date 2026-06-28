@@ -10,7 +10,13 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   FiCalendar,
   FiChevronLeft,
@@ -123,6 +129,10 @@ export function CalendarPage() {
     clients: [createBlankClient()],
     notes: "",
   });
+
+  useEffect(() => {
+    void fetchCalendarEntries();
+  }, [fetchCalendarEntries]);
 
   const entriesByDate = useMemo(() => {
     return calendarEntries.reduce<Map<string, CalendarEntry[]>>(

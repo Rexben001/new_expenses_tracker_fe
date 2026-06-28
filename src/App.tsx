@@ -14,6 +14,7 @@ import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
+import { IphoneVideosPage } from "./pages/IphoneVideosPage";
 import { BudgetForm } from "./pages/BudgetForm";
 import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
@@ -25,13 +26,52 @@ import { Capacitor } from "@capacitor/core";
 import { Wrapper } from "./components/Wrapper";
 import LoginForm from "./pages/LoginForm";
 import { useAuth } from "./context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import { SplashScreen } from "@capacitor/splash-screen";
-import { hasIdToken } from "./services/amplify";
+import { jwtDecode } from "jwt-decode";
+import { getTokens, hasIdToken } from "./services/amplify";
+import { isAdminEmail } from "./services/admin";
 import { TaskNotificationLayer } from "./components/TaskNotificationLayer";
+import { useItemContext } from "./hooks/useItemContext";
 
 const isNative = Capacitor.isNativePlatform();
+
+type CognitoIdClaims = {
+  email?: string;
+};
+
+function AdminOnlyRoute({ children }: { children: ReactNode }) {
+  const { user, resourceLoading } = useItemContext();
+  const [tokenEmail, setTokenEmail] = useState<string | null>();
+
+  useEffect(() => {
+    if (user?.email) return;
+
+    let mounted = true;
+    getTokens()
+      .then((tokens) => {
+        if (!mounted) return;
+        if (!tokens.idToken) {
+          setTokenEmail(null);
+          return;
+        }
+        setTokenEmail(jwtDecode<CognitoIdClaims>(tokens.idToken).email ?? null);
+      })
+      .catch(() => {
+        if (mounted) setTokenEmail(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.email]);
+
+  const email = user?.email ?? tokenEmail;
+  if (isAdminEmail(email)) return <>{children}</>;
+  if (resourceLoading.user || tokenEmail === undefined) return null;
+  return <Navigate to="/" replace />;
+}
 
 export default function App() {
   useEffect(() => {
@@ -111,7 +151,22 @@ export default function App() {
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/tasks/new" element={<TaskForm />} />
                 <Route path="/tasks/:taskId/edit" element={<TaskForm />} />
-                <Route path="/calendar" element={<CalendarPage />} />
+                <Route
+                  path="/videos"
+                  element={
+                    <AdminOnlyRoute>
+                      <IphoneVideosPage />
+                    </AdminOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/calendar"
+                  element={
+                    <AdminOnlyRoute>
+                      <CalendarPage />
+                    </AdminOnlyRoute>
+                  }
+                />
                 <Route path="/budgets" element={<BudgetPage />} />
                 <Route path="/budgets/:budgetId" element={<BudgetIdPage />} />
                 <Route path="/budgets/new" element={<BudgetForm />} />
