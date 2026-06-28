@@ -1,6 +1,6 @@
 export function formatCurrency(
   amount?: number,
-  currency: string = "USD",
+  currency: string = "EUR",
   fullAmount = true
 ): string {
   const value = amount || 0;

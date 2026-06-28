@@ -64,6 +64,13 @@ export type HowToLoginDetails = {
   notes?: string;
 };
 
+export type HowToPaymentDetails = {
+  totalAmount?: number | null;
+  currency?: string;
+  monthlyDeductionDay?: number | null;
+  notes?: string;
+};
+
 export type HowToSecretLabel = {
   id: string;
   label: string;
@@ -86,6 +93,7 @@ export type HowToEntry = {
   contentJson: unknown;
   contentPlainText: string;
   loginDetails: HowToLoginDetails;
+  paymentDetails?: HowToPaymentDetails;
   hasSecrets: boolean;
   secretLabels: HowToSecretLabel[];
   createdAt: string;
@@ -103,6 +111,7 @@ export type HowToEntryPayload = {
   summary?: string;
   contentJson?: unknown;
   loginDetails?: HowToLoginDetails;
+  paymentDetails?: HowToPaymentDetails;
   secrets?: Array<{
     id?: string;
     label: string;

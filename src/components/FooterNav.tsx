@@ -25,42 +25,59 @@ type FooterLink = {
   adminOnly?: boolean;
 };
 
-type FooterGroupKey = "expenses" | "more";
+type FooterGroupKey = "more";
+
+type FooterGroup = {
+  key: FooterGroupKey;
+  icon: IconType;
+  label: string;
+  links: FooterLink[];
+};
+
+type FooterItem = FooterLink | FooterGroup;
+
+const isGroupItem = (item: FooterItem): item is FooterGroup => "links" in item;
+
+const footerLinks = {
+  home: { to: "/", icon: FaHome, label: "Home", end: true },
+  dashboard: { to: "/dashboard", icon: FaChartPie, label: "Dashboard" },
+  expenses: { to: "/expenses", icon: FaList, label: "Expenses" },
+  budgets: { to: "/budgets", icon: FaWallet, label: "Budgets" },
+  calendar: {
+    to: "/calendar",
+    icon: FaCalendarAlt,
+    label: "Calendar",
+    adminOnly: true,
+  },
+  tasks: { to: "/tasks", icon: FaTasks, label: "Tasks" },
+  settings: { to: "/settings", icon: FaTools, label: "Settings" },
+  howTo: {
+    to: "/how-to",
+    icon: FaQuestionCircle,
+    label: "How-To",
+    adminOnly: true,
+  },
+  videos: {
+    to: "/videos",
+    icon: FaVideo,
+    label: "iPhone Videos",
+    adminOnly: true,
+  },
+} satisfies Record<string, FooterLink>;
+
+const gridClasses: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-2",
+  3: "grid-cols-3",
+  4: "grid-cols-4",
+  5: "grid-cols-5",
+};
 
 export function FooterNav({ className = "" }: { className?: string }) {
   const { user } = useItemContext();
   const location = useLocation();
   const [openGroup, setOpenGroup] = useState<FooterGroupKey | null>(null);
-
-  const expensesLinks: FooterLink[] = [
-    { to: "/dashboard", icon: FaChartPie, label: "Dashboard" },
-    { to: "/expenses", icon: FaList, label: "Expenses" },
-    { to: "/budgets", icon: FaWallet, label: "Budgets" },
-  ];
-
-  const moreLinks = useMemo<FooterLink[]>(
-    () =>
-      (
-        [
-          { to: "/settings", icon: FaTools, label: "Settings" },
-          {
-            to: "/how-to",
-            icon: FaQuestionCircle,
-            label: "How-To",
-            adminOnly: true,
-          },
-          {
-            to: "/videos",
-            icon: FaVideo,
-            label: "iPhone Videos",
-            adminOnly: true,
-          },
-        ] satisfies FooterLink[]
-      ).filter((link) => !link.adminOnly || isAdminEmail(user?.email)),
-    [user?.email]
-  );
-
-  const showCalendar = isAdminEmail(user?.email);
+  const isAdmin = isAdminEmail(user?.email);
 
   useEffect(() => {
     setOpenGroup(null);
@@ -83,17 +100,112 @@ export function FooterNav({ className = "" }: { className?: string }) {
       : location.pathname === link.to ||
         location.pathname.startsWith(`${link.to}/`);
 
-  const isExpensesActive = expensesLinks.some(isLinkActive);
-  const isMoreActive = moreLinks.some(isLinkActive);
-  const gridClass = showCalendar ? "grid-cols-5" : "grid-cols-4";
+  const navItems = useMemo<FooterItem[]>(() => {
+    const canShow = (link: FooterLink) => !link.adminOnly || isAdmin;
+    const visible = (links: FooterLink[]) => links.filter(canShow);
+    const withMore = (
+      primaryLinks: FooterLink[],
+      moreLinks: FooterLink[]
+    ): FooterItem[] => {
+      const primary = visible(primaryLinks);
+      const primaryPaths = new Set(primary.map((link) => link.to));
+      const menuLinks = visible(moreLinks).filter(
+        (link) => !primaryPaths.has(link.to)
+      );
+
+      if (!menuLinks.length) return primary;
+      return [
+        ...primary,
+        {
+          key: "more",
+          icon: FaEllipsisH,
+          label: "More",
+          links: menuLinks,
+        },
+      ];
+    };
+
+    const pathname = location.pathname;
+    const isExpensesSection =
+      pathname === "/dashboard" ||
+      pathname.startsWith("/expenses") ||
+      pathname.startsWith("/budgets");
+
+    if (isExpensesSection) {
+      return withMore(
+        [
+          footerLinks.home,
+          footerLinks.dashboard,
+          footerLinks.expenses,
+          footerLinks.budgets,
+        ],
+        [
+          footerLinks.settings,
+          footerLinks.calendar,
+          footerLinks.tasks,
+          footerLinks.howTo,
+          footerLinks.videos,
+        ]
+      );
+    }
+
+    if (pathname.startsWith("/tasks")) {
+      return visible([footerLinks.home, footerLinks.tasks, footerLinks.settings]);
+    }
+
+    if (pathname.startsWith("/calendar")) {
+      return visible([
+        footerLinks.home,
+        footerLinks.calendar,
+        footerLinks.settings,
+      ]);
+    }
+
+    if (pathname.startsWith("/how-to")) {
+      return visible([footerLinks.home, footerLinks.howTo, footerLinks.settings]);
+    }
+
+    if (pathname.startsWith("/videos")) {
+      return visible([footerLinks.home, footerLinks.videos, footerLinks.settings]);
+    }
+
+    if (pathname.startsWith("/settings")) {
+      return withMore(
+        [footerLinks.home, footerLinks.settings],
+        [
+          footerLinks.dashboard,
+          footerLinks.expenses,
+          footerLinks.budgets,
+          footerLinks.tasks,
+          footerLinks.calendar,
+          footerLinks.howTo,
+          footerLinks.videos,
+        ]
+      );
+    }
+
+    return withMore(
+      [footerLinks.home, footerLinks.dashboard, footerLinks.tasks],
+      [
+        footerLinks.expenses,
+        footerLinks.budgets,
+        footerLinks.settings,
+        footerLinks.calendar,
+        footerLinks.howTo,
+        footerLinks.videos,
+      ]
+    );
+  }, [isAdmin, location.pathname]);
+
+  const gridClass = gridClasses[Math.min(Math.max(navItems.length, 1), 5)];
   const itemClass =
-    "flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-[11px] font-medium leading-none transition";
+    "flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium leading-tight transition";
   const inactiveClass =
     "text-gray-500 hover:bg-white/70 hover:text-gray-800 dark:text-gray-300 dark:hover:bg-gray-800";
   const activeClass =
     "bg-white text-blue-700 shadow-sm dark:bg-gray-800 dark:text-blue-200";
   const groupMenuClass =
-    "absolute bottom-14 z-50 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 text-sm shadow-xl dark:border-gray-800 dark:bg-gray-900";
+    "absolute bottom-20 z-50 w-48 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 text-sm shadow-xl dark:border-gray-800 dark:bg-gray-900";
 
   const renderGroupMenu = (links: FooterLink[], align: "left" | "right") => (
     <div
@@ -120,98 +232,60 @@ export function FooterNav({ className = "" }: { className?: string }) {
     </div>
   );
 
+  const renderLink = ({ to, icon: Icon, label, end }: FooterLink) => (
+    <NavLink
+      key={to}
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `h-14 ${itemClass} ${isActive ? activeClass : inactiveClass}`
+      }
+    >
+      <Icon className="h-5 w-5 shrink-0" />
+      <span className="block max-w-full truncate leading-4">{label}</span>
+    </NavLink>
+  );
+
+  const renderGroup = ({ key, icon: Icon, label, links }: FooterGroup) => {
+    const isActive = links.some(isLinkActive);
+
+    return (
+      <div key={key} className="relative">
+        {openGroup === key && renderGroupMenu(links, "right")}
+        <button
+          type="button"
+          className={`h-14 w-full ${itemClass} ${
+            isActive || openGroup === key ? activeClass : inactiveClass
+          }`}
+          onClick={() =>
+            setOpenGroup((current) => (current === key ? null : key))
+          }
+          aria-expanded={openGroup === key}
+          aria-haspopup="menu"
+        >
+          <Icon className="h-5 w-5 shrink-0" />
+          <span className="flex max-w-full items-center gap-0.5 truncate leading-4">
+            {label}
+            <FiChevronUp
+              className={`h-3 w-3 shrink-0 transition-transform ${
+                openGroup === key ? "rotate-0" : "rotate-180"
+              }`}
+            />
+          </span>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 mx-auto h-16 w-full max-w-md bg-gradient-to-br from-slate-50 to-blue-50 px-2 pt-1.5 text-sm shadow-inner dark:from-gray-900 dark:to-gray-950 dark:text-white ${className}`}
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className={`fixed bottom-0 left-0 right-0 z-50 mx-auto w-full max-w-md bg-gradient-to-br from-slate-50 to-blue-50 px-2 pb-4 pt-2 text-sm shadow-inner dark:from-gray-900 dark:to-gray-950 dark:text-white ${className}`}
+      style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
-      <div className={`grid h-full ${gridClass} gap-1.5`}>
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) =>
-            `h-12 ${itemClass} ${isActive ? activeClass : inactiveClass}`
-          }
-        >
-          <FaHome className="h-5 w-5 shrink-0" />
-          <span className="max-w-full truncate">Home</span>
-        </NavLink>
-
-        <div className="relative">
-          {openGroup === "expenses" && renderGroupMenu(expensesLinks, "left")}
-          <button
-            type="button"
-            className={`h-12 w-full ${itemClass} ${
-              isExpensesActive || openGroup === "expenses"
-                ? activeClass
-                : inactiveClass
-            }`}
-            onClick={() =>
-              setOpenGroup((current) =>
-                current === "expenses" ? null : "expenses"
-              )
-            }
-            aria-expanded={openGroup === "expenses"}
-            aria-haspopup="menu"
-          >
-            <FaWallet className="h-5 w-5 shrink-0" />
-            <span className="flex max-w-full items-center gap-0.5 truncate">
-              Expenses
-              <FiChevronUp
-                className={`h-3 w-3 shrink-0 transition-transform ${
-                  openGroup === "expenses" ? "rotate-0" : "rotate-180"
-                }`}
-              />
-            </span>
-          </button>
-        </div>
-
-        {showCalendar && (
-          <NavLink
-            to="/calendar"
-            className={({ isActive }) =>
-              `h-12 ${itemClass} ${isActive ? activeClass : inactiveClass}`
-            }
-          >
-            <FaCalendarAlt className="h-5 w-5 shrink-0" />
-            <span className="max-w-full truncate">Calendar</span>
-          </NavLink>
+      <div className={`grid ${gridClass} gap-1.5`}>
+        {navItems.map((item) =>
+          isGroupItem(item) ? renderGroup(item) : renderLink(item)
         )}
-
-        <NavLink
-          to="/tasks"
-          className={({ isActive }) =>
-            `h-12 ${itemClass} ${isActive ? activeClass : inactiveClass}`
-          }
-        >
-          <FaTasks className="h-5 w-5 shrink-0" />
-          <span className="max-w-full truncate">Tasks</span>
-        </NavLink>
-
-        <div className="relative">
-          {openGroup === "more" && renderGroupMenu(moreLinks, "right")}
-          <button
-            type="button"
-            className={`h-12 w-full ${itemClass} ${
-              isMoreActive || openGroup === "more" ? activeClass : inactiveClass
-            }`}
-            onClick={() =>
-              setOpenGroup((current) => (current === "more" ? null : "more"))
-            }
-            aria-expanded={openGroup === "more"}
-            aria-haspopup="menu"
-          >
-            <FaEllipsisH className="h-5 w-5 shrink-0" />
-            <span className="flex max-w-full items-center gap-0.5 truncate">
-              More
-              <FiChevronUp
-                className={`h-3 w-3 shrink-0 transition-transform ${
-                  openGroup === "more" ? "rotate-0" : "rotate-180"
-                }`}
-              />
-            </span>
-          </button>
-        </div>
       </div>
     </nav>
   );

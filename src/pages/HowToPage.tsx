@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { EditorContent, useEditor, type Content } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   FiBold,
+  FiCalendar,
   FiCopy,
+  FiCreditCard,
   FiEdit3,
   FiExternalLink,
   FiEye,
@@ -52,6 +54,10 @@ type HowToFormState = {
   loginEmail: string;
   loginUsername: string;
   loginNotes: string;
+  paymentTotalAmount: string;
+  paymentCurrency: string;
+  paymentDeductionDay: string;
+  paymentNotes: string;
   secrets: SecretDraft[];
   secretsTouched: boolean;
 };
@@ -92,6 +98,52 @@ function formatDate(value?: string) {
   return date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
 }
 
+function formatAmount(amount?: number | null, currency = "EUR") {
+  if (amount === null || amount === undefined || Number.isNaN(amount)) return "";
+
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency || "EUR",
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency || "EUR"} ${amount.toFixed(2)}`;
+  }
+}
+
+function ensureHref(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+function linkifyText(value: string) {
+  const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9.-]+\.[a-z]{2,}[^\s]*)/gi;
+  const parts = value.split(urlPattern);
+
+  return parts.map((part, index) => {
+    const isUrl =
+      /^https?:\/\//i.test(part) ||
+      /^www\./i.test(part) ||
+      /^[a-z0-9.-]+\.[a-z]{2,}/i.test(part);
+    if (!isUrl) return part;
+
+    return (
+      <a
+        key={`${part}-${index}`}
+        href={ensureHref(part)}
+        target="_blank"
+        rel="noreferrer"
+        className="text-blue-600 underline underline-offset-2 dark:text-blue-300"
+      >
+        {part}
+      </a>
+    );
+  });
+}
+
 function createEmptyForm(): HowToFormState {
   return {
     title: "",
@@ -104,6 +156,10 @@ function createEmptyForm(): HowToFormState {
     loginEmail: "",
     loginUsername: "",
     loginNotes: "",
+    paymentTotalAmount: "",
+    paymentCurrency: "EUR",
+    paymentDeductionDay: "",
+    paymentNotes: "",
     secrets: [],
     secretsTouched: true,
   };
@@ -121,12 +177,24 @@ function formFromEntry(entry: HowToEntry): HowToFormState {
     loginEmail: entry.loginDetails?.email ?? "",
     loginUsername: entry.loginDetails?.username ?? "",
     loginNotes: entry.loginDetails?.notes ?? "",
+    paymentTotalAmount:
+      entry.paymentDetails?.totalAmount === null ||
+      entry.paymentDetails?.totalAmount === undefined
+        ? ""
+        : String(entry.paymentDetails.totalAmount),
+    paymentCurrency: entry.paymentDetails?.currency || "EUR",
+    paymentDeductionDay: entry.paymentDetails?.monthlyDeductionDay
+      ? String(entry.paymentDetails.monthlyDeductionDay)
+      : "",
+    paymentNotes: entry.paymentDetails?.notes ?? "",
     secrets: [],
     secretsTouched: false,
   };
 }
 
 function buildPayload(form: HowToFormState, includeSecrets: boolean) {
+  const totalAmount = Number(form.paymentTotalAmount);
+  const monthlyDeductionDay = Number(form.paymentDeductionDay);
   const payload: HowToEntryPayload = {
     title: form.title.trim(),
     category: form.category.trim(),
@@ -139,6 +207,21 @@ function buildPayload(form: HowToFormState, includeSecrets: boolean) {
       email: form.loginEmail.trim(),
       username: form.loginUsername.trim(),
       notes: form.loginNotes.trim(),
+    },
+    paymentDetails: {
+      totalAmount:
+        form.paymentTotalAmount.trim() && Number.isFinite(totalAmount)
+          ? totalAmount
+          : null,
+      currency: form.paymentCurrency.trim().toUpperCase() || "EUR",
+      monthlyDeductionDay:
+        form.paymentDeductionDay.trim() &&
+        Number.isInteger(monthlyDeductionDay) &&
+        monthlyDeductionDay >= 1 &&
+        monthlyDeductionDay <= 31
+          ? monthlyDeductionDay
+          : null,
+      notes: form.paymentNotes.trim(),
     },
   };
 
@@ -294,7 +377,7 @@ function renderInline(nodes: unknown[]): ReactNode {
     if (record.type === "hardBreak") return <br key={index} />;
     if (record.content) return renderInline(record.content);
 
-    let child: ReactNode = record.text ?? "";
+    let child: ReactNode = linkifyText(record.text ?? "");
     for (const mark of record.marks ?? []) {
       if (mark.type === "bold") child = <strong>{child}</strong>;
       if (mark.type === "italic") child = <em>{child}</em>;
@@ -329,6 +412,7 @@ export function HowToPage() {
     Record<string, HowToSecret[]>
   >({});
   const [revealing, setRevealing] = useState(false);
+  const detailSectionRef = useRef<HTMLElement | null>(null);
 
   const categories = useMemo(
     () =>
@@ -391,6 +475,14 @@ export function HowToPage() {
     try {
       const detail = await getHowToEntry(entry.id);
       setActiveEntry(detail);
+      if (window.innerWidth < 1024) {
+        window.setTimeout(() => {
+          detailSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 80);
+      }
     } catch (openError) {
       setError(getErrorMessage(openError, "Could not open How-To item."));
     }
@@ -610,6 +702,19 @@ export function HowToPage() {
                       <FiKey className="h-4 w-4 shrink-0 text-amber-500" />
                     )}
                   </div>
+                  {entry.paymentDetails?.totalAmount !== null &&
+                    entry.paymentDetails?.totalAmount !== undefined && (
+                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
+                        <FiCreditCard />
+                        {formatAmount(
+                          entry.paymentDetails.totalAmount,
+                          entry.paymentDetails.currency
+                        )}
+                        {entry.paymentDetails.monthlyDeductionDay
+                          ? ` · day ${entry.paymentDetails.monthlyDeductionDay}`
+                          : ""}
+                      </div>
+                    )}
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {entry.category && (
                       <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-200">
@@ -642,7 +747,10 @@ export function HowToPage() {
           )}
         </section>
 
-        <section className="min-h-[24rem] rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <section
+          ref={detailSectionRef}
+          className="scroll-mt-36 min-h-[24rem] rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+        >
           {!activeEntry ? (
             <div className="grid h-full min-h-72 place-items-center text-sm text-gray-500">
               Select a How-To item.
@@ -675,29 +783,42 @@ export function HowToPage() {
                   </button>
                 </div>
               </div>
-
-              {activeEntry.summary && (
-                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-950 dark:bg-blue-950/30 dark:text-blue-100">
-                  {activeEntry.summary}
+              {(activeEntry.paymentDetails?.totalAmount !== null &&
+                activeEntry.paymentDetails?.totalAmount !== undefined) ||
+              activeEntry.paymentDetails?.monthlyDeductionDay ||
+              activeEntry.paymentDetails?.notes ? (
+                <div className="grid gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/30 sm:grid-cols-2">
+                  {activeEntry.paymentDetails?.totalAmount !== null &&
+                    activeEntry.paymentDetails?.totalAmount !== undefined && (
+                      <div>
+                        <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
+                          Total amount
+                        </p>
+                        <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
+                          {formatAmount(
+                            activeEntry.paymentDetails.totalAmount,
+                            activeEntry.paymentDetails.currency
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  {activeEntry.paymentDetails?.monthlyDeductionDay && (
+                    <div>
+                      <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
+                        Monthly deduction
+                      </p>
+                      <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
+                        Day {activeEntry.paymentDetails.monthlyDeductionDay}
+                      </p>
+                    </div>
+                  )}
+                  {activeEntry.paymentDetails?.notes && (
+                    <p className="text-emerald-900 dark:text-emerald-100 sm:col-span-2">
+                      {activeEntry.paymentDetails.notes}
+                    </p>
+                  )}
                 </div>
-              )}
-
-              <div className="flex flex-wrap gap-2">
-                {activeEntry.category && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-100">
-                    <FiTag />
-                    {activeEntry.category}
-                  </span>
-                )}
-                {activeEntry.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              ) : null}
 
               {(activeEntry.loginDetails?.url ||
                 activeEntry.loginDetails?.email ||
@@ -706,7 +827,7 @@ export function HowToPage() {
                 <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-950">
                   {activeEntry.loginDetails.url && (
                     <a
-                      href={activeEntry.loginDetails.url}
+                      href={ensureHref(activeEntry.loginDetails.url)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex max-w-full items-center gap-2 text-blue-600 dark:text-blue-300"
@@ -936,6 +1057,66 @@ export function HowToPage() {
                       className={inputClass}
                     />
                   </div>
+                </section>
+
+                <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <FiCalendar />
+                    Payment
+                  </div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_5rem] gap-2">
+                    <input
+                      value={form.paymentTotalAmount}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          paymentTotalAmount: event.target.value,
+                        }))
+                      }
+                      placeholder="Total amount"
+                      inputMode="decimal"
+                      className={inputClass}
+                    />
+                    <input
+                      value={form.paymentCurrency}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          paymentCurrency: event.target.value
+                            .toUpperCase()
+                            .slice(0, 8),
+                        }))
+                      }
+                      placeholder="EUR"
+                      className={inputClass}
+                    />
+                  </div>
+                  <input
+                    value={form.paymentDeductionDay}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        paymentDeductionDay: event.target.value.replace(
+                          /\D+/g,
+                          ""
+                        ).slice(0, 2),
+                      }))
+                    }
+                    placeholder="Deduction day each month"
+                    inputMode="numeric"
+                    className={inputClass}
+                  />
+                  <textarea
+                    value={form.paymentNotes}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        paymentNotes: event.target.value,
+                      }))
+                    }
+                    placeholder="Payment notes"
+                    className={textareaClass}
+                  />
                 </section>
 
                 <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
