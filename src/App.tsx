@@ -15,6 +15,7 @@ import { CalendarPage } from "./pages/CalendarPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
 import { IphoneVideosPage } from "./pages/IphoneVideosPage";
+import { HowToPage } from "./pages/HowToPage";
 import { BudgetForm } from "./pages/BudgetForm";
 import { BudgetIdPage } from "./pages/BudgetIdPage";
 import { ItemContextProvider } from "./context/ItemContext";
@@ -156,6 +157,14 @@ export default function App() {
                   element={
                     <AdminOnlyRoute>
                       <IphoneVideosPage />
+                    </AdminOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/how-to"
+                  element={
+                    <AdminOnlyRoute>
+                      <HowToPage />
                     </AdminOnlyRoute>
                   }
                 />

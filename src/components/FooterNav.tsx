@@ -4,6 +4,7 @@ import {
   FaEllipsisH,
   FaHome,
   FaList,
+  FaQuestionCircle,
   FaTasks,
   FaTools,
   FaVideo,
@@ -42,6 +43,12 @@ export function FooterNav({ className = "" }: { className?: string }) {
       (
         [
           { to: "/settings", icon: FaTools, label: "Settings" },
+          {
+            to: "/how-to",
+            icon: FaQuestionCircle,
+            label: "How-To",
+            adminOnly: true,
+          },
           {
             to: "/videos",
             icon: FaVideo,

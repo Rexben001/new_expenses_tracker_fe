@@ -12,6 +12,7 @@ function getPageTitle(pathname: string) {
   if (pathname === "/tasks/new") return "New Task";
   if (pathname.startsWith("/tasks/")) return "Edit Task";
   if (pathname === "/videos") return "iPhone Videos";
+  if (pathname === "/how-to") return "How-To";
   if (pathname === "/settings") return "Settings";
   if (pathname === "/expenses/insights") return "Expense Insights";
   if (pathname === "/expenses/new") return "New Expense";

@@ -1,6 +1,38 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+.how-to-editor .ProseMirror {
+  min-height: 18rem;
+  padding: 0.875rem;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.how-to-editor .ProseMirror p {
+  margin: 0 0 0.75rem;
+}
+
+.how-to-editor .ProseMirror h2 {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.how-to-editor .ProseMirror ul,
+.how-to-editor .ProseMirror ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.how-to-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.how-to-editor .ProseMirror ol {
+  list-style: decimal;
+}
+
 .react-select__control {
   background-color: transparent;
 }

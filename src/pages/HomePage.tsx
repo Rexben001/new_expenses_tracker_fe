@@ -1,5 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { FaCalendarAlt, FaList, FaTasks, FaTools, FaVideo } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaList,
+  FaQuestionCircle,
+  FaTasks,
+  FaTools,
+  FaVideo,
+} from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
@@ -35,6 +42,14 @@ const homeLinks = [
     label: "iPhone Videos",
     icon: FaVideo,
     color: "bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-200",
+    adminOnly: true,
+  },
+  {
+    to: "/how-to",
+    label: "How-To",
+    icon: FaQuestionCircle,
+    color:
+      "bg-violet-50 text-violet-700 dark:bg-violet-950/50 dark:text-violet-200",
     adminOnly: true,
   },
   {

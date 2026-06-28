@@ -57,6 +57,70 @@ export type ExpenseInsightsResponse = {
   insights: ExpenseInsight[];
 };
 
+export type HowToLoginDetails = {
+  url?: string;
+  email?: string;
+  username?: string;
+  notes?: string;
+};
+
+export type HowToSecretLabel = {
+  id: string;
+  label: string;
+  updatedAt: string;
+};
+
+export type HowToSecret = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+export type HowToEntry = {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  keywords: string[];
+  summary: string;
+  contentJson: unknown;
+  contentPlainText: string;
+  loginDetails: HowToLoginDetails;
+  hasSecrets: boolean;
+  secretLabels: HowToSecretLabel[];
+  createdAt: string;
+  updatedAt: string;
+  createdByEmail: string;
+  updatedByEmail: string;
+  snippet?: string;
+};
+
+export type HowToEntryPayload = {
+  title?: string;
+  category?: string;
+  tags?: string[];
+  keywords?: string[];
+  summary?: string;
+  contentJson?: unknown;
+  loginDetails?: HowToLoginDetails;
+  secrets?: Array<{
+    id?: string;
+    label: string;
+    value: string;
+  }>;
+};
+
+export type HowToListResponse = {
+  items: HowToEntry[];
+  count: number;
+  total: number;
+  limit: number;
+  query: string;
+  category: string;
+  tag: string;
+  nextCursor?: string | null;
+};
+
 type ApiErrorPayload = {
   message?: string;
   error?: string;
@@ -335,6 +399,64 @@ export function deleteCalendarEntry(id: string, subId?: string) {
     method: "DELETE",
     path: addSubIdPath(`calendar/${id}`, subId),
   });
+}
+
+export function listHowToEntries(params: {
+  query?: string;
+  category?: string;
+  tag?: string;
+  limit?: number;
+  cursor?: string | null;
+} = {}) {
+  const search = new URLSearchParams();
+  if (params.query) search.set("query", params.query);
+  if (params.category) search.set("category", params.category);
+  if (params.tag) search.set("tag", params.tag);
+  if (params.limit) search.set("limit", String(params.limit));
+  if (params.cursor) search.set("cursor", params.cursor);
+  const queryString = search.toString();
+
+  return fetchApi({
+    method: "GET",
+    path: `how-to${queryString ? `?${queryString}` : ""}`,
+  }) as Promise<HowToListResponse>;
+}
+
+export function getHowToEntry(id: string) {
+  return fetchApi({
+    method: "GET",
+    path: `how-to/${encodeURIComponent(id)}`,
+  }) as Promise<HowToEntry>;
+}
+
+export function createHowToEntry(body: HowToEntryPayload) {
+  return fetchApi({
+    method: "POST",
+    path: "how-to",
+    body,
+  }) as Promise<{ message: string; item: HowToEntry }>;
+}
+
+export function updateHowToEntry(id: string, body: HowToEntryPayload) {
+  return fetchApi({
+    method: "PUT",
+    path: `how-to/${encodeURIComponent(id)}`,
+    body,
+  }) as Promise<{ message: string; item: HowToEntry }>;
+}
+
+export function deleteHowToEntry(id: string) {
+  return fetchApi({
+    method: "DELETE",
+    path: `how-to/${encodeURIComponent(id)}`,
+  }) as Promise<{ deleted: boolean; id: string }>;
+}
+
+export function revealHowToSecrets(id: string) {
+  return fetchApi({
+    method: "GET",
+    path: `how-to/${encodeURIComponent(id)}/secrets`,
+  }) as Promise<{ id: string; secrets: HowToSecret[] }>;
 }
 
 export function getUser(subId?: string) {
