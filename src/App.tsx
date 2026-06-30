@@ -169,6 +169,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/how-to/:howToId"
+                  element={
+                    <AdminOnlyRoute>
+                      <HowToPage />
+                    </AdminOnlyRoute>
+                  }
+                />
+                <Route
                   path="/calendar"
                   element={
                     <AdminOnlyRoute>

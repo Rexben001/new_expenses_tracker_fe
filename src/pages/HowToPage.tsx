@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { EditorContent, useEditor, type Content } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   FiBold,
+  FiArrowLeft,
   FiCalendar,
   FiCopy,
   FiCreditCard,
@@ -21,6 +22,7 @@ import {
   FiTrash2,
   FiX,
 } from "react-icons/fi";
+import { useNavigate, useParams } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
 import SwipeShell from "../components/SwipeShell";
@@ -395,6 +397,9 @@ function renderInline(nodes: unknown[]): ReactNode {
 }
 
 export function HowToPage() {
+  const navigate = useNavigate();
+  const { howToId } = useParams<{ howToId?: string }>();
+  const isDetailRoute = Boolean(howToId);
   const [entries, setEntries] = useState<HowToEntry[]>([]);
   const [activeEntry, setActiveEntry] = useState<HowToEntry | null>(null);
   const [query, setQuery] = useState("");
@@ -402,6 +407,7 @@ export function HowToPage() {
   const [tagFilter, setTagFilter] = useState("");
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("Ready.");
@@ -412,7 +418,6 @@ export function HowToPage() {
     Record<string, HowToSecret[]>
   >({});
   const [revealing, setRevealing] = useState(false);
-  const detailSectionRef = useRef<HTMLElement | null>(null);
 
   const categories = useMemo(
     () =>
@@ -454,10 +459,7 @@ export function HowToPage() {
       setStatusMessage(
         `Loaded ${response.count} of ${response.total} How-To item(s).`
       );
-      if (!append && response.items.length && !activeEntry) {
-        void openEntry(response.items[0]);
-      }
-      if (!response.items.length && !append) setActiveEntry(null);
+      if (!isDetailRoute && !append) setActiveEntry(null);
     } catch (loadError) {
       setError(getErrorMessage(loadError, "Could not load How-To items."));
     } finally {
@@ -470,22 +472,38 @@ export function HowToPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const openEntry = async (entry: HowToEntry) => {
-    setError("");
-    try {
-      const detail = await getHowToEntry(entry.id);
-      setActiveEntry(detail);
-      if (window.innerWidth < 1024) {
-        window.setTimeout(() => {
-          detailSectionRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 80);
-      }
-    } catch (openError) {
-      setError(getErrorMessage(openError, "Could not open How-To item."));
+  useEffect(() => {
+    if (!howToId) {
+      setActiveEntry(null);
+      return;
     }
+
+    let mounted = true;
+    setDetailLoading(true);
+    setError("");
+
+    getHowToEntry(howToId)
+      .then((detail) => {
+        if (!mounted) return;
+        setActiveEntry(detail);
+        setStatusMessage(`Opened ${detail.title}.`);
+      })
+      .catch((openError) => {
+        if (!mounted) return;
+        setActiveEntry(null);
+        setError(getErrorMessage(openError, "Could not open How-To item."));
+      })
+      .finally(() => {
+        if (mounted) setDetailLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [howToId]);
+
+  const openEntry = (entry: HowToEntry) => {
+    navigate(`/how-to/${entry.id}`);
   };
 
   const openCreate = () => {
@@ -519,6 +537,7 @@ export function HowToPage() {
       setFormOpen(false);
       setEditingEntry(null);
       await loadEntries();
+      navigate(`/how-to/${response.item.id}`);
     } catch (saveError) {
       setError(getErrorMessage(saveError, "Could not save How-To item."));
     } finally {
@@ -536,6 +555,7 @@ export function HowToPage() {
       await deleteHowToEntry(entry.id);
       setStatusMessage("How-To item deleted.");
       setActiveEntry(null);
+      navigate("/how-to");
       await loadEntries();
     } catch (deleteError) {
       setError(getErrorMessage(deleteError, "Could not delete How-To item."));
@@ -578,355 +598,427 @@ export function HowToPage() {
     }));
   };
 
-  return (
-    <SwipeShell refresh={() => loadEntries()} toRight="/">
-      <HeaderComponent className={`${HOW_TO_SHELL_CLASS} sm:px-4`} title="How-To">
-        <div className="mb-2 flex items-start justify-between gap-3">
+  const renderDetailContent = () => {
+    if (detailLoading) {
+      return (
+        <div className="grid h-full min-h-72 place-items-center text-sm text-gray-500">
+          Loading How-To details...
+        </div>
+      );
+    }
+
+    if (!activeEntry) {
+      return (
+        <div className="grid h-full min-h-72 place-items-center text-sm text-gray-500">
+          Select a How-To item.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-5">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold">How-To</h1>
-            <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-              {entries.length} shown · {statusMessage}
+            <h2 className="text-xl font-bold">{activeEntry.title}</h2>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Updated {formatDate(activeEntry.updatedAt)}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               className={iconButtonClass}
-              onClick={() => loadEntries()}
-              disabled={loading}
-              aria-label="Refresh How-To items"
+              onClick={() => openEdit(activeEntry)}
+              aria-label="Edit How-To item"
             >
-              <FiRefreshCw className={loading ? "animate-spin" : ""} />
+              <FiEdit3 />
             </button>
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white shadow-sm disabled:opacity-60"
+              className={iconButtonClass}
+              onClick={() => removeEntry(activeEntry)}
+              aria-label="Delete How-To item"
+            >
+              <FiTrash2 />
+            </button>
+          </div>
+        </div>
+
+        {activeEntry.summary && (
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-950 dark:bg-blue-950/30 dark:text-blue-100">
+            {activeEntry.summary}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {activeEntry.category && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-100">
+              <FiTag />
+              {activeEntry.category}
+            </span>
+          )}
+          {activeEntry.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {(activeEntry.paymentDetails?.totalAmount !== null &&
+          activeEntry.paymentDetails?.totalAmount !== undefined) ||
+        activeEntry.paymentDetails?.monthlyDeductionDay ||
+        activeEntry.paymentDetails?.notes ? (
+          <div className="grid gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/30 sm:grid-cols-2">
+            {activeEntry.paymentDetails?.totalAmount !== null &&
+              activeEntry.paymentDetails?.totalAmount !== undefined && (
+                <div>
+                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
+                    Total amount
+                  </p>
+                  <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
+                    {formatAmount(
+                      activeEntry.paymentDetails.totalAmount,
+                      activeEntry.paymentDetails.currency
+                    )}
+                  </p>
+                </div>
+              )}
+            {activeEntry.paymentDetails?.monthlyDeductionDay && (
+              <div>
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
+                  Monthly deduction
+                </p>
+                <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
+                  Day {activeEntry.paymentDetails.monthlyDeductionDay}
+                </p>
+              </div>
+            )}
+            {activeEntry.paymentDetails?.notes && (
+              <p className="text-emerald-900 dark:text-emerald-100 sm:col-span-2">
+                {activeEntry.paymentDetails.notes}
+              </p>
+            )}
+          </div>
+        ) : null}
+
+        {(activeEntry.loginDetails?.url ||
+          activeEntry.loginDetails?.email ||
+          activeEntry.loginDetails?.username ||
+          activeEntry.loginDetails?.notes) && (
+          <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-950">
+            {activeEntry.loginDetails.url && (
+              <a
+                href={ensureHref(activeEntry.loginDetails.url)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex max-w-full items-center gap-2 text-blue-600 dark:text-blue-300"
+              >
+                <FiExternalLink className="shrink-0" />
+                <span className="truncate">{activeEntry.loginDetails.url}</span>
+              </a>
+            )}
+            {activeEntry.loginDetails.email && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">{activeEntry.loginDetails.email}</span>
+                <button
+                  type="button"
+                  className="text-gray-500 hover:text-blue-600"
+                  onClick={() => copyText(activeEntry.loginDetails.email ?? "")}
+                  aria-label="Copy login email"
+                >
+                  <FiCopy />
+                </button>
+              </div>
+            )}
+            {activeEntry.loginDetails.username && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">{activeEntry.loginDetails.username}</span>
+                <button
+                  type="button"
+                  className="text-gray-500 hover:text-blue-600"
+                  onClick={() => copyText(activeEntry.loginDetails.username ?? "")}
+                  aria-label="Copy username"
+                >
+                  <FiCopy />
+                </button>
+              </div>
+            )}
+            {activeEntry.loginDetails.notes && (
+              <p className="text-gray-600 dark:text-gray-300">
+                {activeEntry.loginDetails.notes}
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeEntry.hasSecrets && (
+          <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-100">
+                <FiKey className="shrink-0" />
+                <span className="truncate">
+                  {activeEntry.secretLabels.length} saved secret(s)
+                </span>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-amber-600 px-3 text-xs font-medium text-white disabled:opacity-60"
+                onClick={() => revealSecrets(activeEntry)}
+                disabled={revealing}
+              >
+                <FiEye />
+                Reveal
+              </button>
+            </div>
+            {(revealedSecrets[activeEntry.id] ??
+              activeEntry.secretLabels.map((secret) => ({
+                ...secret,
+                value: "••••••••",
+              }))).map((secret) => (
+              <div
+                key={secret.id}
+                className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm dark:bg-gray-900"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{secret.label}</p>
+                  <p className="truncate text-gray-500 dark:text-gray-400">
+                    {secret.value}
+                  </p>
+                </div>
+                {"value" in secret && secret.value !== "••••••••" && (
+                  <button
+                    type="button"
+                    className="text-gray-500 hover:text-blue-600"
+                    onClick={() => copyText(secret.value)}
+                    aria-label={`Copy ${secret.label}`}
+                  >
+                    <FiCopy />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div>{renderRichContent(activeEntry.contentJson)}</div>
+      </div>
+    );
+  };
+
+  return (
+    <SwipeShell refresh={() => loadEntries()} toRight="/">
+      <HeaderComponent className={`${HOW_TO_SHELL_CLASS} sm:px-4`} title="How-To">
+        {isDetailRoute ? (
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <button
+                type="button"
+                className="mb-1 inline-flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-300"
+                onClick={() => navigate("/how-to")}
+              >
+                <FiArrowLeft />
+                Back
+              </button>
+              <h1 className="truncate text-xl font-bold">
+                {activeEntry?.title || "How-To details"}
+              </h1>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                {detailLoading ? "Loading..." : statusMessage}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white shadow-sm disabled:opacity-60"
               onClick={openCreate}
             >
               <FiPlus />
               New
             </button>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="truncate text-xl font-bold">How-To</h1>
+                <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                  {entries.length} shown · {statusMessage}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  className={iconButtonClass}
+                  onClick={() => loadEntries()}
+                  disabled={loading}
+                  aria-label="Refresh How-To items"
+                >
+                  <FiRefreshCw className={loading ? "animate-spin" : ""} />
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-3 text-sm font-medium text-white shadow-sm disabled:opacity-60"
+                  onClick={openCreate}
+                >
+                  <FiPlus />
+                  New
+                </button>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_10rem_10rem_auto]">
-          <div className="relative">
-            <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") void loadEntries();
-              }}
-              placeholder="Search"
-              className={`${inputClass} pl-9`}
-            />
-          </div>
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className={inputClass}
-            aria-label="Filter by category"
-          >
-            <option value="">All categories</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <select
-            value={tagFilter}
-            onChange={(event) => setTagFilter(event.target.value)}
-            className={inputClass}
-            aria-label="Filter by tag"
-          >
-            <option value="">All tags</option>
-            {tags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 text-sm font-medium text-white dark:bg-white dark:text-gray-950"
-            onClick={() => loadEntries()}
-          >
-            <FiSearch />
-            Search
-          </button>
-        </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_10rem_10rem_auto]">
+              <div className="relative">
+                <FiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void loadEntries();
+                  }}
+                  placeholder="Search"
+                  className={`${inputClass} pl-9`}
+                />
+              </div>
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+                className={inputClass}
+                aria-label="Filter by category"
+              >
+                <option value="">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={tagFilter}
+                onChange={(event) => setTagFilter(event.target.value)}
+                className={inputClass}
+                aria-label="Filter by tag"
+              >
+                <option value="">All tags</option>
+                {tags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 text-sm font-medium text-white dark:bg-white dark:text-gray-950"
+                onClick={() => loadEntries()}
+              >
+                <FiSearch />
+                Search
+              </button>
+            </div>
+          </>
+        )}
       </HeaderComponent>
 
-      <main className="mx-auto mt-44 grid min-h-screen max-w-md grid-cols-1 gap-4 px-4 pb-28 pt-4 dark:text-white sm:max-w-2xl lg:max-w-6xl lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
+      <main
+        className={`mx-auto grid min-h-screen grid-cols-1 gap-4 px-4 pb-28 pt-4 dark:text-white ${
+          isDetailRoute
+            ? "mt-28 max-w-md sm:max-w-2xl lg:max-w-3xl"
+            : "mt-44 max-w-md sm:max-w-2xl lg:max-w-6xl"
+        }`}
+      >
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200 lg:col-span-2">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
             {error}
           </div>
         )}
 
-        <section className="space-y-3">
-          {loading && entries.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900">
-              Loading...
-            </div>
-          ) : entries.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900">
-              No How-To items found.
-            </div>
-          ) : (
-            entries.map((entry) => {
-              const active = activeEntry?.id === entry.id;
-              return (
-                <button
-                  key={entry.id}
-                  type="button"
-                  className={`w-full rounded-xl border p-4 text-left shadow-sm transition ${
-                    active
-                      ? "border-blue-300 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30"
-                      : "border-gray-200 bg-white hover:border-blue-200 dark:border-gray-800 dark:bg-gray-900"
-                  }`}
-                  onClick={() => openEntry(entry)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h2 className="truncate text-sm font-semibold">
-                        {entry.title}
-                      </h2>
-                      <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                        {entry.snippet || entry.summary || entry.contentPlainText}
-                      </p>
-                    </div>
-                    {entry.hasSecrets && (
-                      <FiKey className="h-4 w-4 shrink-0 text-amber-500" />
-                    )}
-                  </div>
-                  {entry.paymentDetails?.totalAmount !== null &&
-                    entry.paymentDetails?.totalAmount !== undefined && (
-                      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
-                        <FiCreditCard />
-                        {formatAmount(
-                          entry.paymentDetails.totalAmount,
-                          entry.paymentDetails.currency
-                        )}
-                        {entry.paymentDetails.monthlyDeductionDay
-                          ? ` · day ${entry.paymentDetails.monthlyDeductionDay}`
-                          : ""}
-                      </div>
-                    )}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {entry.category && (
-                      <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                        {entry.category}
-                      </span>
-                    )}
-                    {entry.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-blue-50 px-2 py-1 text-[11px] text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </button>
-              );
-            })
-          )}
-
-          {nextCursor && (
-            <button
-              type="button"
-              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100"
-              onClick={() => loadEntries({ append: true, cursor: nextCursor })}
-              disabled={loading}
-            >
-              Load more
-            </button>
-          )}
-        </section>
-
-        <section
-          ref={detailSectionRef}
-          className="scroll-mt-36 min-h-[24rem] rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
-        >
-          {!activeEntry ? (
-            <div className="grid h-full min-h-72 place-items-center text-sm text-gray-500">
-              Select a How-To item.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="text-xl font-bold">{activeEntry.title}</h2>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Updated {formatDate(activeEntry.updatedAt)}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    onClick={() => openEdit(activeEntry)}
-                    aria-label="Edit How-To item"
-                  >
-                    <FiEdit3 />
-                  </button>
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    onClick={() => removeEntry(activeEntry)}
-                    aria-label="Delete How-To item"
-                  >
-                    <FiTrash2 />
-                  </button>
-                </div>
+        {isDetailRoute ? (
+          <section className="min-h-[24rem] rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            {renderDetailContent()}
+          </section>
+        ) : (
+          <section className="space-y-3">
+            {loading && entries.length === 0 ? (
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900">
+                Loading...
               </div>
-              {(activeEntry.paymentDetails?.totalAmount !== null &&
-                activeEntry.paymentDetails?.totalAmount !== undefined) ||
-              activeEntry.paymentDetails?.monthlyDeductionDay ||
-              activeEntry.paymentDetails?.notes ? (
-                <div className="grid gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/30 sm:grid-cols-2">
-                  {activeEntry.paymentDetails?.totalAmount !== null &&
-                    activeEntry.paymentDetails?.totalAmount !== undefined && (
-                      <div>
-                        <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
-                          Total amount
-                        </p>
-                        <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
-                          {formatAmount(
-                            activeEntry.paymentDetails.totalAmount,
-                            activeEntry.paymentDetails.currency
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  {activeEntry.paymentDetails?.monthlyDeductionDay && (
-                    <div>
-                      <p className="text-xs font-medium text-emerald-700 dark:text-emerald-200">
-                        Monthly deduction
-                      </p>
-                      <p className="mt-1 font-semibold text-emerald-950 dark:text-emerald-50">
-                        Day {activeEntry.paymentDetails.monthlyDeductionDay}
-                      </p>
-                    </div>
-                  )}
-                  {activeEntry.paymentDetails?.notes && (
-                    <p className="text-emerald-900 dark:text-emerald-100 sm:col-span-2">
-                      {activeEntry.paymentDetails.notes}
-                    </p>
-                  )}
-                </div>
-              ) : null}
-
-              {(activeEntry.loginDetails?.url ||
-                activeEntry.loginDetails?.email ||
-                activeEntry.loginDetails?.username ||
-                activeEntry.loginDetails?.notes) && (
-                <div className="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm dark:border-gray-800 dark:bg-gray-950">
-                  {activeEntry.loginDetails.url && (
-                    <a
-                      href={ensureHref(activeEntry.loginDetails.url)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex max-w-full items-center gap-2 text-blue-600 dark:text-blue-300"
-                    >
-                      <FiExternalLink className="shrink-0" />
-                      <span className="truncate">{activeEntry.loginDetails.url}</span>
-                    </a>
-                  )}
-                  {activeEntry.loginDetails.email && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate">{activeEntry.loginDetails.email}</span>
-                      <button
-                        type="button"
-                        className="text-gray-500 hover:text-blue-600"
-                        onClick={() => copyText(activeEntry.loginDetails.email ?? "")}
-                        aria-label="Copy login email"
-                      >
-                        <FiCopy />
-                      </button>
-                    </div>
-                  )}
-                  {activeEntry.loginDetails.username && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate">
-                        {activeEntry.loginDetails.username}
-                      </span>
-                      <button
-                        type="button"
-                        className="text-gray-500 hover:text-blue-600"
-                        onClick={() =>
-                          copyText(activeEntry.loginDetails.username ?? "")
-                        }
-                        aria-label="Copy username"
-                      >
-                        <FiCopy />
-                      </button>
-                    </div>
-                  )}
-                  {activeEntry.loginDetails.notes && (
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {activeEntry.loginDetails.notes}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {activeEntry.hasSecrets && (
-                <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-100">
-                      <FiKey className="shrink-0" />
-                      <span className="truncate">
-                        {activeEntry.secretLabels.length} saved secret(s)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-amber-600 px-3 text-xs font-medium text-white disabled:opacity-60"
-                      onClick={() => revealSecrets(activeEntry)}
-                      disabled={revealing}
-                    >
-                      <FiEye />
-                      Reveal
-                    </button>
-                  </div>
-                  {(revealedSecrets[activeEntry.id] ??
-                    activeEntry.secretLabels.map((secret) => ({
-                      ...secret,
-                      value: "••••••••",
-                    }))).map((secret) => (
-                    <div
-                      key={secret.id}
-                      className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 text-sm dark:bg-gray-900"
-                    >
+            ) : entries.length === 0 ? (
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900">
+                No How-To items found.
+              </div>
+            ) : (
+              entries.map((entry) => {
+                const active = howToId === entry.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    className={`w-full rounded-xl border p-4 text-left shadow-sm transition ${
+                      active
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30"
+                        : "border-gray-200 bg-white hover:border-blue-200 dark:border-gray-800 dark:bg-gray-900"
+                    }`}
+                    onClick={() => openEntry(entry)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate font-medium">{secret.label}</p>
-                        <p className="truncate text-gray-500 dark:text-gray-400">
-                          {secret.value}
+                        <h2 className="truncate text-sm font-semibold">
+                          {entry.title}
+                        </h2>
+                        <p className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
+                          {entry.snippet || entry.summary || entry.contentPlainText}
                         </p>
                       </div>
-                      {"value" in secret && secret.value !== "••••••••" && (
-                        <button
-                          type="button"
-                          className="text-gray-500 hover:text-blue-600"
-                          onClick={() => copyText(secret.value)}
-                          aria-label={`Copy ${secret.label}`}
-                        >
-                          <FiCopy />
-                        </button>
+                      {entry.hasSecrets && (
+                        <FiKey className="h-4 w-4 shrink-0 text-amber-500" />
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
+                    {entry.paymentDetails?.totalAmount !== null &&
+                      entry.paymentDetails?.totalAmount !== undefined && (
+                        <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
+                          <FiCreditCard />
+                          {formatAmount(
+                            entry.paymentDetails.totalAmount,
+                            entry.paymentDetails.currency
+                          )}
+                          {entry.paymentDetails.monthlyDeductionDay
+                            ? ` · day ${entry.paymentDetails.monthlyDeductionDay}`
+                            : ""}
+                        </div>
+                      )}
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {entry.category && (
+                        <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                          {entry.category}
+                        </span>
+                      )}
+                      {entry.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-blue-50 px-2 py-1 text-[11px] text-blue-700 dark:bg-blue-950/50 dark:text-blue-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </button>
+                );
+              })
+            )}
 
-              <div>{renderRichContent(activeEntry.contentJson)}</div>
-            </div>
-          )}
-        </section>
+            {nextCursor && (
+              <button
+                type="button"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100"
+                onClick={() => loadEntries({ append: true, cursor: nextCursor })}
+                disabled={loading}
+              >
+                Load more
+              </button>
+            )}
+          </section>
+        )}
       </main>
 
       {formOpen && (
