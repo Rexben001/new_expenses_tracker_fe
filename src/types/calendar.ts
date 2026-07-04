@@ -4,6 +4,7 @@ export type HairStyleOption =
   | "kinky"
   | "boho"
   | "knotless"
+  | "cornrows"
   | "ghana weaving"
   | "jayda wayda";
 

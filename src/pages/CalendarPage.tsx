@@ -86,6 +86,7 @@ const inputClass =
 
 const hairStyleOptions: { value: HairStyleOption; label: string }[] = [
   { value: "knotless", label: "Knotless" },
+  { value: "cornrows", label: "Cornrows" },
   { value: "kinky", label: "Kinky" },
   { value: "boho", label: "Boho" },
   { value: "ghana weaving", label: "Ghana weaving" },
