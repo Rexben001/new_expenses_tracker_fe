@@ -2,6 +2,11 @@ import { describe, expect, test, vi } from "vitest";
 import type { CalendarClient, CalendarEntry } from "../types/calendar";
 import {
   buildClients,
+  getCalendarClientCount,
+  getCalendarClientsByMonth,
+  getCalendarDailyStats,
+  getCalendarRevenue,
+  getCalendarRevenueByMonth,
   formatClientCell,
   formatCompactClientCell,
   formatHairStyle,
@@ -144,6 +149,7 @@ describe("calendar rules", () => {
             style: "boho",
           },
           name: "  Ada  ",
+          price: 125.129,
           startTime: "10:00",
         },
         {
@@ -162,9 +168,89 @@ describe("calendar rules", () => {
         },
         id: "generated-id",
         name: "Ada",
+        price: 125.13,
         startTime: "10:00",
       },
     ]);
+  });
+
+  test("sums calendar revenue, clients, and day stats", () => {
+    const entries = [
+      entry({
+        clients: [
+          {
+            hairStyle: normalizeHairStyle(),
+            name: "Ada",
+            price: 125,
+            startTime: "10:00",
+          },
+          {
+            hairStyle: normalizeHairStyle(),
+            name: "Bea",
+            price: 80,
+            startTime: "12:00",
+          },
+        ],
+        date: "2026-06-09",
+        status: "booked",
+      }),
+      entry({
+        clients: [
+          {
+            hairStyle: normalizeHairStyle(),
+            name: "Cleo",
+            price: 200,
+            startTime: "09:00",
+          },
+        ],
+        date: "2026-07-02",
+        status: "booked",
+      }),
+      entry({
+        clients: [
+          {
+            hairStyle: normalizeHairStyle(),
+            name: "Dina",
+            price: 300,
+            startTime: "09:00",
+          },
+        ],
+        date: "2025-06-02",
+        status: "booked",
+      }),
+    ];
+
+    expect(
+      getCalendarRevenueByMonth(entries, 2026)
+    ).toEqual([0, 0, 0, 0, 0, 205, 200, 0, 0, 0, 0, 0]);
+    expect(getCalendarClientsByMonth(entries, 2026)).toEqual([
+      0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0,
+    ]);
+    expect(getCalendarDailyStats(entries, 2026, 5)).toEqual([
+      {
+        clients: 2,
+        date: "2026-06-09",
+        revenue: 205,
+      },
+    ]);
+
+    expect(
+      getCalendarRevenue([
+        entry({
+          clients: [
+            {
+              hairStyle: normalizeHairStyle(),
+              name: "Ada",
+              price: 125,
+              startTime: "10:00",
+            },
+          ],
+          date: "2026-06-09",
+          status: "booked",
+        }),
+      ])
+    ).toBe(125);
+    expect(getCalendarClientCount(entries)).toBe(4);
   });
 
   test("formats client labels for calendar cells and detail rows", () => {

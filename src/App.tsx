@@ -12,6 +12,7 @@ import { BudgetPage } from "./pages/BudgetPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
 import { CalendarPage } from "./pages/CalendarPage";
+import { CalendarDashboardPage } from "./pages/CalendarDashboardPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
 import { IphoneVideosPage } from "./pages/IphoneVideosPage";
@@ -181,6 +182,14 @@ export default function App() {
                   element={
                     <AdminOnlyRoute>
                       <CalendarPage />
+                    </AdminOnlyRoute>
+                  }
+                />
+                <Route
+                  path="/calendar/dashboard"
+                  element={
+                    <AdminOnlyRoute>
+                      <CalendarDashboardPage />
                     </AdminOnlyRoute>
                   }
                 />

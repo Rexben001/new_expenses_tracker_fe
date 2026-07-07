@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, getMonth, getYear, parseISO } from "date-fns";
 import type {
   CalendarClient,
   CalendarEntry,
@@ -36,6 +36,7 @@ export function createBlankClient(): CalendarClient {
     id: createClientId(),
     name: "",
     startTime: "",
+    price: undefined,
     hairStyle: defaultHairStyle(),
   };
 }
@@ -49,6 +50,15 @@ export function normalizeHairStyle(hairStyle?: Partial<HairStyle>): HairStyle {
   };
 }
 
+export function normalizeClientPrice(price?: number) {
+  if (price === undefined || price === null) return undefined;
+
+  const value = Number(price);
+  if (!Number.isFinite(value) || value < 0) return undefined;
+
+  return Math.round(value * 100) / 100;
+}
+
 export function normalizeClient(
   client: Partial<CalendarClient>,
   entry?: CalendarEntry
@@ -58,6 +68,7 @@ export function normalizeClient(
     id: client.id || createClientId(),
     name: client.name ?? "",
     startTime: client.startTime ?? entry?.startTime ?? "",
+    price: normalizeClientPrice(client.price),
     hairStyle: normalizeHairStyle(client.hairStyle),
   };
 }
@@ -120,16 +131,89 @@ export function formatCompactClientCell(client: CalendarClient) {
   return `${time}${client.name}`;
 }
 
+export function getClientPrice(client: CalendarClient) {
+  return normalizeClientPrice(client.price) ?? 0;
+}
+
+export function getCalendarRevenue(entries: CalendarEntry[]) {
+  return getEntryClients(entries).reduce(
+    (total, client) => total + getClientPrice(client),
+    0
+  );
+}
+
+export function getCalendarClientCount(entries: CalendarEntry[]) {
+  return getEntryClients(entries).length;
+}
+
+export function getCalendarRevenueByMonth(entries: CalendarEntry[], year: number) {
+  const totals = Array.from({ length: 12 }, () => 0);
+
+  entries.forEach((entry) => {
+    const date = parseISO(entry.date);
+    if (getYear(date) !== year) return;
+
+    totals[getMonth(date)] += getCalendarRevenue([entry]);
+  });
+
+  return totals;
+}
+
+export function getCalendarClientsByMonth(entries: CalendarEntry[], year: number) {
+  const totals = Array.from({ length: 12 }, () => 0);
+
+  entries.forEach((entry) => {
+    const date = parseISO(entry.date);
+    if (getYear(date) !== year) return;
+
+    totals[getMonth(date)] += getCalendarClientCount([entry]);
+  });
+
+  return totals;
+}
+
+export function getCalendarDailyStats(
+  entries: CalendarEntry[],
+  year: number,
+  monthIndex: number
+) {
+  const totals = new Map<string, { clients: number; revenue: number }>();
+
+  entries.forEach((entry) => {
+    const date = parseISO(entry.date);
+    if (getYear(date) !== year || getMonth(date) !== monthIndex) return;
+
+    const entryClients = getCalendarClientCount([entry]);
+    const entryRevenue = getCalendarRevenue([entry]);
+    if (entryClients === 0 && entryRevenue === 0) return;
+
+    const current = totals.get(entry.date) ?? { clients: 0, revenue: 0 };
+    totals.set(entry.date, {
+      clients: current.clients + entryClients,
+      revenue: current.revenue + entryRevenue,
+    });
+  });
+
+  return [...totals.entries()]
+    .map(([date, stats]) => ({ date, ...stats }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
 export function buildClients(clients: CalendarClient[]) {
   return clients
-    .map((client) => ({
-      id: client.id || createClientId(),
-      name: client.name.trim(),
-      startTime: client.startTime,
-      hairStyle: {
-        ...normalizeHairStyle(client.hairStyle),
-        additionalDetails: client.hairStyle?.additionalDetails?.trim() ?? "",
-      },
-    }))
+    .map((client) => {
+      const price = normalizeClientPrice(client.price);
+
+      return {
+        id: client.id || createClientId(),
+        name: client.name.trim(),
+        startTime: client.startTime,
+        ...(price !== undefined ? { price } : {}),
+        hairStyle: {
+          ...normalizeHairStyle(client.hairStyle),
+          additionalDetails: client.hairStyle?.additionalDetails?.trim() ?? "",
+        },
+      };
+    })
     .filter((client) => client.name);
 }

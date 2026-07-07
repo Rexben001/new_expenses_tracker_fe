@@ -6,7 +6,9 @@ export type HairStyleOption =
   | "knotless"
   | "cornrows"
   | "ghana weaving"
-  | "jayda wayda";
+  | "jayda wayda"
+  | "fulani braids"
+  | "stitch braids";
 
 export type HairSizeOption = "small" | "smedium" | "medium" | "large";
 
@@ -23,6 +25,7 @@ export type CalendarClient = {
   id?: string;
   name: string;
   startTime?: string;
+  price?: number;
   hairStyle: HairStyle;
   email?: string;
   phone?: string;

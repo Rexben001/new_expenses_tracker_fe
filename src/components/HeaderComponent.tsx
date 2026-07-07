@@ -7,6 +7,7 @@ import { useItemContext } from "../hooks/useItemContext";
 function getPageTitle(pathname: string) {
   if (pathname === "/") return "Home";
   if (pathname === "/dashboard") return "Dashboard";
+  if (pathname === "/calendar/dashboard") return "Calendar Dashboard";
   if (pathname === "/calendar") return "Calendar";
   if (pathname === "/tasks") return "Tasks";
   if (pathname === "/tasks/new") return "New Task";
