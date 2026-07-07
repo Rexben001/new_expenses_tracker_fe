@@ -20,7 +20,7 @@ export default function NotFound() {
           </div>
         </div>
       </HeaderComponent>
-      <div className="relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto mt-10">
+      <div className="relative min-h-screen dark:text-white px-4 max-w-md mx-auto pt-[calc(var(--app-header-height,4rem)+1.5rem)] transition-[padding-top] duration-200">
         {/* Hero / Illustration */}
         <div className="mt-6 flex flex-col items-center text-center">
           {/* Shimmer gradient badge */}

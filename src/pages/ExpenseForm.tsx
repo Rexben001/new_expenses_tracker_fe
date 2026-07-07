@@ -190,7 +190,7 @@ export function ExpenseForm() {
           </h1>
         </div>
       </HeaderComponent>
-      <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-10">
+      <div className="min-h-screen dark:text-white px-4 pb-12 max-w-md mx-auto pt-[calc(var(--app-header-height,4rem)+1.5rem)] transition-[padding-top] duration-200">
         {error && (
           <div className="mb-2 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-700 dark:text-red-300 mt-2">
             {error}

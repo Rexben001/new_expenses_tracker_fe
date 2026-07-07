@@ -359,18 +359,6 @@ export function TasksPage() {
   const shouldShowNotificationPrompt =
     hasSchedulableTaskReminder(tasks) &&
     notificationStatus !== "unsupported";
-  const hasFilterChips = tags.length > 0 || assignees.length > 0;
-  const contentTopOffset = filtersOpen
-    ? shouldShowNotificationPrompt
-      ? hasFilterChips
-        ? "mt-[27rem]"
-        : "mt-96"
-      : hasFilterChips
-        ? "mt-[23rem]"
-        : "mt-80"
-    : shouldShowNotificationPrompt
-      ? "mt-64"
-      : "mt-52";
 
   const selectCalendarDay = (day: Date) => {
     const dayKey = format(day, "yyyy-MM-dd");
@@ -1025,7 +1013,7 @@ export function TasksPage() {
       </HeaderComponent>
 
       <div
-        className={`relative mx-auto min-h-screen max-w-md px-4 dark:text-white ${contentTopOffset}`}
+        className="relative mx-auto min-h-screen max-w-md px-4 pt-[calc(var(--app-header-height,13rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white"
       >
         {(isVoiceModeActive || voiceTranscript || voiceMessage || voiceError) && (
           <section className="mx-1 mb-3 rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-900">

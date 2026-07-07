@@ -141,7 +141,7 @@ export function CalendarDashboardPage() {
         </div>
       </HeaderComponent>
 
-      <main className="mx-auto mt-36 min-h-screen max-w-md px-4 pb-32 dark:text-white">
+      <main className="mx-auto min-h-screen max-w-md px-4 pb-32 pt-[calc(var(--app-header-height,9rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white">
         <section className="grid grid-cols-2 gap-2">
           <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-100">

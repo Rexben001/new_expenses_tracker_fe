@@ -1,5 +1,12 @@
 import { Capacitor } from "@capacitor/core";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { useLocation } from "react-router-dom";
 import { useItemContext } from "../hooks/useItemContext";
@@ -44,6 +51,7 @@ export const HeaderComponent = ({
 }) => {
   const isNative = Capacitor.isNativePlatform();
   const location = useLocation();
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const { deviceType } = useItemContext();
   const pageTitle = title ?? getPageTitle(location.pathname);
@@ -75,9 +83,37 @@ export const HeaderComponent = ({
     });
   };
 
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header || typeof document === "undefined") return;
+
+    const updateHeaderHeight = () => {
+      const height = header.getBoundingClientRect().height + 12;
+      document.documentElement.style.setProperty(
+        "--app-header-height",
+        `${height}px`
+      );
+    };
+
+    updateHeaderHeight();
+
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateHeaderHeight);
+    observer?.observe(header);
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, [collapsed, location.pathname]);
+
   const pt = isNative && deviceType === "iphone" ? "pt-10" : "pt-2";
   return (
     <div
+      ref={headerRef}
       className={`fixed max-w-md mx-auto top-0 px-2.5 left-0 right-0 z-150 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-950 ${pt} ${
         collapsed ? "pb-1" : "pb-2"
       } w-full shadow-sm transition-[padding] duration-200 ${className}`}

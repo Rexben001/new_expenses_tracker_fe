@@ -558,7 +558,7 @@ export function CalendarPage() {
         </div>
       </HeaderComponent>
 
-      <main className="mx-auto mt-48 min-h-screen max-w-md px-4 pb-32 dark:text-white">
+      <main className="mx-auto min-h-screen max-w-md px-4 pb-32 pt-[calc(var(--app-header-height,12rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white">
         {shareMessage && (
           <p className="mx-1 mb-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
             {shareMessage}

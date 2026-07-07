@@ -211,9 +211,7 @@ export function BudgetIdPage() {
         </p>
       </HeaderComponent>
       <div
-        className={`relative min-h-screen dark:text-white px-4 pt-6 max-w-md mx-auto ${
-          showPopup ? "mt-50" : "mt-30"
-        }`}
+        className="relative min-h-screen max-w-md mx-auto px-4 pt-[calc(var(--app-header-height,8rem)+1.5rem)] transition-[padding-top] duration-200 dark:text-white"
       >
         {budget && (
           <div className="stacked-card stacked-card--budget mb-6">

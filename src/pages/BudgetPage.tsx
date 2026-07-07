@@ -258,9 +258,7 @@ export function BudgetPage() {
       </HeaderComponent>
 
       <div
-        className={`relative min-h-screen dark:text-white px-4 pt-4 pb-24 max-w-md mx-auto ${
-          showPopup ? "mt-56" : "mt-40"
-        }`}
+        className="relative min-h-screen max-w-md mx-auto px-4 pb-24 pt-[calc(var(--app-header-height,10rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white"
       >
         <div className="mx-1 pt-2">
           {selectMode && selectedIds.length > 0 && (

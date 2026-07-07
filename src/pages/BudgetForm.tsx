@@ -128,7 +128,7 @@ export function BudgetForm() {
           </h1>
         </div>
       </HeaderComponent>
-      <div className="min-h-screen dark:text-white px-4 pt-6 pb-12 max-w-md mx-auto mt-14">
+      <div className="min-h-screen dark:text-white px-4 pb-12 max-w-md mx-auto pt-[calc(var(--app-header-height,4rem)+1.5rem)] transition-[padding-top] duration-200">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-gray-500 mb-1 block">

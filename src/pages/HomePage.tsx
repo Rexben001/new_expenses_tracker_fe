@@ -113,7 +113,7 @@ export function HomePage() {
         </header>
       </HeaderComponent>
 
-      <main className="mx-auto mt-24 min-h-screen max-w-md px-4 pt-6 dark:text-white">
+      <main className="mx-auto min-h-screen max-w-md px-4 pt-[calc(var(--app-header-height,6rem)+1.5rem)] transition-[padding-top] duration-200 dark:text-white">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {visibleHomeLinks.map(({ to, label, icon: Icon, color }) => (
             <Link

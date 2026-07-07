@@ -534,10 +534,10 @@ export function IphoneVideosPage() {
       </HeaderComponent>
 
       <main
-        className={`mx-auto min-h-screen w-full max-w-md ${VIDEO_PAGE_SHELL_CLASS} px-3 pb-28 pt-40 sm:px-4 lg:pt-32 dark:text-white`}
+        className={`mx-auto min-h-screen w-full max-w-md ${VIDEO_PAGE_SHELL_CLASS} px-3 pb-28 pt-[calc(var(--app-header-height,8rem)+0.75rem)] transition-[padding-top] duration-200 sm:px-4 dark:text-white`}
       >
         <section className="grid gap-3 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)] lg:items-start">
-          <aside className="grid gap-3 lg:sticky lg:top-32">
+          <aside className="grid gap-3 lg:sticky lg:top-[calc(var(--app-header-height,8rem)+0.75rem)]">
             <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-4">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
               <input

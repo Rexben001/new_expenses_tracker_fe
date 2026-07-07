@@ -202,7 +202,7 @@ export function Dashboard() {
         </div>
       </Modal>
 
-      <div className="mx-auto flex min-h-screen max-w-md flex-col space-y-3 px-4 pt-48 pb-24 dark:text-white">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col space-y-3 px-4 pb-24 pt-[calc(var(--app-header-height,12rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white">
         <Link
           to="/expenses/insights"
           className="mx-1 mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-gray-900 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100"

@@ -102,7 +102,7 @@ export function ExpenseInsightsPage() {
         </div>
       </HeaderComponent>
 
-      <main className="min-h-screen max-w-md mx-auto px-4 pt-24 pb-24 dark:text-white">
+      <main className="min-h-screen max-w-md mx-auto px-4 pb-24 pt-[calc(var(--app-header-height,5rem)+1.5rem)] transition-[padding-top] duration-200 dark:text-white">
         {loading && (
           <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
             Analysing your expenses...

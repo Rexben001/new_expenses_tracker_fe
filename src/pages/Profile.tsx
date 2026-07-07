@@ -343,7 +343,7 @@ export function Profile() {
         </header>
       </HeaderComponent>
 
-      <main className="mx-auto mt-24 flex min-h-screen max-w-md flex-col gap-4 px-4 pb-28 pt-6 dark:text-white">
+      <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-28 pt-[calc(var(--app-header-height,6rem)+1.5rem)] transition-[padding-top] duration-200 dark:text-white">
         <div>
           <p className="text-sm font-medium text-blue-600 dark:text-blue-300">
             Settings

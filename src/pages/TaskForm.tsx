@@ -412,7 +412,7 @@ export function TaskForm() {
         </div>
       </HeaderComponent>
 
-      <div className="mx-auto mt-14 min-h-screen max-w-md px-4 pt-6 pb-36 dark:text-white">
+      <div className="mx-auto min-h-screen max-w-md px-4 pb-36 pt-[calc(var(--app-header-height,4rem)+1.5rem)] transition-[padding-top] duration-200 dark:text-white">
         <form id="task-form" className="space-y-5" onSubmit={handleSubmit}>
           {!isEditMode && (
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">

@@ -921,10 +921,10 @@ export function HowToPage() {
       </HeaderComponent>
 
       <main
-        className={`mx-auto grid min-h-screen grid-cols-1 gap-4 px-4 pb-28 pt-4 dark:text-white ${
+        className={`mx-auto grid min-h-screen grid-cols-1 gap-4 px-4 pb-28 pt-[calc(var(--app-header-height,10rem)+0.75rem)] transition-[padding-top] duration-200 dark:text-white ${
           isDetailRoute
-            ? "mt-28 max-w-md sm:max-w-2xl lg:max-w-3xl"
-            : "mt-44 max-w-md sm:max-w-2xl lg:max-w-6xl"
+            ? "max-w-md sm:max-w-2xl lg:max-w-3xl"
+            : "max-w-md sm:max-w-2xl lg:max-w-6xl"
         }`}
       >
         {error && (
