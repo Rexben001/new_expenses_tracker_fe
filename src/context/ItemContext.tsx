@@ -4,6 +4,7 @@ import {
   getBudgets,
   getCalendarEntries,
   getExpenses,
+  getFoodItems,
   getTasks,
   getUser,
 } from "../services/api";
@@ -24,11 +25,13 @@ import { useAuth } from "./AuthContext";
 import type { Account, User } from "../types/user";
 import { tokenStore } from "../services/tokenStore";
 import type { Task } from "../types/tasks";
+import type { FoodItem } from "../types/food";
 
 const initialResourceLoading: ResourceLoadingState = {
   budgets: false,
   expenses: false,
   tasks: false,
+  foodItems: false,
   calendarEntries: false,
   user: false,
 };
@@ -39,6 +42,7 @@ export function ItemContextProvider(
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
   const [user, setUser] = useState<User>({
     userName: undefined,
@@ -160,6 +164,20 @@ export function ItemContextProvider(
     [getSubAccountId, loadResource]
   );
 
+  const fetchFoodItems = useCallback(
+    async (_subId?: string) => {
+      const subId = _subId ?? (await getSubAccountId());
+
+      await loadResource(
+        "foodItems",
+        () => getFoodItems(subId) as Promise<FoodItem[]>,
+        setFoodItems,
+        () => setFoodItems([])
+      );
+    },
+    [getSubAccountId, loadResource]
+  );
+
   const fetchCalendarEntries = useCallback(
     async (_subId?: string) => {
       const subId = _subId ?? (await getSubAccountId());
@@ -204,8 +222,14 @@ export function ItemContextProvider(
   );
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([fetchBudgets(), fetchExpenses(), fetchTasks(), fetchUser()]);
-  }, [fetchBudgets, fetchExpenses, fetchTasks, fetchUser]);
+    await Promise.all([
+      fetchBudgets(),
+      fetchExpenses(),
+      fetchTasks(),
+      fetchFoodItems(),
+      fetchUser(),
+    ]);
+  }, [fetchBudgets, fetchExpenses, fetchFoodItems, fetchTasks, fetchUser]);
 
   useEffect(() => {
     getDeviceType().then((type) => setDeviceType(type));
@@ -234,10 +258,12 @@ export function ItemContextProvider(
       budgets,
       expenses,
       tasks,
+      foodItems,
       calendarEntries,
       setBudgets,
       setExpenses,
       setTasks,
+      setFoodItems,
       setCalendarEntries,
       loading,
       resourceLoading,
@@ -248,6 +274,7 @@ export function ItemContextProvider(
       fetchExpenses,
       fetchBudgets,
       fetchTasks,
+      fetchFoodItems,
       fetchCalendarEntries,
       user,
       currency,
@@ -267,6 +294,7 @@ export function ItemContextProvider(
       budgets,
       expenses,
       tasks,
+      foodItems,
       calendarEntries,
       loading,
       resourceLoading,
@@ -276,6 +304,7 @@ export function ItemContextProvider(
       fetchExpenses,
       fetchBudgets,
       fetchTasks,
+      fetchFoodItems,
       fetchCalendarEntries,
       user,
       currency,

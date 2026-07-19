@@ -3,8 +3,12 @@ import { getTokens } from "./amplify";
 import {
   API_BASE_URL,
   ApiError,
+  createFoodItem,
+  deleteFoodItem,
   getErrorMessage,
+  getFoodStats,
   getTasks,
+  updateFoodItem,
   updateBudget,
 } from "./api";
 
@@ -71,6 +75,46 @@ describe("api service", () => {
         },
         method: "PUT",
       }
+    );
+  });
+
+  test("uses authenticated food item CRUD endpoints", async () => {
+    mockedFetch
+      .mockResolvedValueOnce(jsonResponse({ item: { id: "food-1" } }))
+      .mockResolvedValueOnce(jsonResponse({ item: { id: "food-1" } }))
+      .mockResolvedValueOnce(jsonResponse({ message: "deleted" }));
+
+    await createFoodItem({ name: "Rice" }, "sub-1");
+    await updateFoodItem("food-1", { quantity: 2 }, "sub-1");
+    await deleteFoodItem("food-1", "sub-1");
+
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      1,
+      `${API_BASE_URL}food-items?subId=sub-1`,
+      expect.objectContaining({ method: "POST" })
+    );
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      2,
+      `${API_BASE_URL}food-items/food-1?subId=sub-1`,
+      expect.objectContaining({ method: "PUT" })
+    );
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      3,
+      `${API_BASE_URL}food-items/food-1?subId=sub-1`,
+      expect.objectContaining({ method: "DELETE" })
+    );
+  });
+
+  test("loads account-scoped food savings stats", async () => {
+    mockedFetch.mockResolvedValueOnce(
+      jsonResponse({ estimatedSavings: 12, savedWeightKg: 2 })
+    );
+
+    await getFoodStats("sub-1");
+
+    expect(mockedFetch).toHaveBeenCalledWith(
+      `${API_BASE_URL}food-items/stats?subId=sub-1`,
+      expect.objectContaining({ method: "GET" })
     );
   });
 

@@ -3,12 +3,14 @@ import type { Budget } from "./budgets";
 import type { CalendarEntry } from "./calendar";
 import type { Expense } from "./expenses";
 import type { Task } from "./tasks";
+import type { FoodItem } from "./food";
 import type { Account, User } from "./user";
 
 export type ResourceKey =
   | "budgets"
   | "expenses"
   | "tasks"
+  | "foodItems"
   | "calendarEntries"
   | "user";
 
@@ -19,10 +21,12 @@ interface IItemContext {
   budgets: Budget[];
   expenses: Expense[];
   tasks: Task[];
+  foodItems: FoodItem[];
   calendarEntries: CalendarEntry[];
   setBudgets(budgets: Budget[]): void;
   setExpenses(expenses: Expense[]): void;
   setTasks(tasks: Task[]): void;
+  setFoodItems(foodItems: FoodItem[]): void;
   setCalendarEntries(calendarEntries: CalendarEntry[]): void;
   currentMonthExpensesTotal: number;
   loading: boolean;
@@ -33,6 +37,7 @@ interface IItemContext {
   fetchExpenses(subId?: string): Promise<void>;
   fetchBudgets(subId?: string): Promise<void>;
   fetchTasks(subId?: string): Promise<void>;
+  fetchFoodItems(subId?: string): Promise<void>;
   fetchCalendarEntries(subId?: string): Promise<void>;
   fetchUser(subId?: string): Promise<void>;
   user: User;

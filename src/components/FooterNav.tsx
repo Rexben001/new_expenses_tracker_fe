@@ -3,6 +3,7 @@ import {
   FaChartPie,
   FaEllipsisH,
   FaHome,
+  FaUtensils,
   FaList,
   FaQuestionCircle,
   FaTasks,
@@ -50,6 +51,7 @@ const footerLinks = {
     adminOnly: true,
   },
   tasks: { to: "/tasks", icon: FaTasks, label: "Tasks" },
+  food: { to: "/food", icon: FaUtensils, label: "Food" },
   settings: { to: "/settings", icon: FaTools, label: "Settings" },
   howTo: {
     to: "/how-to",
@@ -143,6 +145,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
           footerLinks.settings,
           footerLinks.calendar,
           footerLinks.tasks,
+          footerLinks.food,
           footerLinks.howTo,
           footerLinks.videos,
         ]
@@ -151,6 +154,10 @@ export function FooterNav({ className = "" }: { className?: string }) {
 
     if (pathname.startsWith("/tasks")) {
       return visible([footerLinks.home, footerLinks.tasks, footerLinks.settings]);
+    }
+
+    if (pathname.startsWith("/food")) {
+      return visible([footerLinks.home, footerLinks.food, footerLinks.settings]);
     }
 
     if (pathname.startsWith("/calendar")) {
@@ -177,6 +184,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
           footerLinks.expenses,
           footerLinks.budgets,
           footerLinks.tasks,
+          footerLinks.food,
           footerLinks.calendar,
           footerLinks.howTo,
           footerLinks.videos,
@@ -187,6 +195,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
     return withMore(
       [footerLinks.home, footerLinks.dashboard, footerLinks.tasks],
       [
+        footerLinks.food,
         footerLinks.expenses,
         footerLinks.budgets,
         footerLinks.settings,

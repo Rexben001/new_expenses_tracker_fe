@@ -369,6 +369,43 @@ export function deleteTask(id: string, subId?: string) {
   });
 }
 
+export function getFoodItems(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("food-items", subId),
+  });
+}
+
+export function getFoodStats(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("food-items/stats", subId),
+  });
+}
+
+export function createFoodItem(body: unknown, subId?: string) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("food-items", subId),
+    body,
+  });
+}
+
+export function updateFoodItem(id: string, body: unknown, subId?: string) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath(`food-items/${id}`, subId),
+    body,
+  });
+}
+
+export function deleteFoodItem(id: string, subId?: string) {
+  return fetchApi({
+    method: "DELETE",
+    path: addSubIdPath(`food-items/${id}`, subId),
+  });
+}
+
 export function getCalendarEntries(subId?: string) {
   return fetchApi({
     method: "GET",

@@ -5,6 +5,7 @@ import {
   FaQuestionCircle,
   FaTasks,
   FaTools,
+  FaUtensils,
   FaVideo,
 } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
@@ -29,6 +30,13 @@ const homeLinks = [
     icon: FaTasks,
     color:
       "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-200",
+  },
+  {
+    to: "/food",
+    label: "Food Tracker",
+    icon: FaUtensils,
+    color:
+      "bg-lime-50 text-lime-700 dark:bg-lime-950/50 dark:text-lime-200",
   },
   {
     to: "/calendar",
@@ -64,7 +72,7 @@ const homeLinks = [
 export function HomePage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const { user, fetchExpenses, fetchBudgets, fetchTasks, fetchCalendarEntries } =
+  const { user, fetchExpenses, fetchBudgets, fetchTasks, fetchFoodItems, fetchCalendarEntries } =
     useItemContext();
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${user?.userName}`;
   const isAdmin = isAdminEmail(user?.email);
@@ -78,7 +86,12 @@ export function HomePage() {
     <SwipeShell
       toLeft="/dashboard"
       refresh={async () => {
-        const refreshers = [fetchExpenses(), fetchBudgets(), fetchTasks()];
+        const refreshers = [
+          fetchExpenses(),
+          fetchBudgets(),
+          fetchTasks(),
+          fetchFoodItems(),
+        ];
         if (isAdmin) refreshers.push(fetchCalendarEntries());
         await Promise.all(refreshers);
       }}

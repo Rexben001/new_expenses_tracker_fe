@@ -15,6 +15,7 @@ import { CalendarPage } from "./pages/CalendarPage";
 import { CalendarDashboardPage } from "./pages/CalendarDashboardPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
+import { FoodTrackerPage } from "./pages/FoodTrackerPage";
 import { IphoneVideosPage } from "./pages/IphoneVideosPage";
 import { HowToPage } from "./pages/HowToPage";
 import { BudgetForm } from "./pages/BudgetForm";
@@ -153,6 +154,7 @@ export default function App() {
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/tasks/new" element={<TaskForm />} />
                 <Route path="/tasks/:taskId/edit" element={<TaskForm />} />
+                <Route path="/food" element={<FoodTrackerPage />} />
                 <Route
                   path="/videos"
                   element={
