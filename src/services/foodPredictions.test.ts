@@ -17,6 +17,8 @@ describe("food predictions", () => {
     expect(input).toEqual(
       expect.objectContaining({
         name: "Apples",
+        boughtDate: "2026-07-19",
+        category: "fruit",
         expiryDate: "2026-07-26",
         location: "Pantry",
         unit: "packs",
@@ -51,6 +53,16 @@ describe("food predictions", () => {
         expiryDate: "2026-07-23",
         location: "Fridge",
         unit: "servings",
+      })
+    );
+  });
+
+  test("autofills purchase dates for vegetables", () => {
+    const broccoli = quickFoodInput("broccoli", new Date(2026, 6, 20));
+    expect(broccoli).toEqual(
+      expect.objectContaining({
+        boughtDate: "2026-07-20",
+        category: "vegetable",
       })
     );
   });

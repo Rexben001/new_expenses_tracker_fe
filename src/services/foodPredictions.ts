@@ -33,13 +33,13 @@ export function standardizeFoodUnit(unit: string) {
 }
 
 export const FOOD_PREDICTIONS: FoodPrediction[] = [
-  { name: "Apples", aliases: ["apple"], category: "food", shelfLifeDays: 7, location: "Pantry", unit: "items", minimumQuantity: 2, estimatedValue: 3, estimatedWeightKg: 0.8 },
-  { name: "Avocados", aliases: ["avocado"], category: "food", shelfLifeDays: 4, location: "Crisper Drawer", unit: "items", minimumQuantity: 1, estimatedValue: 4, estimatedWeightKg: 0.5 },
-  { name: "Bananas", aliases: ["banana"], category: "food", shelfLifeDays: 5, location: "Counter", unit: "items", minimumQuantity: 2, estimatedValue: 2.5, estimatedWeightKg: 1 },
+  { name: "Apples", aliases: ["apple"], category: "fruit", shelfLifeDays: 7, location: "Pantry", unit: "items", minimumQuantity: 2, estimatedValue: 3, estimatedWeightKg: 0.8 },
+  { name: "Avocados", aliases: ["avocado"], category: "fruit", shelfLifeDays: 4, location: "Crisper Drawer", unit: "items", minimumQuantity: 1, estimatedValue: 4, estimatedWeightKg: 0.5 },
+  { name: "Bananas", aliases: ["banana"], category: "fruit", shelfLifeDays: 5, location: "Counter", unit: "items", minimumQuantity: 2, estimatedValue: 2.5, estimatedWeightKg: 1 },
   { name: "Bread", category: "food", shelfLifeDays: 6, location: "Pantry", unit: "loaves", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 3, estimatedWeightKg: 0.5 },
-  { name: "Broccoli", category: "food", shelfLifeDays: 5, location: "Crisper Drawer", unit: "heads", minimumQuantity: 1, freezable: true, freezeExtensionDays: 240, estimatedValue: 3, estimatedWeightKg: 0.4 },
+  { name: "Broccoli", category: "vegetable", shelfLifeDays: 5, location: "Crisper Drawer", unit: "heads", minimumQuantity: 1, freezable: true, freezeExtensionDays: 240, estimatedValue: 3, estimatedWeightKg: 0.4 },
   { name: "Butter", category: "ingredient", shelfLifeDays: 30, location: "Fridge Door", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 270, estimatedValue: 4, estimatedWeightKg: 0.25 },
-  { name: "Carrots", aliases: ["carrot"], category: "food", shelfLifeDays: 21, location: "Crisper Drawer", unit: "bags", minimumQuantity: 1, freezable: true, freezeExtensionDays: 300, estimatedValue: 2, estimatedWeightKg: 1 },
+  { name: "Carrots", aliases: ["carrot"], category: "vegetable", shelfLifeDays: 21, location: "Crisper Drawer", unit: "bags", minimumQuantity: 1, freezable: true, freezeExtensionDays: 300, estimatedValue: 2, estimatedWeightKg: 1 },
   { name: "Cheese", category: "food", shelfLifeDays: 14, location: "Top Shelf Fridge", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 180, estimatedValue: 5, estimatedWeightKg: 0.3 },
   { name: "Chicken Breast", aliases: ["chicken"], category: "food", shelfLifeDays: 2, location: "Bottom Shelf Fridge", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 8, estimatedWeightKg: 0.6 },
   { name: "Cream", category: "ingredient", shelfLifeDays: 5, location: "Top Shelf Fridge", unit: "cartons", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 3, estimatedWeightKg: 0.25 },
@@ -48,23 +48,28 @@ export const FOOD_PREDICTIONS: FoodPrediction[] = [
   { name: "Garlic", category: "ingredient", shelfLifeDays: 30, location: "Pantry", unit: "bulbs", minimumQuantity: 1, estimatedValue: 1.5, estimatedWeightKg: 0.15 },
   { name: "Ginger", category: "ingredient", shelfLifeDays: 14, location: "Crisper Drawer", unit: "pieces", minimumQuantity: 1, freezable: true, freezeExtensionDays: 150, estimatedValue: 2, estimatedWeightKg: 0.2 },
   { name: "Ground Beef", aliases: ["mince", "minced beef"], category: "food", shelfLifeDays: 2, location: "Bottom Shelf Fridge", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 0.5 },
-  { name: "Lettuce", category: "food", shelfLifeDays: 5, location: "Crisper Drawer", unit: "heads", minimumQuantity: 1, estimatedValue: 2, estimatedWeightKg: 0.4 },
+  { name: "Lettuce", category: "vegetable", shelfLifeDays: 5, location: "Crisper Drawer", unit: "heads", minimumQuantity: 1, estimatedValue: 2, estimatedWeightKg: 0.4 },
   { name: "Milk", category: "drink", shelfLifeDays: 7, location: "Fridge Door", unit: "cartons", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 2, estimatedWeightKg: 1 },
-  { name: "Mushrooms", aliases: ["mushroom"], category: "food", shelfLifeDays: 5, location: "Crisper Drawer", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 240, estimatedValue: 3, estimatedWeightKg: 0.3 },
+  { name: "Mushrooms", aliases: ["mushroom"], category: "vegetable", shelfLifeDays: 5, location: "Crisper Drawer", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 240, estimatedValue: 3, estimatedWeightKg: 0.3 },
   { name: "Onions", aliases: ["onion"], category: "ingredient", shelfLifeDays: 30, location: "Pantry", unit: "items", minimumQuantity: 2, estimatedValue: 2, estimatedWeightKg: 0.7 },
   { name: "Orange Juice", aliases: ["juice"], category: "drink", shelfLifeDays: 7, location: "Fridge Door", unit: "bottles", minimumQuantity: 1, estimatedValue: 3, estimatedWeightKg: 1 },
-  { name: "Potatoes", aliases: ["potato"], category: "food", shelfLifeDays: 21, location: "Pantry", unit: "bags", minimumQuantity: 1, estimatedValue: 3, estimatedWeightKg: 1.5 },
+  { name: "Potatoes", aliases: ["potato"], category: "vegetable", shelfLifeDays: 21, location: "Pantry", unit: "bags", minimumQuantity: 1, estimatedValue: 3, estimatedWeightKg: 1.5 },
   { name: "Rice", category: "ingredient", shelfLifeDays: 365, location: "Pantry", unit: "kg", minimumQuantity: 1, estimatedValue: 3, estimatedWeightKg: 1 },
-  { name: "Spinach", category: "food", shelfLifeDays: 4, location: "Crisper Drawer", unit: "bags", minimumQuantity: 1, freezable: true, freezeExtensionDays: 180, estimatedValue: 3, estimatedWeightKg: 0.25 },
-  { name: "Tomatoes", aliases: ["tomato"], category: "food", shelfLifeDays: 6, location: "Counter", unit: "items", minimumQuantity: 2, freezable: true, freezeExtensionDays: 180, estimatedValue: 3, estimatedWeightKg: 0.6 },
+  { name: "Spinach", category: "vegetable", shelfLifeDays: 4, location: "Crisper Drawer", unit: "bags", minimumQuantity: 1, freezable: true, freezeExtensionDays: 180, estimatedValue: 3, estimatedWeightKg: 0.25 },
+  { name: "Tomatoes", aliases: ["tomato"], category: "vegetable", shelfLifeDays: 6, location: "Counter", unit: "items", minimumQuantity: 2, freezable: true, freezeExtensionDays: 180, estimatedValue: 3, estimatedWeightKg: 0.6 },
   { name: "Yogurt", aliases: ["yoghurt"], category: "food", shelfLifeDays: 10, location: "Top Shelf Fridge", unit: "pots", minimumQuantity: 2, freezable: true, freezeExtensionDays: 60, estimatedValue: 3, estimatedWeightKg: 0.5 },
-  { name: "Chicken Soup", category: "soup", shelfLifeDays: 3, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 1 },
-  { name: "Tomato Soup", category: "soup", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 5, estimatedWeightKg: 1 },
-  { name: "Vegetable Soup", category: "soup", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 5, estimatedWeightKg: 1 },
-  { name: "Cooked Rice", aliases: ["leftover rice"], category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 30, estimatedValue: 3, estimatedWeightKg: 0.5 },
-  { name: "Cooked Pasta", aliases: ["leftover pasta"], category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 60, estimatedValue: 4, estimatedWeightKg: 0.6 },
-  { name: "Curry", category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 0.8 },
-  { name: "Stew", category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 1, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 1 },
+  { name: "Chicken Soup", category: "soup", shelfLifeDays: 3, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 1 },
+  { name: "Tomato Soup", category: "soup", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 90, estimatedValue: 5, estimatedWeightKg: 1 },
+  { name: "Vegetable Soup", category: "soup", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 90, estimatedValue: 5, estimatedWeightKg: 1 },
+  { name: "Cooked Rice", aliases: ["leftover rice"], category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 30, estimatedValue: 3, estimatedWeightKg: 0.5 },
+  { name: "Cooked Pasta", aliases: ["leftover pasta"], category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 60, estimatedValue: 4, estimatedWeightKg: 0.6 },
+  { name: "Curry", category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 0.8 },
+  { name: "Stew", category: "cooked", shelfLifeDays: 4, location: "Fridge", unit: "servings", minimumQuantity: 0, freezable: true, freezeExtensionDays: 90, estimatedValue: 7, estimatedWeightKg: 1 },
+  { name: "Grapes", aliases: ["grape"], category: "fruit", shelfLifeDays: 7, location: "Fridge", unit: "packs", minimumQuantity: 1, estimatedValue: 4, estimatedWeightKg: 0.5 },
+  { name: "Oranges", aliases: ["orange"], category: "fruit", shelfLifeDays: 14, location: "Pantry", unit: "kg", minimumQuantity: 1, estimatedValue: 3, estimatedWeightKg: 1 },
+  { name: "Strawberries", aliases: ["strawberry"], category: "fruit", shelfLifeDays: 4, location: "Fridge", unit: "packs", minimumQuantity: 1, estimatedValue: 4, estimatedWeightKg: 0.4 },
+  { name: "Bell Peppers", aliases: ["pepper", "peppers"], category: "vegetable", shelfLifeDays: 7, location: "Fridge", unit: "packs", minimumQuantity: 1, freezable: true, freezeExtensionDays: 180, estimatedValue: 3, estimatedWeightKg: 0.5 },
+  { name: "Cucumber", aliases: ["cucumbers"], category: "vegetable", shelfLifeDays: 7, location: "Fridge", unit: "packs", minimumQuantity: 1, estimatedValue: 2, estimatedWeightKg: 0.4 },
 ];
 
 function normalize(value: string) {
@@ -106,6 +111,10 @@ export function predictionToFoodInput(
     unit: standardizeFoodUnit(prediction.unit),
     minimumQuantity: prediction.minimumQuantity,
     expiryDate: toDateInputAfterDays(prediction.shelfLifeDays, now),
+    boughtDate:
+      prediction.category === "fruit" || prediction.category === "vegetable"
+        ? toDateInputAfterDays(0, now)
+        : undefined,
     cookedDate:
       prediction.category === "soup" || prediction.category === "cooked"
         ? toDateInputAfterDays(0, now)
@@ -132,6 +141,7 @@ export function quickFoodInput(query: string, now = new Date()) {
     unit: "packs",
     minimumQuantity: 1,
     expiryDate: toDateInputAfterDays(7, now),
+    boughtDate: undefined,
     cookedDate: undefined,
     location: "Pantry",
     notes: "",

@@ -1,5 +1,7 @@
 export type FoodCategory =
   | "food"
+  | "fruit"
+  | "vegetable"
   | "drink"
   | "spice"
   | "ingredient"
@@ -15,6 +17,7 @@ export type FoodItemInput = {
   unit: string;
   minimumQuantity: number;
   expiryDate?: string;
+  boughtDate?: string;
   cookedDate?: string;
   location?: string;
   notes?: string;

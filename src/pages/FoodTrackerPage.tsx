@@ -25,7 +25,12 @@ import {
   getFoodStats,
   updateFoodItem,
 } from "../services/api";
-import { daysUntilExpiry, getFoodStatus, needsRestock } from "../services/foodInventory";
+import {
+  daysUntilExpiry,
+  getFoodStatus,
+  isFreshnessFlagged,
+  needsRestock,
+} from "../services/foodInventory";
 import {
   findFoodPredictions,
   FOOD_LOCATIONS,
@@ -55,6 +60,7 @@ const emptyForm: FoodItemInput = {
   unit: "packs",
   minimumQuantity: 1,
   expiryDate: "",
+  boughtDate: "",
   cookedDate: "",
   location: "Pantry",
   notes: "",
@@ -65,6 +71,8 @@ const emptyForm: FoodItemInput = {
 
 const categories: Array<{ value: FoodCategory; label: string }> = [
   { value: "food", label: "Food" },
+  { value: "fruit", label: "Fruit" },
+  { value: "vegetable", label: "Vegetable" },
   { value: "drink", label: "Drink" },
   { value: "spice", label: "Spice" },
   { value: "ingredient", label: "Ingredient" },
@@ -116,10 +124,12 @@ export function FoodTrackerPage() {
   }, [refreshStats]);
 
   const restockCount = items.filter(needsRestock).length;
-  const tonightCount = items.filter((item) => isDueWithin(item, 2)).length;
+  const tonightCount = items.filter(
+    (item) => isDueWithin(item, 2) || isFreshnessFlagged(item)
+  ).length;
   const expiringCount = items.filter((item) => {
     const status = getFoodStatus(item);
-    return status === "expiring" || status === "expired";
+    return status === "expiring" || status === "expired" || status === "stale";
   }).length;
   const locations = useMemo(
     () => [
@@ -135,10 +145,14 @@ export function FoodTrackerPage() {
       .filter((item) => {
         if (selectedLocation !== "All" && (item.location || "Unassigned") !== selectedLocation) return false;
         if (filter === "restock" && !needsRestock(item)) return false;
-        if (filter === "tonight" && !isDueWithin(item, 2)) return false;
+        if (
+          filter === "tonight" &&
+          !isDueWithin(item, 2) &&
+          !isFreshnessFlagged(item)
+        ) return false;
         if (
           filter === "expiring" &&
-          !["expiring", "expired"].includes(getFoodStatus(item))
+          !["expiring", "expired", "stale"].includes(getFoodStatus(item))
         ) return false;
         if (!normalizedQuery) return true;
         return [item.name, item.category, item.location, item.notes]
@@ -146,7 +160,14 @@ export function FoodTrackerPage() {
           .some((value) => String(value).toLowerCase().includes(normalizedQuery));
       })
       .sort((a, b) => {
-        const priority = { expired: 0, out: 1, expiring: 2, low: 3, available: 4 };
+        const priority = {
+          expired: 0,
+          stale: 1,
+          out: 2,
+          expiring: 3,
+          low: 4,
+          available: 5,
+        };
         return (
           priority[getFoodStatus(a)] - priority[getFoodStatus(b)] ||
           a.name.localeCompare(b.name)
@@ -195,6 +216,7 @@ export function FoodTrackerPage() {
       unit: standardizeFoodUnit(item.unit),
       minimumQuantity: item.minimumQuantity,
       expiryDate: item.expiryDate,
+      boughtDate: item.boughtDate,
       cookedDate: item.cookedDate,
       location: standardizeFoodLocation(item.location ?? "Pantry"),
       notes: item.notes,
@@ -559,6 +581,12 @@ export function FoodTrackerPage() {
                 Expiry date
                 <input type="date" value={form.expiryDate ?? ""} onChange={(event) => setForm({ ...form, expiryDate: event.target.value })} className={`mt-1 ${inputClass}`} />
               </label>
+              {(form.category === "fruit" || form.category === "vegetable") && (
+                <label className="block text-sm font-medium">
+                  Date bought
+                  <input type="date" value={form.boughtDate ?? ""} onChange={(event) => setForm({ ...form, boughtDate: event.target.value })} className={`mt-1 ${inputClass}`} />
+                </label>
+              )}
               {(form.category === "soup" || form.category === "cooked") && (
                 <label className="block text-sm font-medium">
                   Date cooked
