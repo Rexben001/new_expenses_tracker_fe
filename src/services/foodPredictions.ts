@@ -16,6 +16,16 @@ export type FoodPrediction = {
 
 export const FOOD_LOCATIONS = ["Pantry", "Fridge", "Freezer"] as const;
 export const FOOD_UNITS = ["kg", "liters", "packs", "servings"] as const;
+const CATEGORIES_WITHOUT_DEFAULT_EXPIRY = new Set<FoodCategory>([
+  "food",
+  "spice",
+  "ingredient",
+  "other",
+]);
+
+export function hasDefaultFoodExpiry(category: FoodCategory) {
+  return !CATEGORIES_WITHOUT_DEFAULT_EXPIRY.has(category.toLowerCase());
+}
 
 export function standardizeFoodLocation(location: string) {
   if (location.toLowerCase().includes("fridge") || location.toLowerCase().includes("drawer")) {
@@ -110,7 +120,9 @@ export function predictionToFoodInput(
     quantity: 1,
     unit: standardizeFoodUnit(prediction.unit),
     minimumQuantity: prediction.minimumQuantity,
-    expiryDate: toDateInputAfterDays(prediction.shelfLifeDays, now),
+    expiryDate: hasDefaultFoodExpiry(prediction.category)
+      ? toDateInputAfterDays(prediction.shelfLifeDays, now)
+      : undefined,
     boughtDate:
       prediction.category === "fruit" || prediction.category === "vegetable"
         ? toDateInputAfterDays(0, now)
@@ -140,7 +152,7 @@ export function quickFoodInput(query: string, now = new Date()) {
     quantity: 1,
     unit: "packs",
     minimumQuantity: 1,
-    expiryDate: toDateInputAfterDays(7, now),
+    expiryDate: undefined,
     boughtDate: undefined,
     cookedDate: undefined,
     location: "Pantry",

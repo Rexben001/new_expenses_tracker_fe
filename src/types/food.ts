@@ -1,13 +1,4 @@
-export type FoodCategory =
-  | "food"
-  | "fruit"
-  | "vegetable"
-  | "drink"
-  | "spice"
-  | "ingredient"
-  | "soup"
-  | "cooked"
-  | "other";
+export type FoodCategory = string;
 export type FoodLifecycleStatus = "active" | "finished" | "wasted";
 
 export type FoodItemInput = {
@@ -44,4 +35,16 @@ export type FoodStats = {
   savedWeightKg: number;
   wastedWeightKg: number;
   estimatedSavings: number;
+  consumption?: {
+    day: FoodConsumptionPeriod;
+    week: FoodConsumptionPeriod;
+    month: FoodConsumptionPeriod;
+    byCategory: Array<{ category: string; count: number }>;
+  };
+};
+
+export type FoodConsumptionPeriod = {
+  records: number;
+  totalQuantity: number;
+  quantitiesByUnit: Record<string, number>;
 };

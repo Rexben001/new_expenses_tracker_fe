@@ -17,6 +17,7 @@ function getPageTitle(pathname: string) {
   if (pathname === "/calendar/dashboard") return "Calendar Dashboard";
   if (pathname === "/calendar") return "Calendar";
   if (pathname === "/tasks") return "Tasks";
+  if (pathname === "/food/dashboard") return "Food Dashboard";
   if (pathname === "/food") return "Food Tracker";
   if (pathname === "/tasks/new") return "New Task";
   if (pathname.startsWith("/tasks/")) return "Edit Task";

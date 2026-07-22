@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FiSend } from "react-icons/fi";
 import {
   findFoodPredictions,
+  hasDefaultFoodExpiry,
   standardizeFoodLocation,
   quickFoodInput,
 } from "../services/foodPredictions";
@@ -43,7 +44,7 @@ export function FoodQuickAdd({
             >
               <span className="font-medium">{prediction.name}</span>
               <span className="text-xs text-gray-500">
-                {standardizeFoodLocation(prediction.location)} · {prediction.shelfLifeDays}d
+                {standardizeFoodLocation(prediction.location)} · {hasDefaultFoodExpiry(prediction.category) ? `${prediction.shelfLifeDays}d` : "No default expiry"}
               </span>
             </button>
           ))}

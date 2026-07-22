@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   findFoodPredictions,
+  hasDefaultFoodExpiry,
   predictionToFoodInput,
   quickFoodInput,
 } from "./foodPredictions";
@@ -26,16 +27,32 @@ describe("food predictions", () => {
     );
   });
 
-  test("quick-add keeps unknown names with safe defaults", () => {
+  test("quick-add keeps unknown food without a default expiry", () => {
     expect(quickFoodInput("Plantain", new Date(2026, 6, 19))).toEqual(
       expect.objectContaining({
         name: "Plantain",
-        expiryDate: "2026-07-26",
+        expiryDate: undefined,
         location: "Pantry",
         unit: "packs",
       })
     );
   });
+
+  test.each(["food", "ingredient"] as const)(
+    "does not autofill expiry for %s predictions",
+    (category) => {
+      const prediction = findFoodPredictions(category === "food" ? "bread" : "rice")[0];
+      expect(prediction.category).toBe(category);
+      expect(predictionToFoodInput(prediction, new Date(2026, 6, 19)).expiryDate).toBeUndefined();
+    }
+  );
+
+  test.each(["food", "spice", "ingredient", "other"])(
+    "%s has no default expiry",
+    (category) => {
+      expect(hasDefaultFoodExpiry(category)).toBe(false);
+    }
+  );
 
   test("standardizes fridge locations and liquid units", () => {
     const milk = quickFoodInput("milk", new Date(2026, 6, 19));

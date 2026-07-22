@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FiAlertTriangle,
-  FiAward,
   FiClock,
   FiMapPin,
   FiPackage,
+  FiPieChart,
   FiPlus,
   FiSearch,
   FiShoppingCart,
@@ -12,6 +12,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { FaSnowflake } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { FoodItemCard } from "../components/FoodItemCard";
 import { FoodQuickAdd } from "../components/FoodQuickAdd";
 import { FooterNav } from "../components/FooterNav";
@@ -22,7 +23,6 @@ import {
   createFoodItem,
   deleteFoodItem,
   getErrorMessage,
-  getFoodStats,
   updateFoodItem,
 } from "../services/api";
 import {
@@ -35,19 +35,18 @@ import {
   findFoodPredictions,
   FOOD_LOCATIONS,
   FOOD_UNITS,
+  hasDefaultFoodExpiry,
   predictionToFoodInput,
   standardizeFoodLocation,
   standardizeFoodUnit,
   toDateInputAfterDays,
   type FoodPrediction,
 } from "../services/foodPredictions";
-import { formatCurrency } from "../services/formatCurrency";
 import type {
   FoodCategory,
   FoodItem,
   FoodItemInput,
   FoodLifecycleStatus,
-  FoodStats,
 } from "../types/food";
 
 type Filter = "all" | "restock" | "tonight" | "expiring";
@@ -98,7 +97,6 @@ export function FoodTrackerPage() {
     getSubAccountId,
     resourceErrors,
     resourceLoading,
-    currency,
   } = useItemContext();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -108,20 +106,6 @@ export function FoodTrackerPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
   const [pendingId, setPendingId] = useState<string>();
-  const [stats, setStats] = useState<FoodStats>();
-
-  const refreshStats = useCallback(async () => {
-    try {
-      const subId = await getSubAccountId();
-      setStats((await getFoodStats(subId)) as FoodStats);
-    } catch {
-      // Inventory remains usable when optional summary cannot load.
-    }
-  }, [getSubAccountId]);
-
-  useEffect(() => {
-    void refreshStats();
-  }, [refreshStats]);
 
   const restockCount = items.filter(needsRestock).length;
   const tonightCount = items.filter(
@@ -199,6 +183,36 @@ export function FoodTrackerPage() {
     () => findFoodPredictions(form.name, 4),
     [form.name]
   );
+  const locationOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...FOOD_LOCATIONS,
+          ...items.map((item) => item.location).filter(Boolean),
+        ] as string[])
+      ).sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...categories.map((category) => category.value),
+          ...items.map((item) => item.category).filter(Boolean),
+        ])
+      ).sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
+  const unitOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...FOOD_UNITS,
+          ...items.map((item) => item.unit).filter(Boolean),
+        ] as string[])
+      ).sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
 
   const openNew = () => {
     setEditingId(undefined);
@@ -218,7 +232,7 @@ export function FoodTrackerPage() {
       expiryDate: item.expiryDate,
       boughtDate: item.boughtDate,
       cookedDate: item.cookedDate,
-      location: standardizeFoodLocation(item.location ?? "Pantry"),
+      location: item.location ?? "Pantry",
       notes: item.notes,
       buy: item.buy,
       opened: item.opened ?? false,
@@ -240,6 +254,8 @@ export function FoodTrackerPage() {
     const values: FoodItemInput = {
       ...form,
       name: form.name.trim(),
+      category: form.category.trim() || "other",
+      location: form.location?.trim() || "Pantry",
       unit: form.unit.trim() || "item",
       quantity: Math.max(0, Number(form.quantity) || 0),
       minimumQuantity: Math.max(0, Number(form.minimumQuantity) || 0),
@@ -306,12 +322,11 @@ export function FoodTrackerPage() {
   };
 
   const markOutcome = async (item: FoodItem, outcome: Outcome) => {
-    const saved = await persistPatch(
+    await persistPatch(
       item,
       { lifecycleStatus: outcome, completedAt: new Date().toISOString() },
       true
     );
-    if (saved) await refreshStats();
   };
 
   const freezeItem = async (item: FoodItem) => {
@@ -349,13 +364,22 @@ export function FoodTrackerPage() {
               Know what is left and what to use
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openNew}
-            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 font-medium text-white"
-          >
-            <FiPlus /> Details
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/food/dashboard"
+              aria-label="Open food dashboard"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+            >
+              <FiPieChart />
+            </Link>
+            <button
+              type="button"
+              onClick={openNew}
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 font-medium text-white"
+            >
+              <FiPlus /> Details
+            </button>
+          </div>
         </div>
       </HeaderComponent>
 
@@ -388,26 +412,6 @@ export function FoodTrackerPage() {
             </span>
           </button>
         ))}
-
-        <section className="rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-4 text-white shadow-sm">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">This month</p>
-              <h2 className="mt-1 text-xl font-bold">
-                You saved {formatCurrency(stats?.estimatedSavings, currency ?? "EUR")}
-              </h2>
-              <p className="mt-1 text-sm text-emerald-100">
-                {stats?.savedWeightKg ?? 0} kg kept from landfill · {stats?.finishedCount ?? 0} items finished
-              </p>
-            </div>
-            <FiAward className="h-7 w-7 text-emerald-100" />
-          </div>
-          {(stats?.wastedCount ?? 0) > 0 && (
-            <p className="mt-3 border-t border-white/20 pt-2 text-xs text-emerald-100">
-              {stats?.wastedCount} thrown away · {stats?.wastedWeightKg} kg logged
-            </p>
-          )}
-        </section>
 
         <section className="grid grid-cols-4 gap-2" aria-label="Inventory filters">
           {[
@@ -470,9 +474,9 @@ export function FoodTrackerPage() {
             </p>
           </section>
         ) : (
-          <section className="space-y-5" aria-label="Food inventory by location">
+          <section className="space-y-4" aria-label="Food inventory by location">
             {locationGroups.map(([location, groupItems]) => (
-              <div key={location} className="space-y-3">
+              <div key={location} className="space-y-2">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="flex items-center gap-2 text-sm font-bold">
                     <FiMapPin className="text-emerald-600" /> {location}
@@ -545,7 +549,9 @@ export function FoodTrackerPage() {
                         className="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                       >
                         <span className="font-medium">{prediction.name}</span>
-                        <span className="text-xs text-gray-500">{standardizeFoodLocation(prediction.location)} · {prediction.shelfLifeDays}d</span>
+                        <span className="text-xs text-gray-500">
+                          {standardizeFoodLocation(prediction.location)} · {hasDefaultFoodExpiry(prediction.category) ? `${prediction.shelfLifeDays}d` : "No default expiry"}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -553,9 +559,11 @@ export function FoodTrackerPage() {
               </div>
               <label className="block text-sm font-medium">
                 Location
-                <select value={form.location ?? "Pantry"} onChange={(event) => setForm({ ...form, location: event.target.value })} className={`mt-1 ${inputClass}`}>
-                  {FOOD_LOCATIONS.map((location) => <option key={location} value={location}>{location}</option>)}
-                </select>
+                <input list="food-location-options" value={form.location ?? ""} onChange={(event) => setForm({ ...form, location: event.target.value })} placeholder="Choose or type a new location" className={`mt-1 ${inputClass}`} />
+                <datalist id="food-location-options">
+                  {locationOptions.map((location) => <option key={location} value={location} />)}
+                </datalist>
+                <span className="mt-1 block text-xs font-normal text-gray-500">Type a new location to add it.</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm font-medium">
@@ -564,9 +572,11 @@ export function FoodTrackerPage() {
                 </label>
                 <label className="block text-sm font-medium">
                   Unit
-                  <select value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} className={`mt-1 ${inputClass}`}>
-                    {FOOD_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
-                  </select>
+                  <input list="food-unit-options" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="Choose or type a unit" className={`mt-1 ${inputClass}`} />
+                  <datalist id="food-unit-options">
+                    {unitOptions.map((unit) => <option key={unit} value={unit} />)}
+                  </datalist>
+                  <span className="mt-1 block text-xs font-normal text-gray-500">Type a new unit to add it.</span>
                 </label>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -603,24 +613,20 @@ export function FoodTrackerPage() {
                 <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-700">
                   <label className="block text-sm font-medium">
                     Category
-                    <select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as FoodCategory })} className={`mt-1 ${inputClass}`}>
-                      {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
-                    </select>
+                    <input list="food-category-options" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as FoodCategory })} placeholder="Choose or type a new category" className={`mt-1 ${inputClass}`} />
+                    <datalist id="food-category-options">
+                      {categoryOptions.map((category) => <option key={category} value={category} />)}
+                    </datalist>
+                    <span className="mt-1 block text-xs font-normal text-gray-500">Type a new category to add it.</span>
                   </label>
                   <label className="block text-sm font-medium">
                     Refill when quantity reaches
                     <input type="number" min="0" step="0.1" value={form.minimumQuantity} onChange={(event) => setForm({ ...form, minimumQuantity: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-sm font-medium">
-                      Est. value
-                      <input type="number" min="0" step="0.01" value={form.estimatedValue ?? ""} onChange={(event) => setForm({ ...form, estimatedValue: event.target.value ? Number(event.target.value) : undefined })} placeholder="€" className={`mt-1 ${inputClass}`} />
-                    </label>
-                    <label className="block text-sm font-medium">
-                      Weight (kg)
-                      <input type="number" min="0" step="0.01" value={form.estimatedWeightKg ?? ""} onChange={(event) => setForm({ ...form, estimatedWeightKg: event.target.value ? Number(event.target.value) : undefined })} className={`mt-1 ${inputClass}`} />
-                    </label>
-                  </div>
+                  <label className="block text-sm font-medium">
+                    Est. value
+                    <input type="number" min="0" step="0.01" value={form.estimatedValue ?? ""} onChange={(event) => setForm({ ...form, estimatedValue: event.target.value ? Number(event.target.value) : undefined })} placeholder="€" className={`mt-1 ${inputClass}`} />
+                  </label>
                   <label className="flex items-center gap-3 rounded-xl bg-sky-50 p-3 dark:bg-sky-950/30">
                     <input type="checkbox" checked={form.freezable ?? false} onChange={(event) => setForm({ ...form, freezable: event.target.checked, freezeExtensionDays: event.target.checked ? form.freezeExtensionDays ?? 90 : undefined })} className="h-5 w-5 accent-sky-600" />
                     <span className="text-sm font-medium">Can be frozen</span>

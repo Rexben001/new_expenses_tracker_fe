@@ -86,7 +86,7 @@ export function getFoodItemIcon(item: Pick<FoodItem, "category" | "name">) {
   );
   if (match) return match[1];
 
-  return {
+  const categoryIcons: Record<string, string> = {
     cooked: "🍽️",
     drink: "🥤",
     food: "🍽️",
@@ -96,5 +96,6 @@ export function getFoodItemIcon(item: Pick<FoodItem, "category" | "name">) {
     soup: "🍲",
     spice: "🧂",
     vegetable: "🥦",
-  }[item.category];
+  };
+  return categoryIcons[item.category.toLowerCase()] ?? "📦";
 }

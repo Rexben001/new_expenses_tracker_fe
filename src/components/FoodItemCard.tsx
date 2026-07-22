@@ -1,5 +1,11 @@
 import { useSwipeable } from "react-swipeable";
-import { FiCheckCircle, FiShoppingCart, FiTrash2 } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiMinus,
+  FiPlus,
+  FiShoppingCart,
+  FiTrash2,
+} from "react-icons/fi";
 import {
   getFoodItemIcon,
   getFoodStatus,
@@ -42,6 +48,14 @@ export function FoodItemCard({
 }) {
   const status = getFoodStatus(item);
   const statusLabel = statusLabels[status];
+  const quantityStep = item.unit === "kg" || item.unit === "liters" ? 0.5 : 1;
+  const updateQuantity = (amount: number) => {
+    const quantity = Math.max(
+      0,
+      Math.round((item.quantity + amount) * 100) / 100
+    );
+    onPatch(item, { quantity });
+  };
   const swipeHandlers = useSwipeable({
     delta: 80,
     preventScrollOnSwipe: false,
@@ -53,83 +67,104 @@ export function FoodItemCard({
   return (
     <article
       {...swipeHandlers}
-      className="rounded-2xl border border-gray-200 bg-white px-3 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900"
       style={{ touchAction: "pan-y" }}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => onEdit(item)}
-          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
           aria-label={`Edit ${item.name}`}
         >
           <span
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gray-100 text-2xl dark:bg-gray-800"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gray-100 text-lg dark:bg-gray-800"
             aria-hidden="true"
           >
             {getFoodItemIcon(item)}
           </span>
           <span className="min-w-0">
-            <span className="flex flex-wrap items-center gap-1.5">
-              <span className="truncate font-semibold">{item.name}</span>
+            <span className="flex items-center gap-1">
+              <span className="truncate text-sm font-semibold">{item.name}</span>
               {statusLabel && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[status]}`}
+                  className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none ${statusStyles[status]}`}
                 >
                   {statusLabel}
                 </span>
               )}
             </span>
-            <span className="mt-0.5 block text-xs capitalize text-gray-500">
-              {item.category}
-              {item.opened ? " · Opened" : ""}
+            {item.opened && (
+              <span className="block text-[9px] leading-none text-gray-500">
+                Opened
+              </span>
+            )}
+          </span>
+        </button>
+
+        <div className="flex shrink-0 items-center rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+          <button
+            disabled={pending || item.quantity <= 0}
+            type="button"
+            onClick={() => updateQuantity(-quantityStep)}
+            className="grid h-7 w-7 place-items-center rounded-md bg-white text-xs text-gray-600 shadow-sm disabled:opacity-40 dark:bg-gray-900 dark:text-gray-300"
+            aria-label={`Reduce ${item.name} by ${quantityStep} ${item.unit}`}
+          >
+            <FiMinus />
+          </button>
+          <span className="min-w-9 px-1 text-center">
+            <span className="block text-xs font-bold leading-none">{item.quantity}</span>
+            <span className="mt-0.5 block max-w-12 truncate text-[8px] leading-none text-gray-500">
+              {item.unit}
             </span>
           </span>
-        </button>
+          <button
+            disabled={pending}
+            type="button"
+            onClick={() => updateQuantity(quantityStep)}
+            className="grid h-7 w-7 place-items-center rounded-md bg-emerald-600 text-xs text-white shadow-sm disabled:opacity-40"
+            aria-label={`Increase ${item.name} by ${quantityStep} ${item.unit}`}
+          >
+            <FiPlus />
+          </button>
+        </div>
 
-        <span className="shrink-0 rounded-xl bg-gray-100 px-3 py-2 text-center dark:bg-gray-800">
-          <span className="block text-lg font-bold leading-none">{item.quantity}</span>
-          <span className="mt-1 block max-w-16 truncate text-[10px] text-gray-500">
-            {item.unit}
-          </span>
-        </span>
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
-        <button
-          disabled={pending}
-          type="button"
-          title="Finished"
-          onClick={() => onOutcome(item, "finished")}
-          className="grid h-10 place-items-center rounded-xl text-lg text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
-          aria-label={`Mark ${item.name} finished`}
-        >
-          <FiCheckCircle />
-        </button>
-        <button
-          disabled={pending}
-          type="button"
-          title={item.buy ? "Remove from shopping list" : "Add to shopping list"}
-          onClick={() => onPatch(item, { buy: !item.buy })}
-          className={`grid h-10 place-items-center rounded-xl text-lg disabled:opacity-50 ${item.buy ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200" : "text-gray-500 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30"}`}
-          aria-label={
-            item.buy
-              ? `Remove ${item.name} from shopping list`
-              : `Add ${item.name} to shopping list`
-          }
-        >
-          <FiShoppingCart />
-        </button>
-        <button
-          disabled={pending}
-          type="button"
-          title="Thrown away"
-          onClick={() => onOutcome(item, "wasted")}
-          className="grid h-10 place-items-center rounded-xl text-lg text-red-500 hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/30"
-          aria-label={`Mark ${item.name} thrown away`}
-        >
-          <FiTrash2 />
-        </button>
+        <div className="flex shrink-0 items-center">
+          <button
+            disabled={pending}
+            type="button"
+            title="Finished"
+            onClick={() => onOutcome(item, "finished")}
+            className="grid h-7 w-7 place-items-center rounded-md text-sm text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+            aria-label={`Mark ${item.name} finished`}
+          >
+            <FiCheckCircle />
+          </button>
+          <button
+            disabled={pending}
+            type="button"
+            title={item.buy ? "Remove from shopping list" : "Add to shopping list"}
+            onClick={() => onPatch(item, { buy: !item.buy })}
+            className={`grid h-7 w-7 place-items-center rounded-md text-sm disabled:opacity-50 ${item.buy ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200" : "text-gray-500 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30"}`}
+            aria-label={
+              item.buy
+                ? `Remove ${item.name} from shopping list`
+                : `Add ${item.name} to shopping list`
+            }
+          >
+            <FiShoppingCart />
+          </button>
+          <button
+            disabled={pending}
+            type="button"
+            title="Thrown away"
+            onClick={() => onOutcome(item, "wasted")}
+            className="grid h-7 w-7 place-items-center rounded-md text-sm text-red-500 hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/30"
+            aria-label={`Mark ${item.name} thrown away`}
+          >
+            <FiTrash2 />
+          </button>
+        </div>
       </div>
     </article>
   );
