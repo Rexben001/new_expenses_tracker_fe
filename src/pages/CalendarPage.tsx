@@ -87,6 +87,14 @@ type ShareNavigator = Navigator & {
   }) => Promise<void>;
 };
 
+type NewHairOption = {
+  clientIndex: number;
+  field: "style" | "length";
+  value: string;
+};
+
+const ADD_NEW_HAIR_OPTION = "__add_new_hair_option__";
+
 const inputClass =
   "w-full rounded-lg border border-gray-200 bg-white p-3 text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900";
 
@@ -114,6 +122,10 @@ const hairLengthOptions: { value: HairLengthOption; label: string }[] = [
   { value: "waist", label: "Waist" },
 ];
 
+function optionLabel(value: string) {
+  return value.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export function CalendarPage() {
   const {
     calendarEntries,
@@ -133,6 +145,7 @@ export function CalendarPage() {
   const [isSharing, setIsSharing] = useState(false);
   const [formError, setFormError] = useState("");
   const [shareMessage, setShareMessage] = useState("");
+  const [newHairOption, setNewHairOption] = useState<NewHairOption>();
   const [formData, setFormData] = useState<CalendarFormData>({
     status: "booked",
     clients: [createBlankClient()],
@@ -188,6 +201,40 @@ export function CalendarPage() {
     (total, client) => total + getClientPrice(client),
     0
   );
+  const hairStyleSuggestions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...hairStyleOptions.map((option) => option.value),
+          ...calendarEntries.flatMap((entry) =>
+            (entry.clients ?? []).map(
+              (client) => normalizeHairStyle(client.hairStyle).style
+            )
+          ),
+          ...formData.clients.map(
+            (client) => normalizeHairStyle(client.hairStyle).style
+          ),
+        ])
+      ).sort((a, b) => a.localeCompare(b)),
+    [calendarEntries, formData.clients]
+  );
+  const hairLengthSuggestions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...hairLengthOptions.map((option) => option.value),
+          ...calendarEntries.flatMap((entry) =>
+            (entry.clients ?? []).map(
+              (client) => normalizeHairStyle(client.hairStyle).length
+            )
+          ),
+          ...formData.clients.map(
+            (client) => normalizeHairStyle(client.hairStyle).length
+          ),
+        ])
+      ).sort((a, b) => a.localeCompare(b)),
+    [calendarEntries, formData.clients]
+  );
 
   const selectDay = (day: Date) => {
     setSelectedDateKey(toDateKey(day));
@@ -203,6 +250,7 @@ export function CalendarPage() {
         : [];
 
     setFormError("");
+    setNewHairOption(undefined);
     setFormData({
       status,
       clients,
@@ -213,6 +261,7 @@ export function CalendarPage() {
 
   const handleStatusChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const status = event.target.value as CalendarStatus;
+    setNewHairOption(undefined);
     setFormData((current) => ({
       ...current,
       status,
@@ -257,6 +306,36 @@ export function CalendarPage() {
     }));
   };
 
+  const selectHairOption = (
+    clientIndex: number,
+    field: NewHairOption["field"],
+    value: string
+  ) => {
+    if (value === ADD_NEW_HAIR_OPTION) {
+      setNewHairOption({ clientIndex, field, value: "" });
+      return;
+    }
+
+    updateClientHairStyle(
+      clientIndex,
+      field === "style" ? { style: value } : { length: value }
+    );
+  };
+
+  const saveNewHairOption = () => {
+    if (!newHairOption) return;
+    const value = newHairOption.value.trim();
+    if (!value) return;
+
+    updateClientHairStyle(
+      newHairOption.clientIndex,
+      newHairOption.field === "style"
+        ? { style: value }
+        : { length: value }
+    );
+    setNewHairOption(undefined);
+  };
+
   const addClient = () => {
     setFormData((current) => ({
       ...current,
@@ -265,6 +344,7 @@ export function CalendarPage() {
   };
 
   const removeClient = (index: number) => {
+    setNewHairOption(undefined);
     setFormData((current) => ({
       ...current,
       clients: current.clients.filter((_, clientIndex) => clientIndex !== index),
@@ -843,7 +923,10 @@ export function CalendarPage() {
       <Modal
         open={isEditorOpen}
         onClose={() => {
-          if (!isSaving) setIsEditorOpen(false);
+          if (!isSaving) {
+            setIsEditorOpen(false);
+            setNewHairOption(undefined);
+          }
         }}
         title={`${selectedDateLabel} Details`}
       >
@@ -973,20 +1056,57 @@ export function CalendarPage() {
                         Style
                       </label>
                       <select
-                        value={normalizeHairStyle(client.hairStyle).style}
+                        value={client.hairStyle?.style ?? "knotless"}
                         onChange={(event) =>
-                          updateClientHairStyle(index, {
-                            style: event.target.value as HairStyleOption,
-                          })
+                          selectHairOption(index, "style", event.target.value)
                         }
                         className={inputClass}
                       >
-                        {hairStyleOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
+                        {hairStyleSuggestions.map((style) => (
+                          <option key={style} value={style}>
+                            {optionLabel(style)}
                           </option>
                         ))}
+                        <option value={ADD_NEW_HAIR_OPTION}>＋ Add new style</option>
                       </select>
+                      {newHairOption?.clientIndex === index &&
+                        newHairOption.field === "style" && (
+                          <div className="mt-2 flex gap-1.5">
+                            <input
+                              autoFocus
+                              value={newHairOption.value}
+                              onChange={(event) =>
+                                setNewHairOption({
+                                  ...newHairOption,
+                                  value: event.target.value,
+                                })
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  saveNewHairOption();
+                                }
+                              }}
+                              placeholder="New style"
+                              className={inputClass}
+                            />
+                            <button
+                              type="button"
+                              disabled={!newHairOption.value.trim()}
+                              onClick={saveNewHairOption}
+                              className="rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewHairOption(undefined)}
+                              className="rounded-lg border border-gray-200 px-2 text-xs dark:border-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                     </div>
                     <div>
                       <label className="mb-1 block text-xs text-gray-500 dark:text-gray-300">
@@ -1013,20 +1133,57 @@ export function CalendarPage() {
                         Length
                       </label>
                       <select
-                        value={normalizeHairStyle(client.hairStyle).length}
+                        value={client.hairStyle?.length ?? "bra"}
                         onChange={(event) =>
-                          updateClientHairStyle(index, {
-                            length: event.target.value as HairLengthOption,
-                          })
+                          selectHairOption(index, "length", event.target.value)
                         }
                         className={inputClass}
                       >
-                        {hairLengthOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
+                        {hairLengthSuggestions.map((length) => (
+                          <option key={length} value={length}>
+                            {optionLabel(length)}
                           </option>
                         ))}
+                        <option value={ADD_NEW_HAIR_OPTION}>＋ Add new length</option>
                       </select>
+                      {newHairOption?.clientIndex === index &&
+                        newHairOption.field === "length" && (
+                          <div className="mt-2 flex gap-1.5">
+                            <input
+                              autoFocus
+                              value={newHairOption.value}
+                              onChange={(event) =>
+                                setNewHairOption({
+                                  ...newHairOption,
+                                  value: event.target.value,
+                                })
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  saveNewHairOption();
+                                }
+                              }}
+                              placeholder="New length"
+                              className={inputClass}
+                            />
+                            <button
+                              type="button"
+                              disabled={!newHairOption.value.trim()}
+                              onClick={saveNewHairOption}
+                              className="rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white disabled:opacity-50"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewHairOption(undefined)}
+                              className="rounded-lg border border-gray-200 px-2 text-xs dark:border-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
 

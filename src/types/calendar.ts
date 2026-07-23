@@ -1,18 +1,10 @@
 export type CalendarStatus = "available" | "booked" | "unavailable";
 
-export type HairStyleOption =
-  | "kinky"
-  | "boho"
-  | "knotless"
-  | "cornrows"
-  | "ghana weaving"
-  | "jayda wayda"
-  | "fulani braids"
-  | "stitch braids";
+export type HairStyleOption = string;
 
 export type HairSizeOption = "small" | "smedium" | "medium" | "large";
 
-export type HairLengthOption = "shoulder" | "bra" | "waist";
+export type HairLengthOption = string;
 
 export type HairStyle = {
   style: HairStyleOption;

@@ -269,4 +269,18 @@ describe("calendar rules", () => {
     expect(formatClientCell(client)).toBe("10:00 Ada - medium knotless");
     expect(formatCompactClientCell(client)).toBe("10:00 Ada");
   });
+
+  test("preserves and trims custom hair styles and lengths", () => {
+    expect(
+      normalizeHairStyle({
+        style: "  goddess locs  ",
+        length: "  hip  ",
+      })
+    ).toEqual(
+      expect.objectContaining({
+        style: "goddess locs",
+        length: "hip",
+      })
+    );
+  });
 });

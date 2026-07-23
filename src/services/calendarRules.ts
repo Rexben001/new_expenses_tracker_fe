@@ -43,9 +43,9 @@ export function createBlankClient(): CalendarClient {
 
 export function normalizeHairStyle(hairStyle?: Partial<HairStyle>): HairStyle {
   return {
-    style: hairStyle?.style ?? "knotless",
+    style: hairStyle?.style?.trim() || "knotless",
     size: hairStyle?.size ?? "medium",
-    length: hairStyle?.length ?? "bra",
+    length: hairStyle?.length?.trim() || "bra",
     additionalDetails: hairStyle?.additionalDetails ?? "",
   };
 }

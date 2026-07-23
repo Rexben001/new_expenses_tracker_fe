@@ -38,7 +38,6 @@ import {
   hasDefaultFoodExpiry,
   predictionToFoodInput,
   standardizeFoodLocation,
-  standardizeFoodUnit,
   toDateInputAfterDays,
   type FoodPrediction,
 } from "../services/foodPredictions";
@@ -51,6 +50,12 @@ import type {
 
 type Filter = "all" | "restock" | "tonight" | "expiring";
 type Outcome = Exclude<FoodLifecycleStatus, "active">;
+type NewFoodOption = {
+  field: "location" | "unit" | "category";
+  value: string;
+};
+
+const ADD_NEW_FOOD_OPTION = "__add_new_food_option__";
 
 const emptyForm: FoodItemInput = {
   name: "",
@@ -106,6 +111,7 @@ export function FoodTrackerPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [mutationError, setMutationError] = useState("");
   const [pendingId, setPendingId] = useState<string>();
+  const [newFoodOption, setNewFoodOption] = useState<NewFoodOption>();
 
   const restockCount = items.filter(needsRestock).length;
   const tonightCount = items.filter(
@@ -189,9 +195,10 @@ export function FoodTrackerPage() {
         new Set([
           ...FOOD_LOCATIONS,
           ...items.map((item) => item.location).filter(Boolean),
+          ...(form.location ? [form.location] : []),
         ] as string[])
       ).sort((a, b) => a.localeCompare(b)),
-    [items]
+    [form.location, items]
   );
   const categoryOptions = useMemo(
     () =>
@@ -199,9 +206,10 @@ export function FoodTrackerPage() {
         new Set([
           ...categories.map((category) => category.value),
           ...items.map((item) => item.category).filter(Boolean),
+          form.category,
         ])
       ).sort((a, b) => a.localeCompare(b)),
-    [items]
+    [form.category, items]
   );
   const unitOptions = useMemo(
     () =>
@@ -209,25 +217,28 @@ export function FoodTrackerPage() {
         new Set([
           ...FOOD_UNITS,
           ...items.map((item) => item.unit).filter(Boolean),
+          form.unit,
         ] as string[])
       ).sort((a, b) => a.localeCompare(b)),
-    [items]
+    [form.unit, items]
   );
 
   const openNew = () => {
     setEditingId(undefined);
     setForm({ ...emptyForm });
+    setNewFoodOption(undefined);
     setMutationError("");
     setFormOpen(true);
   };
 
   const openEdit = (item: FoodItem) => {
     setEditingId(item.id);
+    setNewFoodOption(undefined);
     setForm({
       name: item.name,
       category: item.category,
       quantity: item.quantity,
-      unit: standardizeFoodUnit(item.unit),
+      unit: item.unit,
       minimumQuantity: item.minimumQuantity,
       expiryDate: item.expiryDate,
       boughtDate: item.boughtDate,
@@ -246,7 +257,33 @@ export function FoodTrackerPage() {
   };
 
   const applyPrediction = (prediction: FoodPrediction) => {
+    setNewFoodOption(undefined);
     setForm(predictionToFoodInput(prediction));
+  };
+
+  const selectFoodOption = (
+    field: NewFoodOption["field"],
+    value: string
+  ) => {
+    if (value === ADD_NEW_FOOD_OPTION) {
+      setNewFoodOption({ field, value: "" });
+      return;
+    }
+
+    setNewFoodOption(undefined);
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const saveNewFoodOption = () => {
+    if (!newFoodOption) return;
+    const value = newFoodOption.value.trim();
+    if (!value) return;
+
+    setForm((current) => ({
+      ...current,
+      [newFoodOption.field]: value,
+    }));
+    setNewFoodOption(undefined);
   };
 
   const submit = async (event: React.FormEvent) => {
@@ -269,6 +306,7 @@ export function FoodTrackerPage() {
       if (editingId) await updateFoodItem(editingId, values, subId);
       else await createFoodItem(values, subId);
       await fetchFoodItems(subId);
+      setNewFoodOption(undefined);
       setFormOpen(false);
     } catch (error) {
       setMutationError(getErrorMessage(error, "Could not save item."));
@@ -557,36 +595,97 @@ export function FoodTrackerPage() {
                   </div>
                 )}
               </div>
-              <label className="block text-sm font-medium">
-                Location
-                <input list="food-location-options" value={form.location ?? ""} onChange={(event) => setForm({ ...form, location: event.target.value })} placeholder="Choose or type a new location" className={`mt-1 ${inputClass}`} />
-                <datalist id="food-location-options">
-                  {locationOptions.map((location) => <option key={location} value={location} />)}
-                </datalist>
-                <span className="mt-1 block text-xs font-normal text-gray-500">Type a new location to add it.</span>
-              </label>
+              <div>
+                <label htmlFor="food-location" className="block text-sm font-medium">
+                  Location
+                </label>
+                <select
+                  id="food-location"
+                  value={form.location ?? "Pantry"}
+                  onChange={(event) => selectFoodOption("location", event.target.value)}
+                  className={`mt-1 ${inputClass}`}
+                >
+                  {locationOptions.map((location) => (
+                    <option key={location} value={location}>{location}</option>
+                  ))}
+                  <option value={ADD_NEW_FOOD_OPTION}>＋ Add new location</option>
+                </select>
+                {newFoodOption?.field === "location" && (
+                  <div className="mt-2 space-y-1.5">
+                    <input
+                      autoFocus
+                      value={newFoodOption.value}
+                      onChange={(event) => setNewFoodOption({ ...newFoodOption, value: event.target.value })}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          saveNewFoodOption();
+                        }
+                      }}
+                      placeholder="New location"
+                      className={inputClass}
+                    />
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button type="button" disabled={!newFoodOption.value.trim()} onClick={saveNewFoodOption} className="rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white disabled:opacity-50">Add</button>
+                      <button type="button" onClick={() => setNewFoodOption(undefined)} className="rounded-lg border border-gray-200 py-2 text-xs dark:border-gray-700">Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm font-medium">
                   Quantity
                   <input type="number" min="0" step="0.1" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
                 </label>
-                <label className="block text-sm font-medium">
-                  Unit
-                  <input list="food-unit-options" value={form.unit} onChange={(event) => setForm({ ...form, unit: event.target.value })} placeholder="Choose or type a unit" className={`mt-1 ${inputClass}`} />
-                  <datalist id="food-unit-options">
-                    {unitOptions.map((unit) => <option key={unit} value={unit} />)}
-                  </datalist>
-                  <span className="mt-1 block text-xs font-normal text-gray-500">Type a new unit to add it.</span>
-                </label>
+                <div>
+                  <label htmlFor="food-unit" className="block text-sm font-medium">
+                    Unit
+                  </label>
+                  <select
+                    id="food-unit"
+                    value={form.unit}
+                    onChange={(event) => selectFoodOption("unit", event.target.value)}
+                    className={`mt-1 ${inputClass}`}
+                  >
+                    {unitOptions.map((unit) => (
+                      <option key={unit} value={unit}>{unit}</option>
+                    ))}
+                    <option value={ADD_NEW_FOOD_OPTION}>＋ Add new unit</option>
+                  </select>
+                  {newFoodOption?.field === "unit" && (
+                    <div className="mt-2 space-y-1.5">
+                      <input
+                        autoFocus
+                        value={newFoodOption.value}
+                        onChange={(event) => setNewFoodOption({ ...newFoodOption, value: event.target.value })}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            saveNewFoodOption();
+                          }
+                        }}
+                        placeholder="New unit"
+                        className={inputClass}
+                      />
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button type="button" disabled={!newFoodOption.value.trim()} onClick={saveNewFoodOption} className="rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white disabled:opacity-50">Add</button>
+                        <button type="button" onClick={() => setNewFoodOption(undefined)} className="rounded-lg border border-gray-200 py-2 text-xs dark:border-gray-700">Cancel</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => setForm({ ...form, quantity: form.quantity === 0.5 ? 1 : 0.5 })} className={`rounded-xl border py-3 text-sm font-semibold ${form.quantity === 0.5 ? "border-violet-400 bg-violet-50 text-violet-700" : "border-gray-200 dark:border-gray-700"}`}>
-                  Half
-                </button>
-                <button type="button" onClick={() => setForm({ ...form, opened: !form.opened })} className={`rounded-xl border py-3 text-sm font-semibold ${form.opened ? "border-sky-400 bg-sky-50 text-sky-700" : "border-gray-200 dark:border-gray-700"}`}>
-                  {form.opened ? "Opened" : "Mark opened"}
-                </button>
-              </div>
+              <label className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm font-medium dark:border-gray-700 dark:bg-gray-900">
+                <input
+                  type="checkbox"
+                  checked={form.opened}
+                  onChange={(event) =>
+                    setForm({ ...form, opened: event.target.checked })
+                  }
+                  className="h-5 w-5 accent-emerald-600"
+                />
+                Opened
+              </label>
               <label className="block text-sm font-medium">
                 Expiry date
                 <input type="date" value={form.expiryDate ?? ""} onChange={(event) => setForm({ ...form, expiryDate: event.target.value })} className={`mt-1 ${inputClass}`} />
@@ -611,14 +710,45 @@ export function FoodTrackerPage() {
                   </span>
                 </summary>
                 <div className="space-y-4 border-t border-gray-200 p-4 dark:border-gray-700">
-                  <label className="block text-sm font-medium">
-                    Category
-                    <input list="food-category-options" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value as FoodCategory })} placeholder="Choose or type a new category" className={`mt-1 ${inputClass}`} />
-                    <datalist id="food-category-options">
-                      {categoryOptions.map((category) => <option key={category} value={category} />)}
-                    </datalist>
-                    <span className="mt-1 block text-xs font-normal text-gray-500">Type a new category to add it.</span>
-                  </label>
+                  <div>
+                    <label htmlFor="food-category" className="block text-sm font-medium">
+                      Category
+                    </label>
+                    <select
+                      id="food-category"
+                      value={form.category}
+                      onChange={(event) => selectFoodOption("category", event.target.value)}
+                      className={`mt-1 ${inputClass}`}
+                    >
+                      {categoryOptions.map((category) => (
+                        <option key={category} value={category}>
+                          {categories.find((option) => option.value === category)?.label ?? category}
+                        </option>
+                      ))}
+                      <option value={ADD_NEW_FOOD_OPTION}>＋ Add new category</option>
+                    </select>
+                    {newFoodOption?.field === "category" && (
+                      <div className="mt-2 space-y-1.5">
+                        <input
+                          autoFocus
+                          value={newFoodOption.value}
+                          onChange={(event) => setNewFoodOption({ ...newFoodOption, value: event.target.value })}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              saveNewFoodOption();
+                            }
+                          }}
+                          placeholder="New category"
+                          className={inputClass}
+                        />
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <button type="button" disabled={!newFoodOption.value.trim()} onClick={saveNewFoodOption} className="rounded-lg bg-emerald-600 py-2 text-xs font-semibold text-white disabled:opacity-50">Add</button>
+                          <button type="button" onClick={() => setNewFoodOption(undefined)} className="rounded-lg border border-gray-200 py-2 text-xs dark:border-gray-700">Cancel</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <label className="block text-sm font-medium">
                     Refill when quantity reaches
                     <input type="number" min="0" step="0.1" value={form.minimumQuantity} onChange={(event) => setForm({ ...form, minimumQuantity: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
