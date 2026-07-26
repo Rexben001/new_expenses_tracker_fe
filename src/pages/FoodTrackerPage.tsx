@@ -27,8 +27,10 @@ import {
 } from "../services/api";
 import {
   daysUntilExpiry,
+  getFoodPreparationState,
   getFoodStatus,
   isFreshnessFlagged,
+  isFreezerLocation,
   needsRestock,
 } from "../services/foodInventory";
 import {
@@ -38,7 +40,6 @@ import {
   hasDefaultFoodExpiry,
   predictionToFoodInput,
   standardizeFoodLocation,
-  toDateInputAfterDays,
   type FoodPrediction,
 } from "../services/foodPredictions";
 import type {
@@ -70,6 +71,7 @@ const emptyForm: FoodItemInput = {
   notes: "",
   buy: false,
   opened: false,
+  preparationState: "raw",
   freezable: false,
 };
 
@@ -89,7 +91,7 @@ const inputClass =
   "w-full rounded-xl border border-gray-200 bg-white p-3 text-base outline-none focus:ring-2 focus:ring-emerald-500 dark:border-gray-700 dark:bg-gray-900";
 
 function isDueWithin(item: FoodItem, days: number) {
-  if (!item.expiryDate) return false;
+  if (isFreezerLocation(item.location) || !item.expiryDate) return false;
   const remaining = daysUntilExpiry(item.expiryDate);
   return remaining >= 0 && remaining <= days;
 }
@@ -247,6 +249,7 @@ export function FoodTrackerPage() {
       notes: item.notes,
       buy: item.buy,
       opened: item.opened ?? false,
+      preparationState: getFoodPreparationState(item),
       freezable: item.freezable,
       freezeExtensionDays: item.freezeExtensionDays,
       estimatedValue: item.estimatedValue,
@@ -271,7 +274,20 @@ export function FoodTrackerPage() {
     }
 
     setNewFoodOption(undefined);
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === "category"
+        ? {
+            preparationState: getFoodPreparationState({
+              category: value,
+            }),
+          }
+        : {}),
+      ...(field === "location" && isFreezerLocation(value)
+        ? { expiryDate: "" }
+        : {}),
+    }));
   };
 
   const saveNewFoodOption = () => {
@@ -282,18 +298,30 @@ export function FoodTrackerPage() {
     setForm((current) => ({
       ...current,
       [newFoodOption.field]: value,
+      ...(newFoodOption.field === "category"
+        ? {
+            preparationState: getFoodPreparationState({
+              category: value,
+            }),
+          }
+        : {}),
+      ...(newFoodOption.field === "location" && isFreezerLocation(value)
+        ? { expiryDate: "" }
+        : {}),
     }));
     setNewFoodOption(undefined);
   };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const location = form.location?.trim() || "Pantry";
     const values: FoodItemInput = {
       ...form,
       name: form.name.trim(),
       category: form.category.trim() || "other",
-      location: form.location?.trim() || "Pantry",
+      location,
       unit: form.unit.trim() || "item",
+      expiryDate: isFreezerLocation(location) ? "" : form.expiryDate,
       quantity: Math.max(0, Number(form.quantity) || 0),
       minimumQuantity: Math.max(0, Number(form.minimumQuantity) || 0),
     };
@@ -371,7 +399,7 @@ export function FoodTrackerPage() {
     const saved = await persistPatch(item, {
       location: "Freezer",
       opened: false,
-      expiryDate: toDateInputAfterDays(item.freezeExtensionDays ?? 90),
+      expiryDate: "",
     });
     if (saved) setSelectedLocation("Freezer");
   };
@@ -687,16 +715,40 @@ export function FoodTrackerPage() {
                 Opened
               </label>
               <label className="block text-sm font-medium">
-                Expiry date
-                <input type="date" value={form.expiryDate ?? ""} onChange={(event) => setForm({ ...form, expiryDate: event.target.value })} className={`mt-1 ${inputClass}`} />
+                Preparation
+                <select
+                  value={getFoodPreparationState(form)}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      preparationState: event.target.value as
+                        | "raw"
+                        | "cooked",
+                    })
+                  }
+                  className={`mt-1 ${inputClass}`}
+                >
+                  <option value="raw">Raw</option>
+                  <option value="cooked">Cooked</option>
+                </select>
               </label>
+              {isFreezerLocation(form.location) ? (
+                <p className="rounded-xl bg-sky-50 p-3 text-sm text-sky-700 dark:bg-sky-950/30 dark:text-sky-200">
+                  Freezer food does not expire.
+                </p>
+              ) : (
+                <label className="block text-sm font-medium">
+                  Expiry date
+                  <input type="date" value={form.expiryDate ?? ""} onChange={(event) => setForm({ ...form, expiryDate: event.target.value })} className={`mt-1 ${inputClass}`} />
+                </label>
+              )}
               {(form.category === "fruit" || form.category === "vegetable") && (
                 <label className="block text-sm font-medium">
                   Date bought
                   <input type="date" value={form.boughtDate ?? ""} onChange={(event) => setForm({ ...form, boughtDate: event.target.value })} className={`mt-1 ${inputClass}`} />
                 </label>
               )}
-              {(form.category === "soup" || form.category === "cooked") && (
+              {getFoodPreparationState(form) === "cooked" && (
                 <label className="block text-sm font-medium">
                   Date cooked
                   <input type="date" value={form.cookedDate ?? ""} onChange={(event) => setForm({ ...form, cookedDate: event.target.value })} className={`mt-1 ${inputClass}`} />

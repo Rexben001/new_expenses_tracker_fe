@@ -135,6 +135,10 @@ export function predictionToFoodInput(
     notes: "",
     buy: false,
     opened: false,
+    preparationState:
+      prediction.category === "soup" || prediction.category === "cooked"
+        ? "cooked"
+        : "raw",
     freezable: prediction.freezable ?? false,
     freezeExtensionDays: prediction.freezeExtensionDays,
     estimatedValue: prediction.estimatedValue,
@@ -142,7 +146,10 @@ export function predictionToFoodInput(
   };
 }
 
-export function quickFoodInput(query: string, now = new Date()) {
+export function quickFoodInput(
+  query: string,
+  now = new Date()
+): FoodItemInput {
   const prediction = findFoodPredictions(query, 1)[0];
   if (prediction) return predictionToFoodInput(prediction, now);
 
@@ -159,6 +166,7 @@ export function quickFoodInput(query: string, now = new Date()) {
     notes: "",
     buy: false,
     opened: false,
+    preparationState: "raw",
     freezable: false,
   };
 }

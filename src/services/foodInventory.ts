@@ -1,4 +1,8 @@
-import type { FoodItem } from "../types/food";
+import type {
+  FoodItem,
+  FoodItemInput,
+  FoodPreparationState,
+} from "../types/food";
 
 export type FoodStatus =
   | "available"
@@ -21,24 +25,44 @@ export function daysSinceDate(date: string, now = new Date()) {
   return Math.floor((today.getTime() - value.getTime()) / 86_400_000);
 }
 
+export function isFreezerLocation(location?: string) {
+  return location?.trim().toLowerCase().includes("freezer") ?? false;
+}
+
+export function getFoodPreparationState(
+  item: Pick<FoodItemInput, "category" | "preparationState">
+): FoodPreparationState {
+  if (item.preparationState) return item.preparationState;
+  return item.category === "soup" || item.category === "cooked"
+    ? "cooked"
+    : "raw";
+}
+
 export function isFreshnessFlagged(item: FoodItem, now = new Date()) {
+  if (isFreezerLocation(item.location)) return false;
+
   const referenceDate =
-    item.category === "fruit" || item.category === "vegetable"
+    getFoodPreparationState(item) === "cooked"
+      ? item.cookedDate
+      : item.category === "fruit" || item.category === "vegetable"
       ? item.boughtDate
-      : item.category === "soup" || item.category === "cooked"
-        ? item.cookedDate
-        : undefined;
+      : undefined;
   if (!referenceDate) return false;
   return (daysSinceDate(referenceDate, now) ?? 0) > 3;
 }
 
 export function getFoodStatus(item: FoodItem, now = new Date()): FoodStatus {
-  if (item.expiryDate) {
+  const tracksExpiry = !isFreezerLocation(item.location);
+  if (tracksExpiry && item.expiryDate) {
     const days = daysUntilExpiry(item.expiryDate, now);
     if (days < 0) return "expired";
   }
   if (isFreshnessFlagged(item, now)) return "stale";
-  if (item.expiryDate && daysUntilExpiry(item.expiryDate, now) <= 7) {
+  if (
+    tracksExpiry &&
+    item.expiryDate &&
+    daysUntilExpiry(item.expiryDate, now) <= 7
+  ) {
     return "expiring";
   }
   if (item.quantity <= 0) return "out";

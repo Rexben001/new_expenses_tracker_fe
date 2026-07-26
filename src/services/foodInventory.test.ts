@@ -2,9 +2,11 @@ import { describe, expect, test } from "vitest";
 import type { FoodItem } from "../types/food";
 import {
   daysUntilExpiry,
+  getFoodPreparationState,
   getFoodStatus,
   getFoodItemIcon,
   isFreshnessFlagged,
+  isFreezerLocation,
   needsRestock,
 } from "./foodInventory";
 
@@ -78,5 +80,34 @@ describe("food inventory", () => {
         now
       )
     ).toBe("stale");
+  });
+
+  test("freezer food never expires or becomes stale", () => {
+    const now = new Date(2026, 6, 20, 18);
+    const frozen = {
+      ...item,
+      category: "cooked",
+      cookedDate: "2026-01-01",
+      expiryDate: "2026-01-02",
+      location: "Garage Freezer",
+    };
+
+    expect(isFreezerLocation(frozen.location)).toBe(true);
+    expect(isFreshnessFlagged(frozen, now)).toBe(false);
+    expect(getFoodStatus(frozen, now)).toBe("available");
+  });
+
+  test("infers preparation for legacy items and respects saved state", () => {
+    expect(getFoodPreparationState(item)).toBe("raw");
+    expect(
+      getFoodPreparationState({ ...item, category: "soup" })
+    ).toBe("cooked");
+    expect(
+      getFoodPreparationState({
+        ...item,
+        category: "vegetable",
+        preparationState: "cooked",
+      })
+    ).toBe("cooked");
   });
 });

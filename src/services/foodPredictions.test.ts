@@ -33,6 +33,7 @@ describe("food predictions", () => {
         name: "Plantain",
         expiryDate: undefined,
         location: "Pantry",
+        preparationState: "raw",
         unit: "packs",
       })
     );
@@ -69,6 +70,7 @@ describe("food predictions", () => {
         cookedDate: "2026-07-19",
         expiryDate: "2026-07-23",
         location: "Fridge",
+        preparationState: "cooked",
         unit: "servings",
       })
     );

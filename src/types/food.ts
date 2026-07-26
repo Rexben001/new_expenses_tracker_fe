@@ -1,5 +1,6 @@
 export type FoodCategory = string;
 export type FoodLifecycleStatus = "active" | "finished" | "wasted";
+export type FoodPreparationState = "raw" | "cooked";
 
 export type FoodItemInput = {
   name: string;
@@ -14,6 +15,7 @@ export type FoodItemInput = {
   notes?: string;
   buy: boolean;
   opened: boolean;
+  preparationState?: FoodPreparationState;
   freezable?: boolean;
   freezeExtensionDays?: number;
   estimatedValue?: number;

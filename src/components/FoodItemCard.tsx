@@ -7,6 +7,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import {
+  getFoodPreparationState,
   getFoodItemIcon,
   getFoodStatus,
   type FoodStatus,
@@ -48,6 +49,7 @@ export function FoodItemCard({
 }) {
   const status = getFoodStatus(item);
   const statusLabel = statusLabels[status];
+  const preparationState = getFoodPreparationState(item);
   const quantityStep = item.unit === "kg" || item.unit === "liters" ? 0.5 : 1;
   const updateQuantity = (amount: number) => {
     const quantity = Math.max(
@@ -94,11 +96,18 @@ export function FoodItemCard({
                 </span>
               )}
             </span>
-            {item.opened && (
-              <span className="block text-[9px] leading-none text-gray-500">
-                Opened
+            <span className="block text-[9px] leading-none text-gray-500">
+              <span
+                className={
+                  preparationState === "cooked"
+                    ? "font-semibold text-orange-600 dark:text-orange-300"
+                    : "font-semibold text-emerald-600 dark:text-emerald-300"
+                }
+              >
+                {preparationState === "cooked" ? "Cooked" : "Raw"}
               </span>
-            )}
+              {item.opened ? " · Opened" : ""}
+            </span>
           </span>
         </button>
 
