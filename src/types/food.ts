@@ -50,3 +50,44 @@ export type FoodConsumptionPeriod = {
   totalQuantity: number;
   quantitiesByUnit: Record<string, number>;
 };
+
+export type Weekday = "sunday" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
+export type MealType = "lunch" | "dinner";
+
+export type MealIngredient = {
+  name: string;
+  quantity: number;
+  unit: string;
+  foodItemId?: string;
+};
+
+export type Meal = {
+  id: string;
+  name: string;
+  description?: string;
+  ingredients: MealIngredient[];
+  recordType?: "meal";
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type IngredientWarning = {
+  ingredient: string;
+  severity: "missing" | "insufficient" | "low";
+  message: string;
+};
+
+export type MealScheduleEntry = {
+  id: string;
+  day: Weekday;
+  date: string;
+  mealType: MealType;
+  mealId: string;
+  mealName: string;
+  warnings: IngredientWarning[];
+  cooked: boolean;
+  cookedAt?: string;
+  updatedAt: string;
+};
+
+export type MealPlan = { meals: Meal[]; schedule: MealScheduleEntry[] };

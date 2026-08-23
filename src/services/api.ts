@@ -1,5 +1,6 @@
 import { getTokens } from "./amplify";
 import type { CalendarEntry } from "../types/calendar";
+import type { Meal, MealPlan, MealScheduleEntry, MealType } from "../types/food";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -404,6 +405,26 @@ export function deleteFoodItem(id: string, subId?: string) {
     method: "DELETE",
     path: addSubIdPath(`food-items/${id}`, subId),
   });
+}
+
+export function getMealPlan(subId?: string) {
+  return fetchApi({ method: "GET", path: addSubIdPath("meal-plans", subId) }) as Promise<MealPlan>;
+}
+
+export function createMeal(body: Pick<Meal, "name" | "description" | "ingredients">, subId?: string) {
+  return fetchApi({ method: "POST", path: addSubIdPath("meal-plans/meals", subId), body }) as Promise<{ item: Meal }>;
+}
+
+export function deleteMeal(id: string, subId?: string) {
+  return fetchApi({ method: "DELETE", path: addSubIdPath(`meal-plans/meals/${id}`, subId) });
+}
+
+export function setMealSchedule(date: string, mealType: MealType, body: { mealId?: string; cooked?: boolean }, subId?: string) {
+  return fetchApi({ method: "PUT", path: addSubIdPath(`meal-plans/schedule/${date}/${mealType}`, subId), body }) as Promise<{ item: MealScheduleEntry; warnings: MealScheduleEntry["warnings"] }>;
+}
+
+export function clearMealSchedule(date: string, mealType: MealType, subId?: string) {
+  return fetchApi({ method: "DELETE", path: addSubIdPath(`meal-plans/schedule/${date}/${mealType}`, subId) });
 }
 
 export function getCalendarEntries(subId?: string) {

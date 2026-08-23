@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaCalendarAlt,
+  FaCalendarWeek,
   FaList,
   FaQuestionCircle,
   FaTasks,
@@ -37,6 +38,13 @@ const homeLinks = [
     icon: FaUtensils,
     color:
       "bg-lime-50 text-lime-700 dark:bg-lime-950/50 dark:text-lime-200",
+  },
+  {
+    to: "/food/timetable",
+    label: "Food Timetable",
+    icon: FaCalendarWeek,
+    color:
+      "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-200",
   },
   {
     to: "/calendar",

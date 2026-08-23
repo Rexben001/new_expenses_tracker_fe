@@ -5,6 +5,7 @@ import {
   FiMapPin,
   FiPackage,
   FiPieChart,
+  FiCalendar,
   FiPlus,
   FiSearch,
   FiShoppingCart,
@@ -431,6 +432,13 @@ export function FoodTrackerPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              to="/food/timetable"
+              aria-label="Open food timetable"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-950/40 dark:text-orange-200"
+            >
+              <FiCalendar />
+            </Link>
             <Link
               to="/food/dashboard"
               aria-label="Open food dashboard"
