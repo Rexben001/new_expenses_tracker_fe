@@ -415,6 +415,10 @@ export function createMeal(body: Pick<Meal, "name" | "description" | "ingredient
   return fetchApi({ method: "POST", path: addSubIdPath("meal-plans/meals", subId), body }) as Promise<{ item: Meal }>;
 }
 
+export function updateMeal(id: string, body: Pick<Meal, "name" | "description" | "ingredients">, subId?: string) {
+  return fetchApi({ method: "PUT", path: addSubIdPath(`meal-plans/meals/${id}`, subId), body }) as Promise<{ item: Meal }>;
+}
+
 export function deleteMeal(id: string, subId?: string) {
   return fetchApi({ method: "DELETE", path: addSubIdPath(`meal-plans/meals/${id}`, subId) });
 }

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertTriangle, FiCheckCircle, FiChevronLeft, FiChevronRight, FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiCheckCircle, FiChevronLeft, FiChevronRight, FiEdit2, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
 import SwipeShell from "../components/SwipeShell";
 import { useItemContext } from "../hooks/useItemContext";
-import { clearMealSchedule, createMeal, deleteMeal, getErrorMessage, getMealPlan, setMealSchedule } from "../services/api";
+import { clearMealSchedule, createMeal, deleteMeal, getErrorMessage, getMealPlan, setMealSchedule, updateMeal } from "../services/api";
 import type { Meal, MealIngredient, MealPlan, MealType, Weekday } from "../types/food";
 
 const days: Array<{ value: Weekday; label: string }> = [
@@ -33,6 +33,7 @@ export function FoodTimetablePage() {
   const [mealName, setMealName] = useState("");
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState<MealIngredient[]>([blankIngredient()]);
+  const [editingMealId, setEditingMealId] = useState<string>();
   const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
 
   const load = useCallback(async () => {
@@ -74,11 +75,27 @@ export function FoodTimetablePage() {
   const saveMeal = async (event: React.FormEvent) => {
     event.preventDefault(); setPending("meal"); setError("");
     try {
-      const result = await createMeal({ name: mealName.trim(), description: description.trim() || undefined, ingredients: ingredients.map((item) => ({ ...item, name: item.name.trim(), unit: item.unit.trim(), quantity: Number(item.quantity) })) }, await getSubAccountId());
-      setPlan((value) => ({ ...value, meals: [...value.meals, result.item] }));
-      setMealName(""); setDescription(""); setIngredients([blankIngredient()]); setFormOpen(false);
+      const payload = { name: mealName.trim(), description: description.trim() || undefined, ingredients: ingredients.map((item) => ({ ...item, name: item.name.trim(), unit: item.unit.trim(), quantity: Number(item.quantity) })) };
+      const subId = await getSubAccountId();
+      const result = editingMealId
+        ? await updateMeal(editingMealId, payload, subId)
+        : await createMeal(payload, subId);
+      setPlan((value) => ({
+        ...value,
+        meals: editingMealId
+          ? value.meals.map((meal) => meal.id === editingMealId ? result.item : meal)
+          : [...value.meals, result.item],
+      }));
+      setMealName(""); setDescription(""); setIngredients([blankIngredient()]); setEditingMealId(undefined); setFormOpen(false);
     } catch (value) { setError(getErrorMessage(value, "Could not save meal.")); }
     finally { setPending(""); }
+  };
+  const openNewMeal = () => {
+    setEditingMealId(undefined); setMealName(""); setDescription(""); setIngredients([blankIngredient()]); setError(""); setFormOpen(true);
+  };
+  const openEditMeal = (meal: Meal) => {
+    setEditingMealId(meal.id); setMealName(meal.name); setDescription(meal.description ?? "");
+    setIngredients(meal.ingredients.map((ingredient) => ({ ...ingredient }))); setError(""); setFormOpen(true);
   };
   const removeMeal = async (meal: Meal) => {
     setPending(meal.id); setError("");
@@ -95,7 +112,7 @@ export function FoodTimetablePage() {
             <Link to="/food" aria-label="Back to food tracker" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"><FiChevronLeft /></Link>
             <div><h1 className="text-xl font-bold">Food timetable</h1><p className="text-sm text-gray-500">Monday to Sunday</p></div>
           </div>
-          <button type="button" onClick={() => setFormOpen(true)} className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-600 px-3 py-2 font-medium text-white"><FiPlus /> Meal</button>
+          <button type="button" onClick={openNewMeal} className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-600 px-3 py-2 font-medium text-white"><FiPlus /> Meal</button>
         </div>
       </HeaderComponent>
 
@@ -130,13 +147,13 @@ export function FoodTimetablePage() {
         );})}
 
         <section className="space-y-2"><h2 className="text-lg font-bold">My meals</h2>{plan.meals.filter((meal) => !meal.id.startsWith("default-")).map((meal) => (
-          <div key={meal.id} className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"><div><p className="font-semibold">{meal.name}</p><p className="text-xs text-gray-500">{meal.ingredients.map((item) => item.name).join(", ")}</p></div><button aria-label={`Delete ${meal.name}`} disabled={pending === meal.id} onClick={() => void removeMeal(meal)} className="p-2 text-red-600"><FiTrash2 /></button></div>
+          <div key={meal.id} className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"><div><p className="font-semibold">{meal.name}</p><p className="text-xs text-gray-500">{meal.ingredients.map((item) => item.name).join(", ")}</p></div><div className="flex"><button aria-label={`Edit ${meal.name}`} disabled={pending === meal.id} onClick={() => openEditMeal(meal)} className="p-2 text-orange-600"><FiEdit2 /></button><button aria-label={`Delete ${meal.name}`} disabled={pending === meal.id} onClick={() => void removeMeal(meal)} className="p-2 text-red-600"><FiTrash2 /></button></div></div>
         ))}</section>
       </main>
       <FooterNav />
 
       {formOpen && <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"><form onSubmit={saveMeal} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 dark:bg-gray-950 sm:rounded-3xl">
-        <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold">Add meal</h2><button type="button" onClick={() => setFormOpen(false)} className="p-2" aria-label="Close"><FiX /></button></div>
+        <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold">{editingMealId ? "Edit meal" : "Add meal"}</h2><button type="button" onClick={() => setFormOpen(false)} className="p-2" aria-label="Close"><FiX /></button></div>
         <label className="mb-3 block text-sm font-medium">Meal name<input required maxLength={120} className={`${inputClass} mt-1`} value={mealName} onChange={(event) => setMealName(event.target.value)} /></label>
         <label className="mb-4 block text-sm font-medium">Description<textarea maxLength={500} className={`${inputClass} mt-1`} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
         <div className="mb-2 flex items-center justify-between"><h3 className="font-bold">Ingredients</h3><Link to="/food" className="text-sm font-medium text-emerald-700">Add to tracker</Link></div>
@@ -145,7 +162,7 @@ export function FoodTimetablePage() {
           <div className="mt-2 grid grid-cols-[1fr_5rem_6rem_auto] gap-2"><input aria-label="Ingredient name" required placeholder="Ingredient" className={inputClass} value={ingredient.name} onChange={(event) => updateIngredient(index, { name: event.target.value, foodItemId: undefined })} /><input aria-label="Quantity" required min="0.01" step="any" type="number" className={inputClass} value={ingredient.quantity} onChange={(event) => updateIngredient(index, { quantity: Number(event.target.value) })} /><input aria-label="Unit" required placeholder="Unit" className={inputClass} value={ingredient.unit} onChange={(event) => updateIngredient(index, { unit: event.target.value })} /><button type="button" aria-label="Remove ingredient" disabled={ingredients.length === 1} onClick={() => setIngredients((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="p-2 text-red-600 disabled:opacity-30"><FiTrash2 /></button></div>
         </div>)}</div>
         <button type="button" onClick={() => setIngredients((items) => [...items, blankIngredient()])} className="mt-3 text-sm font-semibold text-orange-700">+ Add ingredient</button>
-        <button disabled={pending === "meal"} className="mt-5 w-full rounded-xl bg-orange-600 p-3 font-semibold text-white disabled:opacity-50">{pending === "meal" ? "Saving…" : "Save meal"}</button>
+        <button disabled={pending === "meal"} className="mt-5 w-full rounded-xl bg-orange-600 p-3 font-semibold text-white disabled:opacity-50">{pending === "meal" ? "Saving…" : editingMealId ? "Update meal" : "Save meal"}</button>
       </form></div>}
     </SwipeShell>
   );
