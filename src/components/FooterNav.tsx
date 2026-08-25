@@ -1,5 +1,6 @@
 import {
   FaCalendarAlt,
+  FaCalendarWeek,
   FaChartPie,
   FaEllipsisH,
   FaHome,
@@ -51,7 +52,12 @@ const footerLinks = {
     adminOnly: true,
   },
   tasks: { to: "/tasks", icon: FaTasks, label: "Tasks" },
-  food: { to: "/food", icon: FaUtensils, label: "Food" },
+  food: { to: "/food", icon: FaUtensils, label: "Tracker", end: true },
+  foodTimetable: {
+    to: "/food/timetable",
+    icon: FaCalendarWeek,
+    label: "Timetable",
+  },
   settings: { to: "/settings", icon: FaTools, label: "Settings" },
   howTo: {
     to: "/how-to",
@@ -157,7 +163,12 @@ export function FooterNav({ className = "" }: { className?: string }) {
     }
 
     if (pathname.startsWith("/food")) {
-      return visible([footerLinks.home, footerLinks.food, footerLinks.settings]);
+      return visible([
+        footerLinks.home,
+        footerLinks.food,
+        footerLinks.foodTimetable,
+        footerLinks.settings,
+      ]);
     }
 
     if (pathname.startsWith("/calendar")) {
