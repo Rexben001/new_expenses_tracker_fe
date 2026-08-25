@@ -1,6 +1,8 @@
 import { useSwipeable } from "react-swipeable";
 import {
   FiCheckCircle,
+  FiEye,
+  FiEyeOff,
   FiMinus,
   FiPlus,
   FiShoppingCart,
@@ -95,6 +97,11 @@ export function FoodItemCard({
                   {statusLabel}
                 </span>
               )}
+              {item.hidden && (
+                <span className="shrink-0 rounded-full bg-gray-200 px-1.5 py-0.5 text-[9px] font-semibold leading-none text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                  Hidden
+                </span>
+              )}
             </span>
             <span className="block text-[9px] leading-none text-gray-500">
               <span
@@ -139,6 +146,16 @@ export function FoodItemCard({
         </div>
 
         <div className="flex shrink-0 items-center">
+          <button
+            disabled={pending}
+            type="button"
+            title={item.hidden ? "Unhide" : "Hide"}
+            onClick={() => onPatch(item, { hidden: !item.hidden })}
+            className="grid h-7 w-7 place-items-center rounded-md text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+            aria-label={`${item.hidden ? "Unhide" : "Hide"} ${item.name}`}
+          >
+            {item.hidden ? <FiEye /> : <FiEyeOff />}
+          </button>
           <button
             disabled={pending}
             type="button"

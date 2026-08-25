@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   FiAlertTriangle,
   FiClock,
+  FiEyeOff,
   FiMapPin,
   FiPackage,
   FiPieChart,
@@ -50,7 +51,7 @@ import type {
   FoodLifecycleStatus,
 } from "../types/food";
 
-type Filter = "all" | "restock" | "tonight" | "expiring";
+type Filter = "all" | "restock" | "tonight" | "expiring" | "hidden";
 type Outcome = Exclude<FoodLifecycleStatus, "active">;
 type NewFoodOption = {
   field: "location" | "unit" | "category";
@@ -116,11 +117,16 @@ export function FoodTrackerPage() {
   const [pendingId, setPendingId] = useState<string>();
   const [newFoodOption, setNewFoodOption] = useState<NewFoodOption>();
 
-  const restockCount = items.filter(needsRestock).length;
-  const tonightCount = items.filter(
+  const visibleItems = useMemo(
+    () => items.filter((item) => !item.hidden),
+    [items]
+  );
+  const hiddenCount = items.length - visibleItems.length;
+  const restockCount = visibleItems.filter(needsRestock).length;
+  const tonightCount = visibleItems.filter(
     (item) => isDueWithin(item, 2) || isFreshnessFlagged(item)
   ).length;
-  const expiringCount = items.filter((item) => {
+  const expiringCount = visibleItems.filter((item) => {
     const status = getFoodStatus(item);
     return status === "expiring" || status === "expired" || status === "stale";
   }).length;
@@ -136,6 +142,9 @@ export function FoodTrackerPage() {
     const normalizedQuery = query.trim().toLowerCase();
     return items
       .filter((item) => {
+        if (filter === "hidden") {
+          if (!item.hidden) return false;
+        } else if (item.hidden) return false;
         if (selectedLocation !== "All" && (item.location || "Unassigned") !== selectedLocation) return false;
         if (filter === "restock" && !needsRestock(item)) return false;
         if (
@@ -179,14 +188,14 @@ export function FoodTrackerPage() {
 
   const freezeCandidates = useMemo(
     () =>
-      items.filter(
+      visibleItems.filter(
         (item) =>
           item.freezable &&
           (item.estimatedValue ?? 0) >= 5 &&
           isDueWithin(item, 1) &&
           item.location?.toLowerCase() !== "freezer"
       ),
-    [items]
+    [visibleItems]
   );
   const formPredictions = useMemo(
     () => findFoodPredictions(form.name, 4),
@@ -487,12 +496,13 @@ export function FoodTrackerPage() {
           </button>
         ))}
 
-        <section className="grid grid-cols-4 gap-2" aria-label="Inventory filters">
+        <section className="grid grid-cols-5 gap-2" aria-label="Inventory filters">
           {[
-            { key: "all" as Filter, label: "Items", value: items.length, icon: FiPackage },
+            { key: "all" as Filter, label: "Items", value: visibleItems.length, icon: FiPackage },
             { key: "restock" as Filter, label: "To buy", value: restockCount, icon: FiShoppingCart },
             { key: "tonight" as Filter, label: "Tonight", value: tonightCount, icon: FiClock },
             { key: "expiring" as Filter, label: "7 days", value: expiringCount, icon: FiAlertTriangle },
+            { key: "hidden" as Filter, label: "Hidden", value: hiddenCount, icon: FiEyeOff },
           ].map(({ key, label, value, icon: Icon }) => (
             <button
               key={key}

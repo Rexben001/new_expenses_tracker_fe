@@ -17,6 +17,7 @@ export type FoodItemInput = {
   opened: boolean;
   preparationState?: FoodPreparationState;
   freezable?: boolean;
+  hidden?: boolean;
   freezeExtensionDays?: number;
   estimatedValue?: number;
   estimatedWeightKg?: number;
