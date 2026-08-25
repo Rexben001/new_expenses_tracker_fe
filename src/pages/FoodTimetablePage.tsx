@@ -23,7 +23,7 @@ const mondayOf = (date: Date) => { const next = new Date(date.getFullYear(), dat
 const weekLabel = (monday: Date) => `${monday.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${addDays(monday, 6).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 
 export function FoodTimetablePage() {
-  const { foodItems, getSubAccountId } = useItemContext();
+  const { foodItems, fetchFoodItems, getSubAccountId } = useItemContext();
   const [plan, setPlan] = useState<MealPlan>({ meals: [], schedule: [] });
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState("");
@@ -86,6 +86,7 @@ export function FoodTimetablePage() {
           ? value.meals.map((meal) => meal.id === editingMealId ? result.item : meal)
           : [...value.meals, result.item],
       }));
+      await fetchFoodItems(subId);
       setMealName(""); setDescription(""); setIngredients([blankIngredient()]); setEditingMealId(undefined); setFormOpen(false);
     } catch (value) { setError(getErrorMessage(value, "Could not save meal.")); }
     finally { setPending(""); }
