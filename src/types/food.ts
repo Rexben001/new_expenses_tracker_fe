@@ -66,7 +66,7 @@ export type Meal = {
   name: string;
   description?: string;
   ingredients: MealIngredient[];
-  recordType?: "meal";
+  recordType?: "meal" | "mealOverride";
   createdAt?: string;
   updatedAt?: string;
 };

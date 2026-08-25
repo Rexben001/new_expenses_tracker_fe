@@ -146,8 +146,8 @@ export function FoodTimetablePage() {
           </section>
         );})}
 
-        <section className="space-y-2"><h2 className="text-lg font-bold">My meals</h2>{plan.meals.filter((meal) => !meal.id.startsWith("default-")).map((meal) => (
-          <div key={meal.id} className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"><div><p className="font-semibold">{meal.name}</p><p className="text-xs text-gray-500">{meal.ingredients.map((item) => item.name).join(", ")}</p></div><div className="flex"><button aria-label={`Edit ${meal.name}`} disabled={pending === meal.id} onClick={() => openEditMeal(meal)} className="p-2 text-orange-600"><FiEdit2 /></button><button aria-label={`Delete ${meal.name}`} disabled={pending === meal.id} onClick={() => void removeMeal(meal)} className="p-2 text-red-600"><FiTrash2 /></button></div></div>
+        <section className="space-y-2"><h2 className="text-lg font-bold">Meals</h2>{plan.meals.map((meal) => (
+          <div key={meal.id} className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"><div><div className="flex items-center gap-2"><p className="font-semibold">{meal.name}</p>{meal.id.startsWith("default-") && <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-orange-700 dark:bg-orange-950 dark:text-orange-200">Template</span>}</div><p className="text-xs text-gray-500">{meal.ingredients.map((item) => item.name).join(", ")}</p></div><div className="flex"><button aria-label={`Edit ${meal.name}`} disabled={pending === meal.id} onClick={() => openEditMeal(meal)} className="p-2 text-orange-600"><FiEdit2 /></button>{!meal.id.startsWith("default-") && <button aria-label={`Delete ${meal.name}`} disabled={pending === meal.id} onClick={() => void removeMeal(meal)} className="p-2 text-red-600"><FiTrash2 /></button>}</div></div>
         ))}</section>
       </main>
       <FooterNav />
