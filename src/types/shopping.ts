@@ -9,6 +9,9 @@ export type ShoppingItem = {
   foodItemId?: string;
   createdAt: string;
   updatedAt: string;
+  status?: "active" | "purchased";
+  purchasedQuantity?: number;
+  purchasedAt?: string;
 };
 
 export type ShoppingItemInput = Pick<ShoppingItem, "name" | "quantity" | "unit" | "category" | "notes">;
