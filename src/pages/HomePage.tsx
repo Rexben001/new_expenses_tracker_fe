@@ -7,6 +7,7 @@ import {
   FaTasks,
   FaTools,
   FaUtensils,
+  FaShoppingBasket,
   FaVideo,
 } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
@@ -45,6 +46,13 @@ const homeLinks = [
     icon: FaCalendarWeek,
     color:
       "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-200",
+  },
+  {
+    to: "/shopping",
+    label: "Shopping List",
+    icon: FaShoppingBasket,
+    color:
+      "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/50 dark:text-fuchsia-200",
   },
   {
     to: "/calendar",

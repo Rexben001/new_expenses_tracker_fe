@@ -18,6 +18,7 @@ import { TasksPage } from "./pages/TasksPage";
 import { FoodTrackerPage } from "./pages/FoodTrackerPage";
 import { FoodDashboardPage } from "./pages/FoodDashboardPage";
 import { FoodTimetablePage } from "./pages/FoodTimetablePage";
+import { ShoppingPage } from "./pages/ShoppingPage";
 import { IphoneVideosPage } from "./pages/IphoneVideosPage";
 import { HowToPage } from "./pages/HowToPage";
 import { BudgetForm } from "./pages/BudgetForm";
@@ -159,6 +160,7 @@ export default function App() {
                 <Route path="/food" element={<FoodTrackerPage />} />
                 <Route path="/food/dashboard" element={<FoodDashboardPage />} />
                 <Route path="/food/timetable" element={<FoodTimetablePage />} />
+                <Route path="/shopping" element={<ShoppingPage />} />
                 <Route
                   path="/videos"
                   element={

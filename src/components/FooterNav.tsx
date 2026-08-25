@@ -11,6 +11,7 @@ import {
   FaTools,
   FaVideo,
   FaWallet,
+  FaShoppingBasket,
 } from "react-icons/fa";
 import { FiChevronUp } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
@@ -58,6 +59,7 @@ const footerLinks = {
     icon: FaCalendarWeek,
     label: "Timetable",
   },
+  shopping: { to: "/shopping", icon: FaShoppingBasket, label: "Shopping" },
   settings: { to: "/settings", icon: FaTools, label: "Settings" },
   howTo: {
     to: "/how-to",
@@ -169,6 +171,10 @@ export function FooterNav({ className = "" }: { className?: string }) {
         footerLinks.foodTimetable,
         footerLinks.settings,
       ]);
+    }
+
+    if (pathname.startsWith("/shopping")) {
+      return visible([footerLinks.home, footerLinks.shopping, footerLinks.food, footerLinks.settings]);
     }
 
     if (pathname.startsWith("/calendar")) {
