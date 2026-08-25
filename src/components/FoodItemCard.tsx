@@ -71,10 +71,10 @@ export function FoodItemCard({
   return (
     <article
       {...swipeHandlers}
-      className="rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      className={`rounded-xl border bg-white p-2.5 shadow-sm dark:bg-gray-900 ${item.hidden ? "border-dashed border-gray-300 opacity-75 dark:border-gray-700" : "border-gray-200 dark:border-gray-800"}`}
       style={{ touchAction: "pan-y" }}
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-start gap-2">
         <button
           type="button"
           onClick={() => onEdit(item)}
@@ -82,14 +82,14 @@ export function FoodItemCard({
           aria-label={`Edit ${item.name}`}
         >
           <span
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gray-100 text-lg dark:bg-gray-800"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gray-100 text-xl dark:bg-gray-800"
             aria-hidden="true"
           >
             {getFoodItemIcon(item)}
           </span>
           <span className="min-w-0">
             <span className="flex items-center gap-1">
-              <span className="truncate text-sm font-semibold">{item.name}</span>
+              <span className="truncate font-semibold">{item.name}</span>
               {statusLabel && (
                 <span
                   className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none ${statusStyles[status]}`}
@@ -103,7 +103,7 @@ export function FoodItemCard({
                 </span>
               )}
             </span>
-            <span className="block text-[9px] leading-none text-gray-500">
+            <span className="block text-[10px] text-gray-500">
               <span
                 className={
                   preparationState === "cooked"
@@ -123,12 +123,12 @@ export function FoodItemCard({
             disabled={pending || item.quantity <= 0}
             type="button"
             onClick={() => updateQuantity(-quantityStep)}
-            className="grid h-7 w-7 place-items-center rounded-md bg-white text-xs text-gray-600 shadow-sm disabled:opacity-40 dark:bg-gray-900 dark:text-gray-300"
+            className="grid h-8 w-8 place-items-center rounded-md bg-white text-gray-600 shadow-sm disabled:opacity-40 dark:bg-gray-900 dark:text-gray-300"
             aria-label={`Reduce ${item.name} by ${quantityStep} ${item.unit}`}
           >
             <FiMinus />
           </button>
-          <span className="min-w-9 px-1 text-center">
+          <span className="min-w-10 px-1 text-center">
             <span className="block text-xs font-bold leading-none">{item.quantity}</span>
             <span className="mt-0.5 block max-w-12 truncate text-[8px] leading-none text-gray-500">
               {item.unit}
@@ -138,20 +138,24 @@ export function FoodItemCard({
             disabled={pending}
             type="button"
             onClick={() => updateQuantity(quantityStep)}
-            className="grid h-7 w-7 place-items-center rounded-md bg-emerald-600 text-xs text-white shadow-sm disabled:opacity-40"
+            className="grid h-8 w-8 place-items-center rounded-md bg-emerald-600 text-white shadow-sm disabled:opacity-40"
             aria-label={`Increase ${item.name} by ${quantityStep} ${item.unit}`}
           >
             <FiPlus />
           </button>
         </div>
 
-        <div className="flex shrink-0 items-center">
+        </div>
+
+        <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-1.5 dark:border-gray-800">
+          <span className="text-xs text-gray-500">{item.location || "Unassigned"}</span>
+          <div className="flex shrink-0 items-center gap-1">
           <button
             disabled={pending}
             type="button"
             title={item.hidden ? "Unhide" : "Hide"}
             onClick={() => onPatch(item, { hidden: !item.hidden })}
-            className="grid h-7 w-7 place-items-center rounded-md text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="grid h-8 w-8 place-items-center rounded-md text-sm text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-800"
             aria-label={`${item.hidden ? "Unhide" : "Hide"} ${item.name}`}
           >
             {item.hidden ? <FiEye /> : <FiEyeOff />}
@@ -161,7 +165,7 @@ export function FoodItemCard({
             type="button"
             title="Finished"
             onClick={() => onOutcome(item, "finished")}
-            className="grid h-7 w-7 place-items-center rounded-md text-sm text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+            className="grid h-8 w-8 place-items-center rounded-md text-sm text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
             aria-label={`Mark ${item.name} finished`}
           >
             <FiCheckCircle />
@@ -171,7 +175,7 @@ export function FoodItemCard({
             type="button"
             title={item.buy ? "Remove from shopping list" : "Add to shopping list"}
             onClick={() => onPatch(item, { buy: !item.buy })}
-            className={`grid h-7 w-7 place-items-center rounded-md text-sm disabled:opacity-50 ${item.buy ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200" : "text-gray-500 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30"}`}
+            className={`grid h-8 w-8 place-items-center rounded-md text-sm disabled:opacity-50 ${item.buy ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-200" : "text-gray-500 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30"}`}
             aria-label={
               item.buy
                 ? `Remove ${item.name} from shopping list`
@@ -185,7 +189,7 @@ export function FoodItemCard({
             type="button"
             title="Thrown away"
             onClick={() => onOutcome(item, "wasted")}
-            className="grid h-7 w-7 place-items-center rounded-md text-sm text-red-500 hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/30"
+            className="grid h-8 w-8 place-items-center rounded-md text-sm text-red-500 hover:bg-red-50 disabled:opacity-50 dark:text-red-300 dark:hover:bg-red-950/30"
             aria-label={`Mark ${item.name} thrown away`}
           >
             <FiTrash2 />

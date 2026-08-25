@@ -35,6 +35,10 @@ export function FoodTimetablePage() {
   const [ingredients, setIngredients] = useState<MealIngredient[]>([blankIngredient()]);
   const [editingMealId, setEditingMealId] = useState<string>();
   const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const day = new Date().getDay();
+    return day === 0 ? 6 : day - 1;
+  });
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -117,39 +121,47 @@ export function FoodTimetablePage() {
         </div>
       </HeaderComponent>
 
-      <main className="mx-auto min-h-screen max-w-md space-y-4 px-4 pb-32 pt-[calc(var(--app-header-height,6rem)+1.5rem)] dark:text-white">
+      <main className="mx-auto min-h-screen max-w-md space-y-3 px-4 pb-32 pt-[calc(var(--app-header-height,6rem)+1rem)] dark:text-white">
         {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">{error}</div>}
         {notice && <div role="status" className="flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"><FiAlertTriangle className="mt-0.5 shrink-0" />{notice}</div>}
-        <section className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 text-sm text-orange-900 dark:border-orange-950 dark:bg-orange-950/20 dark:text-orange-100">
-          Pick meals below. Inventory check warns when ingredient is missing, insufficient, or would fall to minimum stock.
+        <section className="rounded-xl border border-orange-100 bg-orange-50/60 px-3 py-2 text-xs text-orange-900 dark:border-orange-950 dark:bg-orange-950/20 dark:text-orange-100">
+          Meal selection checks ingredient stock automatically.
         </section>
-        <section className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+        <section className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-2 dark:border-gray-800 dark:bg-gray-900">
           <button type="button" aria-label="Previous week" onClick={() => setWeekStart((date) => addDays(date, -7))} className="grid h-10 w-10 place-items-center rounded-xl bg-gray-100 dark:bg-gray-800"><FiChevronLeft /></button>
           <button type="button" onClick={() => setWeekStart(mondayOf(new Date()))} className="text-center"><span className="block font-bold">{weekLabel(weekStart)}</span><span className="text-xs text-orange-700">Tap for current week</span></button>
           <button type="button" aria-label="Next week" onClick={() => setWeekStart((date) => addDays(date, 7))} className="grid h-10 w-10 place-items-center rounded-xl bg-gray-100 dark:bg-gray-800"><FiChevronRight /></button>
         </section>
-        {loading ? <div className="p-8 text-center text-gray-500">Loading timetable…</div> : days.map((day, dayIndex) => {
-          const date = addDays(weekStart, dayIndex);
+        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Days of week">
+          {days.map((day, index) => {
+            const date = addDays(weekStart, index);
+            const hasMeal = mealTypes.some((type) => schedule.has(`${dateKey(date)}-${type}`));
+            return <button key={day.value} type="button" onClick={() => setSelectedDay(index)} className={`min-w-14 rounded-lg border px-2 py-1.5 text-center ${selectedDay === index ? "border-orange-500 bg-orange-600 text-white" : "border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"}`}><span className="block text-[10px] font-semibold">{day.label.slice(0, 3)}</span><span className="block font-bold">{date.getDate()}</span>{hasMeal && <span className={`mx-auto block h-1 w-1 rounded-full ${selectedDay === index ? "bg-white" : "bg-orange-500"}`} />}</button>;
+          })}
+        </div>
+        {loading ? <div className="p-8 text-center text-gray-500">Loading timetable…</div> : (() => {
+          const day = days[selectedDay];
+          const date = addDays(weekStart, selectedDay);
           const dateValue = dateKey(date);
-          return (
-          <section key={day.value} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <h2 className="mb-3 font-bold">{day.label} <span className="ml-1 text-sm font-normal text-gray-500">{date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span></h2>
-            <div className="grid grid-cols-2 gap-3">{mealTypes.map((mealType) => {
+          return <section className="space-y-2">
+            <div><h2 className="text-lg font-bold">{day.label}</h2><p className="text-sm text-gray-500">{date.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" })}</p></div>
+            {mealTypes.map((mealType) => {
               const entry = schedule.get(`${dateValue}-${mealType}`);
-              return <label key={mealType} className="text-xs font-semibold uppercase tracking-wide text-gray-500">{mealType}
-                <select className={`${inputClass} mt-1 text-sm font-normal normal-case`} value={entry?.mealId ?? ""} disabled={pending === `${dateValue}-${mealType}`} onChange={(event) => void assignMeal(dateValue, mealType, event.target.value)}>
-                  <option value="">Not planned</option>{plan.meals.map((meal) => <option key={meal.id} value={meal.id}>{meal.name}</option>)}
+              return <article key={mealType} className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div className="mb-2 flex items-center justify-between"><h3 className="font-bold capitalize">{mealType}</h3>{entry?.cooked && <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200"><FiCheckCircle /> Cooked</span>}</div>
+                <select aria-label={`${day.label} ${mealType}`} className={inputClass} value={entry?.mealId ?? ""} disabled={pending === `${dateValue}-${mealType}`} onChange={(event) => void assignMeal(dateValue, mealType, event.target.value)}>
+                  <option value="">Choose a meal…</option>{plan.meals.map((meal) => <option key={meal.id} value={meal.id}>{meal.name}</option>)}
                 </select>
-                {!!entry?.warnings.length && <span className="mt-1 flex items-center gap-1 normal-case text-amber-600"><FiAlertTriangle /> {entry.warnings.length} stock warning{entry.warnings.length === 1 ? "" : "s"}</span>}
-                {entry && <button type="button" disabled={pending === entry.id} onClick={() => void markCooked(entry)} className={`mt-2 flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold normal-case ${entry.cooked ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950" : "bg-gray-100 text-gray-600 dark:bg-gray-800"}`}><FiCheckCircle /> {entry.cooked ? "Cooked" : "Mark cooked"}</button>}
-              </label>;
-            })}</div>
-          </section>
-        );})}
+                {!!entry?.warnings.length && <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"><p className="mb-1 flex items-center gap-1 font-bold"><FiAlertTriangle /> Ingredient check</p><ul className="space-y-1">{entry.warnings.map((warning) => <li key={`${warning.ingredient}-${warning.severity}`}>• {warning.message}</li>)}</ul></div>}
+                {entry && <button type="button" disabled={pending === entry.id} onClick={() => void markCooked(entry)} className={`mt-3 w-full rounded-xl px-3 py-2 text-sm font-semibold ${entry.cooked ? "border border-gray-200 text-gray-600 dark:border-gray-700" : "bg-emerald-600 text-white"}`}>{entry.cooked ? "Mark as not cooked" : "Mark as cooked"}</button>}
+              </article>;
+            })}
+          </section>;
+        })()}
 
-        <section className="space-y-2"><h2 className="text-lg font-bold">Meals</h2>{plan.meals.map((meal) => (
+        <details className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"><summary className="cursor-pointer font-bold">Meal library <span className="ml-1 text-sm font-normal text-gray-500">({plan.meals.length})</span></summary><section className="mt-4 space-y-2">{plan.meals.map((meal) => (
           <div key={meal.id} className="flex items-start justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"><div><div className="flex items-center gap-2"><p className="font-semibold">{meal.name}</p>{meal.id.startsWith("default-") && <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-orange-700 dark:bg-orange-950 dark:text-orange-200">Template</span>}</div><p className="text-xs text-gray-500">{meal.ingredients.map((item) => item.name).join(", ")}</p></div><div className="flex"><button aria-label={`Edit ${meal.name}`} disabled={pending === meal.id} onClick={() => openEditMeal(meal)} className="p-2 text-orange-600"><FiEdit2 /></button>{!meal.id.startsWith("default-") && <button aria-label={`Delete ${meal.name}`} disabled={pending === meal.id} onClick={() => void removeMeal(meal)} className="p-2 text-red-600"><FiTrash2 /></button>}</div></div>
-        ))}</section>
+        ))}</section></details>
       </main>
       <FooterNav />
 

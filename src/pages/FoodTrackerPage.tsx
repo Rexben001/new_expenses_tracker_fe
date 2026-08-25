@@ -466,7 +466,7 @@ export function FoodTrackerPage() {
         </div>
       </HeaderComponent>
 
-      <main className="mx-auto min-h-screen max-w-md space-y-4 px-4 pb-48 pt-[calc(var(--app-header-height,6rem)+1.5rem)] dark:text-white">
+      <main className="mx-auto min-h-screen max-w-md space-y-3 px-4 pb-48 pt-[calc(var(--app-header-height,6rem)+1rem)] dark:text-white">
         {(mutationError || resourceErrors.foodItems) && (
           <div
             role="alert"
@@ -496,7 +496,7 @@ export function FoodTrackerPage() {
           </button>
         ))}
 
-        <section className="grid grid-cols-5 gap-2" aria-label="Inventory filters">
+        <section className="flex gap-2 overflow-x-auto pb-1" aria-label="Inventory filters">
           {[
             { key: "all" as Filter, label: "Items", value: visibleItems.length, icon: FiPackage },
             { key: "restock" as Filter, label: "To buy", value: restockCount, icon: FiShoppingCart },
@@ -508,11 +508,11 @@ export function FoodTrackerPage() {
               key={key}
               type="button"
               onClick={() => setFilter(key)}
-              className={`rounded-xl border p-2 text-left shadow-sm ${filter === key ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40" : "border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"}`}
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 shadow-sm ${filter === key ? "border-emerald-600 bg-emerald-600 text-white" : "border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"}`}
             >
-              <Icon className="mb-2 text-emerald-600" />
-              <span className="block text-lg font-bold">{value}</span>
-              <span className="block truncate text-[10px] text-gray-500 dark:text-gray-400">{label}</span>
+              <Icon className={filter === key ? "text-white" : "text-emerald-600"} />
+              <span className="text-sm font-semibold">{label}</span>
+              <span className={`rounded-full px-1.5 text-xs font-bold ${filter === key ? "bg-white/20" : "bg-gray-100 dark:bg-gray-800"}`}>{value}</span>
             </button>
           ))}
         </section>
@@ -558,9 +558,9 @@ export function FoodTrackerPage() {
             </p>
           </section>
         ) : (
-          <section className="space-y-4" aria-label="Food inventory by location">
+          <section className="space-y-3" aria-label="Food inventory by location">
             {locationGroups.map(([location, groupItems]) => (
-              <div key={location} className="space-y-2">
+              <div key={location} className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
                   <h2 className="flex items-center gap-2 text-sm font-bold">
                     <FiMapPin className="text-emerald-600" /> {location}
