@@ -16,6 +16,7 @@ import {
 import { FaSnowflake } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { FoodItemCard } from "../components/FoodItemCard";
+import { NumberStepper } from "../components/NumberStepper";
 import { FoodQuickAdd } from "../components/FoodQuickAdd";
 import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
@@ -681,7 +682,7 @@ export function FoodTrackerPage() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm font-medium">
                   Quantity
-                  <input type="number" min="0" step="0.1" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
+                  <NumberStepper value={form.quantity} min={0} step={1} ariaLabel="Food quantity" onChange={(quantity) => setForm({ ...form, quantity })} className="mt-1" />
                 </label>
                 <div>
                   <label htmlFor="food-unit" className="block text-sm font-medium">
@@ -821,7 +822,7 @@ export function FoodTrackerPage() {
                   </div>
                   <label className="block text-sm font-medium">
                     Refill when quantity reaches
-                    <input type="number" min="0" step="0.1" value={form.minimumQuantity} onChange={(event) => setForm({ ...form, minimumQuantity: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
+                    <NumberStepper value={form.minimumQuantity} min={0} step={1} ariaLabel="Minimum quantity" onChange={(minimumQuantity) => setForm({ ...form, minimumQuantity })} className="mt-1" />
                   </label>
                   <label className="block text-sm font-medium">
                     Est. value
@@ -834,7 +835,7 @@ export function FoodTrackerPage() {
                   {form.freezable && (
                     <label className="block text-sm font-medium">
                       Freezer shelf life (days)
-                      <input type="number" min="1" max="730" value={form.freezeExtensionDays ?? 90} onChange={(event) => setForm({ ...form, freezeExtensionDays: Number(event.target.value) })} className={`mt-1 ${inputClass}`} />
+                      <NumberStepper value={form.freezeExtensionDays ?? 90} min={1} max={730} step={1} ariaLabel="Freeze extension days" onChange={(freezeExtensionDays) => setForm({ ...form, freezeExtensionDays })} className="mt-1" />
                     </label>
                   )}
                   <label className="block text-sm font-medium">
