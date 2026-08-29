@@ -448,7 +448,10 @@ export function getShoppingHistory(subId?: string) {
   return fetchApi({ method: "GET", path: addSubIdPath("shopping-items/history", subId) }) as Promise<ShoppingItem[]>;
 }
 export function purchaseShoppingItem(id: string, quantity: number, subId?: string) {
-  return fetchApi({ method: "POST", path: addSubIdPath(`shopping-items/${id}/purchase`, subId), body: { quantity } }) as Promise<{ item: ShoppingItem }>;
+  return fetchApi({ method: "POST", path: addSubIdPath(`shopping-items/${id}/purchase`, subId), body: { quantity } }) as Promise<{ item: ShoppingItem; remaining?: ShoppingItem }>;
+}
+export function readdShoppingItem(id: string, subId?: string) {
+  return fetchApi({ method: "POST", path: addSubIdPath(`shopping-items/${id}/readd`, subId) }) as Promise<{ item: ShoppingItem }>;
 }
 
 export function getCalendarEntries(subId?: string) {
