@@ -12,6 +12,7 @@ import {
   FaVideo,
   FaWallet,
   FaShoppingBasket,
+  FaTshirt,
 } from "react-icons/fa";
 import { FiChevronUp } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
@@ -60,6 +61,7 @@ const footerLinks = {
     label: "Timetable",
   },
   shopping: { to: "/shopping", icon: FaShoppingBasket, label: "Shopping" },
+  wardrobe: { to: "/wardrobe", icon: FaTshirt, label: "Wardrobe" },
   settings: { to: "/settings", icon: FaTools, label: "Settings" },
   howTo: {
     to: "/how-to",
@@ -177,6 +179,14 @@ export function FooterNav({ className = "" }: { className?: string }) {
       return visible([footerLinks.home, footerLinks.shopping, footerLinks.food, footerLinks.settings]);
     }
 
+    if (pathname.startsWith("/wardrobe")) {
+      return visible([
+        footerLinks.home,
+        footerLinks.wardrobe,
+        footerLinks.settings,
+      ]);
+    }
+
     if (pathname.startsWith("/calendar")) {
       return visible([
         footerLinks.home,
@@ -202,6 +212,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
           footerLinks.budgets,
           footerLinks.tasks,
           footerLinks.food,
+          footerLinks.wardrobe,
           footerLinks.calendar,
           footerLinks.howTo,
           footerLinks.videos,
@@ -213,6 +224,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
       [footerLinks.home, footerLinks.dashboard, footerLinks.tasks],
       [
         footerLinks.food,
+        footerLinks.wardrobe,
         footerLinks.expenses,
         footerLinks.budgets,
         footerLinks.settings,

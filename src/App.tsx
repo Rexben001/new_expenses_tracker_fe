@@ -12,6 +12,7 @@ import { BudgetPage } from "./pages/BudgetPage";
 import { ExpensesPage } from "./pages/ExpensesPage";
 import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
 import { CalendarPage } from "./pages/CalendarPage";
+import { WardrobePage } from "./pages/WardrobePage";
 import { CalendarDashboardPage } from "./pages/CalendarDashboardPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
@@ -161,6 +162,7 @@ export default function App() {
                 <Route path="/food/dashboard" element={<FoodDashboardPage />} />
                 <Route path="/food/timetable" element={<FoodTimetablePage />} />
                 <Route path="/shopping" element={<ShoppingPage />} />
+                <Route path="/wardrobe" element={<WardrobePage />} />
                 <Route
                   path="/videos"
                   element={

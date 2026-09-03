@@ -2,6 +2,11 @@ import { getTokens } from "./amplify";
 import type { CalendarEntry } from "../types/calendar";
 import type { Meal, MealPlan, MealScheduleEntry, MealType } from "../types/food";
 import type { ShoppingItem, ShoppingItemInput } from "../types/shopping";
+import type {
+  WardrobeItem,
+  WardrobeItemPayload,
+  WardrobeWeekPlan,
+} from "../types/wardrobe";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -580,6 +585,85 @@ export async function deleteSubAccount(subId: string) {
     method: "DELETE",
     path: `users?subId=${subId}`,
   });
+}
+
+export type WardrobeUploadUrlResponse = {
+  itemId: string;
+  imageKey: string;
+  uploadUrl: string;
+  expiresIn: number;
+  contentType: "image/png";
+};
+
+export function getWardrobeItems(subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath("wardrobe/items", subId),
+  }) as Promise<WardrobeItem[]>;
+}
+
+export function requestWardrobeUploadUrl(fileName: string, subId?: string) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("wardrobe/upload-url", subId),
+    body: { fileName, contentType: "image/png" },
+  }) as Promise<WardrobeUploadUrlResponse>;
+}
+
+export function createWardrobeItem(
+  body: WardrobeItemPayload,
+  subId?: string,
+) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("wardrobe/items", subId),
+    body,
+  }) as Promise<{ message: string; item: WardrobeItem }>;
+}
+
+export function updateWardrobeItem(
+  id: string,
+  body: Partial<
+    Pick<
+      WardrobeItem,
+      "category" | "colorFamily" | "colorHex" | "colorTone" | "favorite" | "name"
+    >
+  >,
+  subId?: string,
+) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath(`wardrobe/items/${encodeURIComponent(id)}`, subId),
+    body,
+  }) as Promise<{ message: string; item: WardrobeItem }>;
+}
+
+export function deleteWardrobeItem(id: string, subId?: string) {
+  return fetchApi({
+    method: "DELETE",
+    path: addSubIdPath(`wardrobe/items/${encodeURIComponent(id)}`, subId),
+  }) as Promise<{ deleted: boolean; id: string }>;
+}
+
+export function getWardrobePlan(weekStart: string, subId?: string) {
+  return fetchApi({
+    method: "GET",
+    path: addSubIdPath(
+      `wardrobe/plans/${encodeURIComponent(weekStart)}`,
+      subId,
+    ),
+  }) as Promise<WardrobeWeekPlan | null>;
+}
+
+export function saveWardrobePlan(plan: WardrobeWeekPlan, subId?: string) {
+  return fetchApi({
+    method: "PUT",
+    path: addSubIdPath(
+      `wardrobe/plans/${encodeURIComponent(plan.weekStart)}`,
+      subId,
+    ),
+    body: plan,
+  }) as Promise<{ message: string; plan: WardrobeWeekPlan }>;
 }
 
 export function scanReceiptV2(

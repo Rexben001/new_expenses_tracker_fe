@@ -9,6 +9,7 @@ import {
   FaUtensils,
   FaShoppingBasket,
   FaVideo,
+  FaTshirt,
 } from "react-icons/fa";
 import { FiArrowRight, FiEye, FiEyeOff, FiSliders } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
@@ -54,6 +55,13 @@ const homeLinks = [
     icon: FaShoppingBasket,
     color:
       "bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/50 dark:text-fuchsia-200",
+  },
+  {
+    to: "/wardrobe",
+    label: "Closet Match",
+    icon: FaTshirt,
+    color:
+      "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-200",
   },
   {
     to: "/calendar",

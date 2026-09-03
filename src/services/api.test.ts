@@ -4,11 +4,18 @@ import {
   API_BASE_URL,
   ApiError,
   createFoodItem,
+  createWardrobeItem,
   deleteFoodItem,
+  deleteWardrobeItem,
   getErrorMessage,
   getFoodStats,
   getTasks,
+  getWardrobeItems,
+  getWardrobePlan,
+  requestWardrobeUploadUrl,
+  saveWardrobePlan,
   updateFoodItem,
+  updateWardrobeItem,
   updateBudget,
 } from "./api";
 
@@ -116,6 +123,43 @@ describe("api service", () => {
       `${API_BASE_URL}food-items/stats?subId=sub-1`,
       expect.objectContaining({ method: "GET" })
     );
+  });
+
+  test("uses account-scoped wardrobe item, upload, and plan endpoints", async () => {
+    mockedFetch.mockImplementation(async () => jsonResponse({ ok: true }));
+    const itemPayload = {
+      id: "item-1",
+      imageKey: "users/user-1/sub-1/item-1.png",
+      name: "Navy shirt",
+      category: "shirt" as const,
+      colorFamily: "blue" as const,
+      colorHex: "#17345f",
+      colorTone: "dark" as const,
+      favorite: false,
+    };
+    const plan = {
+      weekStart: "2026-09-07",
+      generation: 1,
+      days: [],
+    };
+
+    await getWardrobeItems("sub-1");
+    await requestWardrobeUploadUrl("navy shirt.png", "sub-1");
+    await createWardrobeItem(itemPayload, "sub-1");
+    await updateWardrobeItem("item-1", { favorite: true }, "sub-1");
+    await deleteWardrobeItem("item-1", "sub-1");
+    await getWardrobePlan("2026-09-07", "sub-1");
+    await saveWardrobePlan(plan, "sub-1");
+
+    expect(mockedFetch.mock.calls.map(([url, init]) => [url, init.method])).toEqual([
+      [`${API_BASE_URL}wardrobe/items?subId=sub-1`, "GET"],
+      [`${API_BASE_URL}wardrobe/upload-url?subId=sub-1`, "POST"],
+      [`${API_BASE_URL}wardrobe/items?subId=sub-1`, "POST"],
+      [`${API_BASE_URL}wardrobe/items/item-1?subId=sub-1`, "PUT"],
+      [`${API_BASE_URL}wardrobe/items/item-1?subId=sub-1`, "DELETE"],
+      [`${API_BASE_URL}wardrobe/plans/2026-09-07?subId=sub-1`, "GET"],
+      [`${API_BASE_URL}wardrobe/plans/2026-09-07?subId=sub-1`, "PUT"],
+    ]);
   });
 
   test("throws ApiError with backend message and status code", async () => {
