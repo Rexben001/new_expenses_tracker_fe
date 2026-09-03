@@ -42,7 +42,7 @@ export function Modal({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
       {/* Sheet / Dialog */}
       <div
-        className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-xl mx-auto p-5 sm:p-6"
+        className="relative isolate w-full overflow-hidden sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-xl mx-auto p-5 sm:p-6"
         onClick={(e) => e.stopPropagation()} // prevent backdrop close when clicking content
       >
         <div className="flex items-center justify-between mb-2">

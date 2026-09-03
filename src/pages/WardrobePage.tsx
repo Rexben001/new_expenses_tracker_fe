@@ -22,7 +22,7 @@ import {
   WardrobeItemFields,
   type WardrobeItemFormValues,
 } from "../components/wardrobe/WardrobeItemFields";
-import { WardrobeMannequin } from "../components/wardrobe/WardrobeMannequin";
+import { WardrobeOutfitCanvas } from "../components/wardrobe/WardrobeOutfitCanvas";
 import { useItemContext } from "../hooks/useItemContext";
 import {
   createWardrobeItem,
@@ -44,19 +44,29 @@ import {
   regenerateWardrobeDay,
   scoreReplacement,
 } from "../services/wardrobeMatching";
+import {
+  loadOutfitLayout,
+  saveOutfitLayout,
+  type GarmentTransform,
+} from "../services/wardrobeOutfitLayout";
 import { uploadWardrobePng } from "../services/wardrobeUpload";
 import {
   WARDROBE_CATEGORIES,
   WARDROBE_CATEGORY_LABELS,
   WARDROBE_COLOR_FAMILIES,
   type WardrobeItem,
+  type WardrobeCategory,
   type WardrobePlanDay,
   type WardrobeWeekPlan,
 } from "../types/wardrobe";
 
 type WardrobeView = "closet" | "week";
 type GroupBy = "category" | "color" | "tone";
-type SwapTarget = { date: string; item: WardrobeItem };
+type SwapTarget = {
+  date: string;
+  category: WardrobeCategory;
+  item?: WardrobeItem;
+};
 
 const todayIso = () => formatISO(new Date(), { representation: "date" });
 
@@ -123,6 +133,7 @@ export function WardrobePage() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadForm, setUploadForm] = useState<WardrobeItemFormValues>(emptyForm);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [queuedUploadFiles, setQueuedUploadFiles] = useState<File[]>([]);
   const [processedImage, setProcessedImage] =
     useState<ProcessedWardrobeImage | null>(null);
   const processedPreviewRef = useRef<string | null>(null);
@@ -131,12 +142,14 @@ export function WardrobePage() {
   const [processingImage, setProcessingImage] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [batchUploadIndex, setBatchUploadIndex] = useState(0);
   const [dialogError, setDialogError] = useState("");
 
   const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
   const [editForm, setEditForm] = useState<WardrobeItemFormValues>(emptyForm);
   const [savingItem, setSavingItem] = useState(false);
   const [swapTarget, setSwapTarget] = useState<SwapTarget | null>(null);
+  const [outfitLayout, setOutfitLayout] = useState(loadOutfitLayout);
 
   const releaseProcessedPreview = useCallback(() => {
     if (processedPreviewRef.current) {
@@ -146,6 +159,10 @@ export function WardrobePage() {
   }, []);
 
   useEffect(() => releaseProcessedPreview, [releaseProcessedPreview]);
+
+  useEffect(() => {
+    saveOutfitLayout(outfitLayout);
+  }, [outfitLayout]);
 
   const loadWardrobe = useCallback(async () => {
     setLoading(true);
@@ -220,12 +237,14 @@ export function WardrobePage() {
     releaseProcessedPreview();
     setUploadOpen(false);
     setUploadFile(null);
+    setQueuedUploadFiles([]);
     setProcessedImage(null);
     setUploadForm(emptyForm);
     setBackgroundThreshold(58);
     categoryManuallySetRef.current = false;
     setDialogError("");
     setUploadProgress(null);
+    setBatchUploadIndex(0);
   };
 
   const processFile = async (file: File, threshold: number) => {
@@ -267,10 +286,53 @@ export function WardrobePage() {
       ...current,
       name:
         current.name ||
-        file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, ""),
+        file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, "") ||
+        "Pasted garment",
     }));
     void processFile(file, backgroundThreshold);
   };
+
+  const chooseUploadFiles = (files: File[]) => {
+    const validFiles = files.filter((file) => file.size > 0);
+    if (!validFiles.length) return;
+    const oversized = validFiles.find((file) => file.size > 12 * 1024 * 1024);
+    if (oversized) {
+      setDialogError(`${oversized.name || "One image"} is larger than 12 MB.`);
+      return;
+    }
+    setQueuedUploadFiles(validFiles.slice(1));
+    chooseUploadFile(validFiles[0]);
+  };
+
+  useEffect(() => {
+    if (!uploadOpen) return;
+
+    const handleImagePaste = (event: ClipboardEvent) => {
+      const imageItems = Array.from(event.clipboardData?.items ?? []).filter(
+        (item) => item.kind === "file" && item.type.startsWith("image/"),
+      );
+      if (!imageItems.length) return;
+
+      event.preventDefault();
+      const pastedFiles = imageItems.flatMap((item, index) => {
+        const pastedBlob = item.getAsFile();
+        if (!pastedBlob) return [];
+        const extension =
+          pastedBlob.type.split("/")[1]?.replace("jpeg", "jpg") || "png";
+        return [
+          new File(
+            [pastedBlob],
+            `pasted-garment-${Date.now()}-${index + 1}.${extension}`,
+            { type: pastedBlob.type || "image/png" },
+          ),
+        ];
+      });
+      chooseUploadFiles(pastedFiles);
+    };
+
+    window.addEventListener("paste", handleImagePaste);
+    return () => window.removeEventListener("paste", handleImagePaste);
+  });
 
   const submitUpload = async () => {
     if (!uploadFile || !processedImage || !uploadForm.name.trim()) {
@@ -280,30 +342,67 @@ export function WardrobePage() {
     setUploading(true);
     setDialogError("");
     setUploadProgress(0);
+    setBatchUploadIndex(1);
+    let savedCount = 0;
     try {
       const subId = await getSubAccountId();
-      const signedUpload = await requestWardrobeUploadUrl(
-        `${uploadForm.name.trim()}.png`,
-        subId,
-      );
-      await uploadWardrobePng({
-        blob: processedImage.blob,
-        uploadUrl: signedUpload.uploadUrl,
-        onProgress: setUploadProgress,
-      });
-      const created = await createWardrobeItem(
-        {
-          ...uploadForm,
-          name: uploadForm.name.trim(),
-          id: signedUpload.itemId,
-          imageKey: signedUpload.imageKey,
-        },
-        subId,
-      );
+      const uploadOne = async (
+        file: File,
+        processed: ProcessedWardrobeImage,
+        form: WardrobeItemFormValues,
+      ) => {
+        const name =
+          form.name.trim() ||
+          file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, "") ||
+          "Garment";
+        const signedUpload = await requestWardrobeUploadUrl(`${name}.png`, subId);
+        await uploadWardrobePng({
+          blob: processed.blob,
+          uploadUrl: signedUpload.uploadUrl,
+          onProgress: setUploadProgress,
+        });
+        return createWardrobeItem(
+          {
+            ...form,
+            name,
+            id: signedUpload.itemId,
+            imageKey: signedUpload.imageKey,
+          },
+          subId,
+        );
+      };
+
+      const createdItems: WardrobeItem[] = [];
+      const firstCreated = await uploadOne(uploadFile, processedImage, uploadForm);
+      createdItems.push(firstCreated.item);
+      savedCount += 1;
+
+      for (let index = 0; index < queuedUploadFiles.length; index += 1) {
+        const file = queuedUploadFiles[index];
+        setBatchUploadIndex(index + 2);
+        setUploadProgress(0);
+        const processed = await processWardrobeImage(file, {
+          backgroundThreshold,
+        });
+        try {
+          const detected = processed.colorAnalysis;
+          const created = await uploadOne(file, processed, {
+            ...uploadForm,
+            name: file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, ""),
+            colorFamily: detected.colorFamily,
+            colorHex: detected.colorHex,
+            colorTone: detected.colorTone,
+          });
+          createdItems.push(created.item);
+          savedCount += 1;
+        } finally {
+          URL.revokeObjectURL(processed.previewUrl);
+        }
+      }
       if (!plan || plan.days.every((day) => day.itemIds.length === 0)) {
         const generated = generateWardrobeWeek({
           currentPlan: plan,
-          items: [created.item, ...items],
+          items: [...createdItems, ...items],
           weekStart,
         });
         if (generated.days.some((day) => day.itemIds.length > 0)) {
@@ -313,7 +412,15 @@ export function WardrobePage() {
       closeUpload();
       await loadWardrobe();
     } catch (uploadError) {
-      setDialogError(getErrorMessage(uploadError, "Could not save garment."));
+      if (savedCount > 0) {
+        closeUpload();
+        await loadWardrobe();
+        setError(
+          `${savedCount} garment${savedCount === 1 ? " was" : "s were"} saved. Remaining batch failed: ${getErrorMessage(uploadError, "Upload failed.")}`,
+        );
+      } else {
+        setDialogError(getErrorMessage(uploadError, "Could not save garment."));
+      }
     } finally {
       setUploading(false);
     }
@@ -438,15 +545,15 @@ export function WardrobePage() {
     const day = plan.days.find(({ date }) => date === swapTarget.date);
     if (!day) return [];
     const otherItems = day.itemIds
-      .filter((id) => id !== swapTarget.item.id)
+      .filter((id) => id !== swapTarget.item?.id)
       .map((id) => itemById.get(id))
       .filter((item): item is WardrobeItem => Boolean(item));
     return items
       .filter(
         (item) =>
-          item.id !== swapTarget.item.id &&
+          item.id !== swapTarget.item?.id &&
           !day.itemIds.includes(item.id) &&
-          categoriesCanReplace(swapTarget.item.category, item.category),
+          categoriesCanReplace(swapTarget.category, item.category),
       )
       .map((item) => ({ item, score: scoreReplacement(item, otherItems) }))
       .sort((left, right) => right.score - left.score);
@@ -456,14 +563,38 @@ export function WardrobePage() {
     if (!swapTarget) return;
     const started = updatePlanDay(swapTarget.date, (day) => ({
       ...day,
-      itemIds: day.itemIds.map((id) =>
-        id === swapTarget.item.id ? replacement.id : id,
-      ),
-      lockedItemIds: day.lockedItemIds.map((id) =>
-        id === swapTarget.item.id ? replacement.id : id,
-      ),
+      itemIds: swapTarget.item
+        ? day.itemIds.map((id) =>
+            id === swapTarget.item?.id ? replacement.id : id,
+          )
+        : [...day.itemIds, replacement.id],
+      lockedItemIds: swapTarget.item
+        ? day.lockedItemIds.map((id) =>
+            id === swapTarget.item?.id ? replacement.id : id,
+          )
+        : day.lockedItemIds,
     }));
     if (started) setSwapTarget(null);
+  };
+
+  const openJacketUpload = () => {
+    setSwapTarget(null);
+    setUploadForm({ ...emptyForm, category: "blazer-jacket" });
+    categoryManuallySetRef.current = true;
+    setUploadOpen(true);
+  };
+
+  const updateGarmentTransform = (
+    item: WardrobeItem,
+    transform: GarmentTransform,
+  ) => {
+    setOutfitLayout((current) => ({
+      ...current,
+      garmentTransforms: {
+        ...current.garmentTransforms,
+        [item.id]: transform,
+      },
+    }));
   };
 
   const weekEnd = format(addDays(parseISO(weekStart), 6), "MMM d");
@@ -717,11 +848,27 @@ export function WardrobePage() {
               </div>
             </div>
 
+            <div className="mb-5 rounded-2xl border border-stone-200 bg-white/70 px-4 py-3 text-xs text-stone-500 shadow-sm dark:border-gray-800 dark:bg-gray-900/70 dark:text-gray-400">
+              Clothes are shown as a flat lay. Use the move button beside a garment to fine-tune its position, size, and tilt.
+            </div>
+
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {(plan?.days ?? []).map((day) => {
                 const dayItems = day.itemIds
                   .map((id) => itemById.get(id))
                   .filter((item): item is WardrobeItem => Boolean(item));
+                const canAddJacket =
+                  !dayItems.some(
+                    (item) =>
+                      item.category === "dress" ||
+                      item.category === "blazer-jacket",
+                  ) &&
+                  dayItems.some(
+                    (item) => item.category === "top" || item.category === "shirt",
+                  ) &&
+                  dayItems.some(
+                    (item) => item.category === "trousers" || item.category === "skirt",
+                  );
                 return (
                   <article
                     key={day.date}
@@ -757,13 +904,30 @@ export function WardrobePage() {
                         <FiHeart className={day.favorite ? "fill-current" : ""} />
                       </button>
                     </div>
-                    <WardrobeMannequin
+                    <WardrobeOutfitCanvas
                       disabled={savingPlan}
+                      garmentTransforms={outfitLayout.garmentTransforms}
                       items={dayItems}
                       editing
                       lockedItemIds={day.lockedItemIds}
-                      onSelectItem={(item) => setSwapTarget({ date: day.date, item })}
+                      onSelectItem={(item) =>
+                        setSwapTarget({
+                          date: day.date,
+                          category: item.category,
+                          item,
+                        })
+                      }
+                      onAddJacket={
+                        canAddJacket
+                          ? () =>
+                              setSwapTarget({
+                                date: day.date,
+                                category: "blazer-jacket",
+                              })
+                          : undefined
+                      }
                       onRegenerate={() => regenerateDay(day.date)}
+                      onTransformChange={updateGarmentTransform}
                       onToggleLock={(item) =>
                         updatePlanDay(day.date, (current) => ({
                           ...current,
@@ -809,10 +973,13 @@ export function WardrobePage() {
             <label className="grid min-h-48 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-stone-300 bg-stone-50 p-6 text-center transition hover:border-rose-300 hover:bg-rose-50/40 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-rose-800">
               <input
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                 className="sr-only"
                 disabled={processingImage}
-                onChange={(event) => chooseUploadFile(event.target.files?.[0])}
+                onChange={(event) =>
+                  chooseUploadFiles(Array.from(event.target.files ?? []))
+                }
               />
               <div>
                 {processingImage ? (
@@ -821,10 +988,10 @@ export function WardrobePage() {
                   <FiUploadCloud className="mx-auto h-9 w-9 text-rose-500" />
                 )}
                 <p className="mt-3 text-sm font-bold">
-                  {processingImage ? "Removing background…" : "Choose garment photo"}
+                  {processingImage ? "Removing background…" : "Choose garment photos"}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-stone-500 dark:text-gray-400">
-                  One centered garment. Plain background. JPEG, PNG, WebP, or HEIC up to 12 MB.
+                  Choose a file, use camera, or paste with Ctrl/Cmd+V. One centered garment on a plain background. Up to 12 MB.
                 </p>
               </div>
             </label>
@@ -839,6 +1006,11 @@ export function WardrobePage() {
               </div>
               <div className="min-w-0 self-center">
                 <p className="truncate text-sm font-bold">{uploadFile?.name}</p>
+                {queuedUploadFiles.length > 0 && (
+                  <p className="mt-1 text-xs font-bold text-rose-600 dark:text-rose-300">
+                    + {queuedUploadFiles.length} more garment{queuedUploadFiles.length === 1 ? "" : "s"}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-stone-500 dark:text-gray-400">
                   {processedImage.width} × {processedImage.height}px PNG
                 </p>
@@ -889,9 +1061,12 @@ export function WardrobePage() {
                   setUploadForm(next);
                 }}
               />
-              <p className="rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                No-AI removal works best when garment does not touch photo edge and contrasts with a plain background. Correct detected color above when needed.
-              </p>
+              {queuedUploadFiles.length > 0 && (
+                <p className="rounded-xl bg-blue-50 p-3 text-xs leading-5 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+                  Category applies to all {queuedUploadFiles.length + 1} garments. Each extra garment uses its filename and separately detected color.
+                </p>
+              )}
+
               {uploading && (
                 <div>
                   <div className="h-2 overflow-hidden rounded-full bg-stone-200 dark:bg-gray-700">
@@ -903,7 +1078,7 @@ export function WardrobePage() {
                     />
                   </div>
                   <p className="mt-1 text-center text-xs font-medium text-stone-500">
-                    Saving securely to S3…
+                    Saving {batchUploadIndex} of {queuedUploadFiles.length + 1} securely to S3…
                   </p>
                 </div>
               )}
@@ -931,11 +1106,11 @@ export function WardrobePage() {
       >
         <div className="max-h-[75vh] space-y-4 overflow-y-auto pr-1">
           {editingItem && (
-            <div className="grid h-36 place-items-center rounded-2xl bg-stone-100 dark:bg-gray-800">
+            <div className="relative isolate h-36 min-h-0 overflow-hidden rounded-2xl bg-stone-100 dark:bg-gray-800">
               <img
                 src={editingItem.imageUrl}
                 alt={editingItem.name}
-                className="h-full w-full object-contain p-3"
+                className="pointer-events-none absolute inset-0 block h-full max-h-full w-full max-w-full object-contain p-3"
               />
             </div>
           )}
@@ -964,7 +1139,11 @@ export function WardrobePage() {
       <Modal
         open={Boolean(swapTarget)}
         onClose={() => setSwapTarget(null)}
-        title={`Swap ${swapTarget?.item.name ?? "piece"}`}
+        title={
+          swapTarget?.item
+            ? `Swap ${swapTarget.item.name}`
+            : "Add jacket or blazer"
+        }
       >
         <div className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
           {replacementCandidates.length > 0 ? (
@@ -975,11 +1154,11 @@ export function WardrobePage() {
                 onClick={() => selectReplacement(item)}
                 className="flex w-full items-center gap-3 rounded-2xl border border-stone-200 p-2 text-left transition hover:border-rose-300 hover:bg-rose-50/40 dark:border-gray-700 dark:hover:border-rose-800 dark:hover:bg-rose-950/20"
               >
-                <span className="grid h-20 w-16 shrink-0 place-items-center rounded-xl bg-stone-100 dark:bg-gray-800">
+                <span className="relative isolate block h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-stone-100 dark:bg-gray-800">
                   <img
                     src={item.imageUrl}
                     alt=""
-                    className="h-full w-full object-contain p-1.5"
+                    className="pointer-events-none absolute inset-0 block h-full max-h-full w-full max-w-full object-contain p-1.5"
                   />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -991,10 +1170,23 @@ export function WardrobePage() {
                 <FiChevronRight className="shrink-0 text-stone-400" />
               </button>
             ))
-          ) : (
+          ) : swapTarget?.item ? (
             <p className="rounded-2xl bg-stone-50 p-5 text-center text-sm text-stone-500 dark:bg-gray-800 dark:text-gray-300">
               No other pieces fit this outfit slot yet.
             </p>
+          ) : (
+            <div className="rounded-2xl bg-stone-50 p-5 text-center dark:bg-gray-800">
+              <p className="text-sm text-stone-500 dark:text-gray-300">
+                No jackets or blazers are in your wardrobe yet.
+              </p>
+              <button
+                type="button"
+                onClick={openJacketUpload}
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-gray-950"
+              >
+                <FiPlus /> Add jacket to wardrobe
+              </button>
+            </div>
           )}
         </div>
       </Modal>
