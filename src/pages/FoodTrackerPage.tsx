@@ -51,6 +51,7 @@ import type {
   FoodItemInput,
   FoodLifecycleStatus,
 } from "../types/food";
+import { normalizeForMatch } from "../services/smartDefaults";
 
 type Filter = "all" | "restock" | "tonight" | "expiring" | "hidden";
 type Outcome = Exclude<FoodLifecycleStatus, "active">;
@@ -273,6 +274,21 @@ export function FoodTrackerPage() {
   const applyPrediction = (prediction: FoodPrediction) => {
     setNewFoodOption(undefined);
     setForm(predictionToFoodInput(prediction));
+  };
+
+  const updateFoodName = (name: string) => {
+    if (editingId) {
+      setForm((current) => ({ ...current, name }));
+      return;
+    }
+    const normalized = normalizeForMatch(name);
+    const exact = findFoodPredictions(name).find((prediction) =>
+      [prediction.name, ...(prediction.aliases ?? [])]
+        .some((value) => normalizeForMatch(value) === normalized),
+    );
+    setForm((current) => exact
+      ? predictionToFoodInput(exact)
+      : { ...current, name });
   };
 
   const selectFoodOption = (
@@ -619,7 +635,7 @@ export function FoodTrackerPage() {
                     autoFocus
                     required
                     value={form.name}
-                    onChange={(event) => setForm({ ...form, name: event.target.value })}
+                    onChange={(event) => updateFoodName(event.target.value)}
                     placeholder="Start typing, e.g. ap"
                     className={`mt-1 ${inputClass}`}
                   />

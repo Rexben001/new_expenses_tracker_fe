@@ -374,6 +374,7 @@ export default function LoginForm() {
                     placeholder="123456"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    autoComplete="one-time-code"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     onKeyDown={submitOnEnter}
@@ -459,6 +460,7 @@ export default function LoginForm() {
                     placeholder="123456"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    autoComplete="one-time-code"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     onKeyDown={submitOnEnter}

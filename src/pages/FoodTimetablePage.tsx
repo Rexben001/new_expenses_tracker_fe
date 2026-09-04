@@ -8,6 +8,7 @@ import SwipeShell from "../components/SwipeShell";
 import { useItemContext } from "../hooks/useItemContext";
 import { clearMealSchedule, createMeal, deleteMeal, getErrorMessage, getMealPlan, setMealSchedule, updateMeal } from "../services/api";
 import type { Meal, MealIngredient, MealPlan, MealType, Weekday } from "../types/food";
+import { findExactNamedItem } from "../services/smartDefaults";
 
 const days: Array<{ value: Weekday; label: string }> = [
   { value: "monday", label: "Monday" },
@@ -73,6 +74,12 @@ export function FoodTimetablePage() {
   };
 
   const updateIngredient = (index: number, patch: Partial<MealIngredient>) => setIngredients((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, ...patch } : item));
+  const updateIngredientName = (index: number, name: string) => {
+    const food = findExactNamedItem(name, foodItems, (item) => item.name);
+    updateIngredient(index, food
+      ? { foodItemId: food.id, name: food.name, unit: food.unit }
+      : { foodItemId: undefined, name });
+  };
   const linkInventory = (index: number, foodItemId: string) => {
     const food = foodItems.find((item) => item.id === foodItemId);
     updateIngredient(index, food ? { foodItemId: food.id, name: food.name, unit: food.unit } : { foodItemId: undefined });
@@ -169,11 +176,11 @@ export function FoodTimetablePage() {
       {formOpen && <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 sm:items-center"><form onSubmit={saveMeal} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 dark:bg-gray-950 sm:rounded-3xl">
         <div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold">{editingMealId ? "Edit meal" : "Add meal"}</h2><button type="button" onClick={() => setFormOpen(false)} className="p-2" aria-label="Close"><FiX /></button></div>
         <label className="mb-3 block text-sm font-medium">Meal name<input required maxLength={120} className={`${inputClass} mt-1`} value={mealName} onChange={(event) => setMealName(event.target.value)} /></label>
-        <label className="mb-4 block text-sm font-medium">Description<textarea maxLength={500} className={`${inputClass} mt-1`} value={description} onChange={(event) => setDescription(event.target.value)} /></label>
+        <details className="mb-4 rounded-xl border border-gray-200 dark:border-gray-800"><summary className="cursor-pointer px-3 py-2 text-sm font-medium">Add description</summary><label className="block border-t border-gray-200 p-3 text-sm font-medium dark:border-gray-800">Description<textarea maxLength={500} className={`${inputClass} mt-1`} value={description} onChange={(event) => setDescription(event.target.value)} /></label></details>
         <div className="mb-2 flex items-center justify-between"><h3 className="font-bold">Ingredients</h3><Link to="/food" className="text-sm font-medium text-emerald-700">Add to tracker</Link></div>
         <div className="space-y-4">{ingredients.map((ingredient, index) => <div key={index} className="rounded-xl border border-gray-200 p-3 dark:border-gray-800">
           <label className="block text-xs font-medium">Link food tracker item<select className={`${inputClass} mt-1`} value={ingredient.foodItemId ?? ""} onChange={(event) => linkInventory(index, event.target.value)}><option value="">Custom ingredient</option>{foodItems.filter((food) => !food.hidden || food.id === ingredient.foodItemId).map((food) => <option key={food.id} value={food.id}>{food.name} ({food.quantity} {food.unit})</option>)}</select></label>
-          <div className="mt-2 space-y-2"><input aria-label="Ingredient name" required placeholder="Ingredient" className={inputClass} value={ingredient.name} onChange={(event) => updateIngredient(index, { name: event.target.value, foodItemId: undefined })} /><div className="grid grid-cols-[1fr_7rem_auto] gap-2"><NumberStepper value={ingredient.quantity} min={0.01} step={1} ariaLabel={`${ingredient.name || "Ingredient"} quantity`} onChange={(quantity) => updateIngredient(index, { quantity })} /><input aria-label="Unit" required placeholder="Unit" className={inputClass} value={ingredient.unit} onChange={(event) => updateIngredient(index, { unit: event.target.value })} /><button type="button" aria-label="Remove ingredient" disabled={ingredients.length === 1} onClick={() => setIngredients((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="p-2 text-red-600 disabled:opacity-30"><FiTrash2 /></button></div></div>
+          <div className="mt-2 space-y-2"><input aria-label="Ingredient name" required placeholder="Ingredient" className={inputClass} value={ingredient.name} onChange={(event) => updateIngredientName(index, event.target.value)} /><div className="grid grid-cols-[1fr_7rem_auto] gap-2"><NumberStepper value={ingredient.quantity} min={0.01} step={1} ariaLabel={`${ingredient.name || "Ingredient"} quantity`} onChange={(quantity) => updateIngredient(index, { quantity })} /><input aria-label="Unit" required placeholder="Unit" className={inputClass} value={ingredient.unit} onChange={(event) => updateIngredient(index, { unit: event.target.value })} /><button type="button" aria-label="Remove ingredient" disabled={ingredients.length === 1} onClick={() => setIngredients((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="p-2 text-red-600 disabled:opacity-30"><FiTrash2 /></button></div></div>
         </div>)}</div>
         <button type="button" onClick={() => setIngredients((items) => [...items, blankIngredient()])} className="mt-3 text-sm font-semibold text-orange-700">+ Add ingredient</button>
         <button disabled={pending === "meal"} className="mt-5 w-full rounded-xl bg-orange-600 p-3 font-semibold text-white disabled:opacity-50">{pending === "meal" ? "Saving…" : editingMealId ? "Update meal" : "Save meal"}</button>

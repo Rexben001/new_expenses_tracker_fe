@@ -368,6 +368,7 @@ export function Profile() {
                 <label className={labelClass}>Username</label>
                 <input
                   name="userName"
+                  autoComplete="name"
                   value={mainForm.userName}
                   onChange={handleMainChange}
                   placeholder="Enter name"
@@ -417,6 +418,7 @@ export function Profile() {
                 <label className={labelClass}>Email address</label>
                 <input
                   name="email"
+                  autoComplete="email"
                   value={mainProfile?.email || ""}
                   disabled
                   className={inputClass}

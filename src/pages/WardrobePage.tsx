@@ -49,6 +49,7 @@ import {
   saveOutfitLayout,
   type GarmentTransform,
 } from "../services/wardrobeOutfitLayout";
+import { buildWardrobeName } from "../services/smartDefaults";
 import { uploadWardrobePng } from "../services/wardrobeUpload";
 import {
   WARDROBE_CATEGORIES,
@@ -139,6 +140,7 @@ export function WardrobePage() {
   const processedPreviewRef = useRef<string | null>(null);
   const [backgroundThreshold, setBackgroundThreshold] = useState(58);
   const categoryManuallySetRef = useRef(false);
+  const nameManuallySetRef = useRef(false);
   const [processingImage, setProcessingImage] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
@@ -242,6 +244,7 @@ export function WardrobePage() {
     setUploadForm(emptyForm);
     setBackgroundThreshold(58);
     categoryManuallySetRef.current = false;
+    nameManuallySetRef.current = false;
     setDialogError("");
     setUploadProgress(null);
     setBatchUploadIndex(0);
@@ -257,15 +260,26 @@ export function WardrobePage() {
       releaseProcessedPreview();
       processedPreviewRef.current = result.previewUrl;
       setProcessedImage(result);
-      setUploadForm((current) => ({
-        ...current,
-        category: categoryManuallySetRef.current
+      setUploadForm((current) => {
+        const category = categoryManuallySetRef.current
           ? current.category
-          : result.categorySuggestion.category,
-        colorFamily: result.colorAnalysis.colorFamily,
-        colorHex: result.colorAnalysis.colorHex,
-        colorTone: result.colorAnalysis.colorTone,
-      }));
+          : result.categorySuggestion.category;
+        const detected = result.colorAnalysis;
+        return {
+          ...current,
+          name: nameManuallySetRef.current
+            ? current.name
+            : buildWardrobeName({
+                category,
+                colorFamily: detected.colorFamily,
+                colorTone: detected.colorTone,
+              }),
+          category,
+          colorFamily: detected.colorFamily,
+          colorHex: detected.colorHex,
+          colorTone: detected.colorTone,
+        };
+      });
     } catch (processError) {
       setDialogError(
         getErrorMessage(processError, "Could not process this image."),
@@ -282,13 +296,9 @@ export function WardrobePage() {
       return;
     }
     setUploadFile(file);
-    setUploadForm((current) => ({
-      ...current,
-      name:
-        current.name ||
-        file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, "") ||
-        "Pasted garment",
-    }));
+    if (!nameManuallySetRef.current) {
+      setUploadForm((current) => ({ ...current, name: "" }));
+    }
     void processFile(file, backgroundThreshold);
   };
 
@@ -388,7 +398,11 @@ export function WardrobePage() {
           const detected = processed.colorAnalysis;
           const created = await uploadOne(file, processed, {
             ...uploadForm,
-            name: file.name.replace(/\.(heic|heif|jpe?g|png|webp)$/i, ""),
+            name: buildWardrobeName({
+              category: uploadForm.category,
+              colorFamily: detected.colorFamily,
+              colorTone: detected.colorTone,
+            }),
             colorFamily: detected.colorFamily,
             colorHex: detected.colorHex,
             colorTone: detected.colorTone,
@@ -1055,10 +1069,21 @@ export function WardrobePage() {
               <WardrobeItemFields
                 values={uploadForm}
                 onChange={(next) => {
-                  if (next.category !== uploadForm.category) {
+                  const nameChanged = next.name !== uploadForm.name;
+                  const categoryChanged = next.category !== uploadForm.category;
+                  if (nameChanged) {
+                    nameManuallySetRef.current = true;
+                  }
+                  if (categoryChanged) {
                     categoryManuallySetRef.current = true;
                   }
-                  setUploadForm(next);
+                  setUploadForm({
+                    ...next,
+                    name:
+                      categoryChanged && !nameManuallySetRef.current
+                        ? buildWardrobeName(next)
+                        : next.name,
+                  });
                 }}
               />
               {queuedUploadFiles.length > 0 && (

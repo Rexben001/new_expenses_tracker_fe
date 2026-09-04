@@ -64,6 +64,10 @@ import {
   toDateKey,
 } from "../services/calendarRules";
 import { formatCurrency } from "../services/formatCurrency";
+import {
+  findPreviousCalendarClient,
+  nextCalendarStartTime,
+} from "../services/smartDefaults";
 import type {
   CalendarClient,
   CalendarEntry,
@@ -235,6 +239,18 @@ export function CalendarPage() {
       ).sort((a, b) => a.localeCompare(b)),
     [calendarEntries, formData.clients]
   );
+  const clientNameSuggestions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          calendarEntries
+            .flatMap((entry) => entry.clients ?? [])
+            .map((client) => client.name.trim())
+            .filter(Boolean),
+        ),
+      ).sort((left, right) => left.localeCompare(right)),
+    [calendarEntries],
+  );
 
   const selectDay = (day: Date) => {
     setSelectedDateKey(toDateKey(day));
@@ -246,7 +262,13 @@ export function CalendarPage() {
       status === "booked"
         ? selectedClients.length
           ? selectedClients
-          : [createBlankClient()]
+          : [{
+              ...createBlankClient(),
+              startTime: nextCalendarStartTime(
+                selectedDateKey,
+                calendarEntries,
+              ),
+            }]
         : [];
 
     setFormError("");
@@ -269,7 +291,13 @@ export function CalendarPage() {
         status === "booked"
           ? current.clients.length
             ? current.clients
-            : [createBlankClient()]
+            : [{
+                ...createBlankClient(),
+                startTime: nextCalendarStartTime(
+                  selectedDateKey,
+                  calendarEntries,
+                ),
+              }]
           : [],
     }));
   };
@@ -339,7 +367,42 @@ export function CalendarPage() {
   const addClient = () => {
     setFormData((current) => ({
       ...current,
-      clients: [...current.clients, createBlankClient()],
+      clients: [
+        ...current.clients,
+        {
+          ...createBlankClient(),
+          startTime: nextCalendarStartTime(selectedDateKey, [
+            ...calendarEntries,
+            {
+              id: "draft",
+              date: selectedDateKey,
+              status: "booked",
+              clients: current.clients,
+              updatedAt: new Date().toISOString(),
+            },
+          ]),
+        },
+      ],
+    }));
+  };
+
+  const updateClientName = (index: number, name: string) => {
+    const previous = findPreviousCalendarClient(name, calendarEntries);
+    setFormData((current) => ({
+      ...current,
+      clients: current.clients.map((client, clientIndex) => {
+        if (clientIndex !== index) return client;
+        if (!previous) return { ...client, name };
+        return {
+          ...client,
+          name,
+          price: previous.price,
+          hairStyle: normalizeHairStyle(previous.hairStyle),
+          email: previous.email,
+          phone: previous.phone,
+          notes: previous.notes,
+        };
+      }),
     }));
   };
 
@@ -1035,22 +1098,31 @@ export function CalendarPage() {
                         className={inputClass}
                       />
                     </div>
-                    <div>
+                    <div className="order-first sm:col-span-3">
                       <label className="mb-1 block text-xs text-gray-500 dark:text-gray-300">
                         Name
                       </label>
                       <input
                         value={client.name}
-                        onChange={(event) =>
-                          updateClient(index, { name: event.target.value })
-                        }
+                        list={`calendar-client-history-${index}`}
+                        onChange={(event) => updateClientName(index, event.target.value)}
                         placeholder="Client name"
                         className={inputClass}
                       />
+                      <datalist id={`calendar-client-history-${index}`}>
+                        {clientNameSuggestions.map((name) => (
+                          <option key={name} value={name} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <details className="mt-3 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300">
+                      Style details · {formatHairStyle(client.hairStyle)}
+                    </summary>
+                    <div className="border-t border-gray-200 p-3 dark:border-gray-700">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
                       <label className="mb-1 block text-xs text-gray-500 dark:text-gray-300">
                         Style
@@ -1205,28 +1277,32 @@ export function CalendarPage() {
                       className={inputClass}
                     />
                   </div>
+                    </div>
+                  </details>
                 </div>
               ))}
             </div>
           )}
 
-          <div>
-            <label className="mb-1 block text-sm text-gray-500 dark:text-white">
-              Date notes
-            </label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={(event) =>
-                setFormData((current) => ({
-                  ...current,
-                  notes: event.target.value,
-                }))
-              }
-              rows={3}
-              className={inputClass}
-            />
-          </div>
+          <details className="rounded-lg border border-gray-200 dark:border-gray-700">
+            <summary className="cursor-pointer px-3 py-2 text-sm font-medium">
+              Add date notes
+            </summary>
+            <div className="border-t border-gray-200 p-3 dark:border-gray-700">
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    notes: event.target.value,
+                  }))
+                }
+                rows={3}
+                className={inputClass}
+              />
+            </div>
+          </details>
 
           {formError && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-100">

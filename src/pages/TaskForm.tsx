@@ -17,6 +17,10 @@ import { useItemContext } from "../hooks/useItemContext";
 import type { SubTask, Task, TaskPriority } from "../types/tasks";
 import { getSpeechRecognition, parseVoiceTask } from "../services/taskVoice";
 import { TASK_REMINDER_OFFSET_OPTIONS } from "../services/taskNotifications";
+import {
+  applyUntouchedDefaults,
+  findExactNamedItem,
+} from "../services/smartDefaults";
 
 type TaskFormData = {
   title: string;
@@ -176,6 +180,8 @@ export function TaskForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subtasks, setSubtasks] = useState<SubTask[]>([]);
   const [subtaskTitle, setSubtaskTitle] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(isEditMode);
+  const touchedFields = useRef(new Set<string>());
 
   const nativeVoiceSupported = Capacitor.isNativePlatform();
   const voiceSupported = nativeVoiceSupported || Boolean(getSpeechRecognition());
@@ -330,7 +336,31 @@ export function TaskForm() {
     >
   ) => {
     const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+    touchedFields.current.add(name);
+    setFormData((current) => {
+      const updated = { ...current, [name]: value };
+      if (name !== "title" || isEditMode) return updated;
+
+      const parsed = parseVoiceTask(value);
+      const previous = findExactNamedItem(value, tasks, (item) => item.title);
+      const defaults: Partial<TaskFormData> = {
+        ...(parsed.tags.length ? { tags: parsed.tags.join(", ") } : {}),
+        ...(parsed.dueDate ? { dueDate: parsed.dueDate } : {}),
+        ...(parsed.dueTime ? { dueTime: parsed.dueTime } : {}),
+        ...(parsed.priority ? { priority: parsed.priority } : {}),
+        ...(previous ? {
+          assignedTo: previous.assignedTo ?? "",
+          tags: tagsToString(mergedTaskTags(previous)),
+          reminderOffsetMinutes: String(previous.reminderOffsetMinutes ?? 10),
+          priority: previous.priority ?? "medium",
+        } : {}),
+      };
+      return applyUntouchedDefaults(
+        updated,
+        defaults,
+        touchedFields.current as ReadonlySet<keyof TaskFormData>,
+      );
+    });
   };
 
   const handleAddSubtask = () => {
@@ -465,13 +495,34 @@ export function TaskForm() {
             </label>
             <input
               name="title"
+              list="task-title-history"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter task"
+              placeholder="Call John tomorrow 3pm #work"
               required
               className={inputClass}
             />
+            <datalist id="task-title-history">
+              {Array.from(new Set(tasks.map((item) => item.title))).map((title) => (
+                <option key={title} value={title} />
+              ))}
+            </datalist>
           </div>
+
+          <details
+            open={detailsOpen}
+            onToggle={(event) => setDetailsOpen(event.currentTarget.open)}
+            className="group rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+          >
+            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <span className="flex items-center justify-between">
+                More details
+                <span className="text-xs font-normal text-gray-400">
+                  {formData.dueDate} {formData.dueTime} · {formData.priority}
+                </span>
+              </span>
+            </summary>
+            <div className="space-y-5 border-t border-gray-200 p-4 dark:border-gray-700">
 
           <div>
             <label className="mb-1 block text-sm text-gray-500 dark:text-white">
@@ -599,6 +650,7 @@ export function TaskForm() {
               options={tagOptions}
               value={selectedTagOptions}
               onChange={(selected: MultiValue<SelectOption>) => {
+                touchedFields.current.add("tags");
                 setFormData((current) => ({
                   ...current,
                   tags: selected.map((option) => option.value).join(", "),
@@ -680,6 +732,8 @@ export function TaskForm() {
               </div>
             )}
           </div>
+            </div>
+          </details>
         </form>
       </div>
       <div className="fixed inset-x-0 bottom-16 z-50 mx-auto max-w-md border-t border-gray-200 bg-slate-50/95 px-4 py-3 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">

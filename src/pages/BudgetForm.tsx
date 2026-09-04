@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiChevronLeft } from "react-icons/fi";
 import { createBudget, updateBudget } from "../services/api";
@@ -6,16 +6,23 @@ import { useItemContext } from "../hooks/useItemContext";
 import { CATEGORY_OPTIONS } from "../services/item";
 import type { BUDGET_STATE } from "../types/locationState";
 import { SuggestionCategories } from "../components/Category";
-import { suggestCategories } from "../services/suggestCategory";
+import {
+  suggestCategories,
+  suggestCategory as suggestHighConfidenceCategory,
+} from "../services/suggestCategory";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import SwipeShell from "../components/SwipeShell";
 import { tokenStore } from "../services/tokenStore";
 import { Info } from "lucide-react";
 import { Tooltip } from "react-tooltip";
+import {
+  applyUntouchedDefaults,
+  findExactNamedItem,
+} from "../services/smartDefaults";
 
 export function BudgetForm() {
-  const { currency } = useItemContext();
+  const { budgets, currency } = useItemContext();
   const { budgetId } = useParams();
   const isEditMode = Boolean(budgetId);
   const navigate = useNavigate();
@@ -26,7 +33,7 @@ export function BudgetForm() {
 
   const [formData, setFormData] = useState({
     title: "",
-    amount: 0,
+    amount: "" as number | "",
     category: "",
     updatedAt: new Date().toISOString().split("T")[0],
     description: "",
@@ -37,6 +44,8 @@ export function BudgetForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [detailsOpen, setDetailsOpen] = useState(isEditMode);
+  const touchedFields = useRef(new Set<string>());
 
   useEffect(() => {
     if (isEditMode) {
@@ -62,15 +71,29 @@ export function BudgetForm() {
   ) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData, [name]: value };
+    touchedFields.current.add(name);
 
     if (name === "title") {
       const suggestions = value.trim() ? suggestCategories(value) : [];
+      const inferredCategory = suggestHighConfidenceCategory("", value);
+      const previous = !isEditMode
+        ? findExactNamedItem(value, budgets, (budget) => budget.title)
+        : undefined;
       setSuggestions(suggestions);
-      setFormData({
+      setFormData(applyUntouchedDefaults({
         ...updatedFormData,
         category:
-          suggestions.length === 1 ? suggestions[0] : updatedFormData.category,
-      });
+          !touchedFields.current.has("category")
+            ? inferredCategory ??
+              (suggestions.length === 1 ? suggestions[0] : updatedFormData.category)
+            : updatedFormData.category,
+      }, previous ? {
+        amount: previous.amount,
+        category: previous.category,
+        currency: previous.currency,
+        isRecurring: String(Boolean(previous.isRecurring)),
+        upcoming: String(Boolean(previous.upcoming)),
+      } : {}, touchedFields.current as ReadonlySet<keyof typeof updatedFormData>));
     } else {
       if (updatedFormData.title.trim() === "") setSuggestions([]);
       setFormData(updatedFormData);
@@ -136,11 +159,17 @@ export function BudgetForm() {
             </label>
             <input
               name="title"
+              list="budget-title-history"
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter name"
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <datalist id="budget-title-history">
+              {Array.from(new Set(budgets.map((budget) => budget.title))).map((title) => (
+                <option key={title} value={title} />
+              ))}
+            </datalist>
           </div>
 
           <div>
@@ -163,9 +192,10 @@ export function BudgetForm() {
               {suggestions.length > 0 && (
                 <SuggestionCategories
                   categories={suggestions}
-                  onSelect={(category) =>
-                    setFormData({ ...formData, category })
-                  }
+                  onSelect={(category) => {
+                    touchedFields.current.add("category");
+                    setFormData({ ...formData, category });
+                  }}
                 />
               )}
             </div>{" "}
@@ -186,6 +216,15 @@ export function BudgetForm() {
             </select>
           </div>
 
+          <details
+            open={detailsOpen}
+            onToggle={(event) => setDetailsOpen(event.currentTarget.open)}
+            className="rounded-xl border border-gray-200 dark:border-gray-700"
+          >
+            <summary className="cursor-pointer px-3 py-3 text-sm font-semibold">
+              More details <span className="font-normal text-gray-400">· {formData.updatedAt || "Today"} · {formData.isRecurring === "true" ? "Recurring" : "One-time"}</span>
+            </summary>
+            <div className="space-y-5 border-t border-gray-200 p-3 dark:border-gray-700">
           <div className="flex gap-6 justify-between sm:justify-start sm:gap-12">
             {/* Recurring */}
             <div className="flex items-center gap-2">
@@ -204,11 +243,14 @@ export function BudgetForm() {
               <button
                 type="button"
                 onClick={() =>
-                  setFormData({
-                    ...formData,
-                    isRecurring:
-                      formData.isRecurring === "true" ? "false" : "true",
-                  })
+                  {
+                    touchedFields.current.add("isRecurring");
+                    setFormData({
+                      ...formData,
+                      isRecurring:
+                        formData.isRecurring === "true" ? "false" : "true",
+                    });
+                  }
                 }
                 className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
                   formData.isRecurring === "true"
@@ -237,10 +279,13 @@ export function BudgetForm() {
               <button
                 type="button"
                 onClick={() =>
-                  setFormData({
-                    ...formData,
-                    upcoming: formData.upcoming === "true" ? "false" : "true",
-                  })
+                  {
+                    touchedFields.current.add("upcoming");
+                    setFormData({
+                      ...formData,
+                      upcoming: formData.upcoming === "true" ? "false" : "true",
+                    });
+                  }
                 }
                 className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
                   formData.upcoming === "true"
@@ -269,6 +314,8 @@ export function BudgetForm() {
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+            </div>
+          </details>
 
           <button
             type="submit"

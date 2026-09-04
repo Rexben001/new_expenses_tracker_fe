@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { EditorContent, useEditor, type Content } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -26,6 +26,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FooterNav } from "../components/FooterNav";
 import { HeaderComponent } from "../components/HeaderComponent";
 import SwipeShell from "../components/SwipeShell";
+import { useItemContext } from "../hooks/useItemContext";
+import { inferHowToMetadata } from "../services/smartDefaults";
 import {
   createHowToEntry,
   deleteHowToEntry,
@@ -146,7 +148,7 @@ function linkifyText(value: string) {
   });
 }
 
-function createEmptyForm(): HowToFormState {
+function createEmptyForm(currency = "EUR"): HowToFormState {
   return {
     title: "",
     category: "",
@@ -159,7 +161,7 @@ function createEmptyForm(): HowToFormState {
     loginUsername: "",
     loginNotes: "",
     paymentTotalAmount: "",
-    paymentCurrency: "EUR",
+    paymentCurrency: currency,
     paymentDeductionDay: "",
     paymentNotes: "",
     secrets: [],
@@ -397,6 +399,7 @@ function renderInline(nodes: unknown[]): ReactNode {
 }
 
 export function HowToPage() {
+  const { currency } = useItemContext();
   const navigate = useNavigate();
   const { howToId } = useParams<{ howToId?: string }>();
   const isDetailRoute = Boolean(howToId);
@@ -413,7 +416,11 @@ export function HowToPage() {
   const [statusMessage, setStatusMessage] = useState("Ready.");
   const [formOpen, setFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<HowToEntry | null>(null);
-  const [form, setForm] = useState<HowToFormState>(createEmptyForm);
+  const [form, setForm] = useState<HowToFormState>(() =>
+    createEmptyForm(currency || "EUR"),
+  );
+  const [optionalDetailsOpen, setOptionalDetailsOpen] = useState(false);
+  const touchedMetadata = useRef(new Set<"category" | "tags">());
   const [revealedSecrets, setRevealedSecrets] = useState<
     Record<string, HowToSecret[]>
   >({});
@@ -508,13 +515,18 @@ export function HowToPage() {
 
   const openCreate = () => {
     setEditingEntry(null);
-    setForm(createEmptyForm());
+    touchedMetadata.current.clear();
+    setForm(createEmptyForm(currency || "EUR"));
+    setOptionalDetailsOpen(false);
     setFormOpen(true);
   };
 
   const openEdit = (entry: HowToEntry) => {
     setEditingEntry(entry);
+    touchedMetadata.current.add("category");
+    touchedMetadata.current.add("tags");
     setForm(formFromEntry(entry));
+    setOptionalDetailsOpen(true);
     setFormOpen(true);
   };
 
@@ -1062,12 +1074,28 @@ export function HowToPage() {
                   </label>
                   <input
                     value={form.title}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      const title = event.target.value;
+                      const metadata = inferHowToMetadata(title);
                       setForm((current) => ({
                         ...current,
-                        title: event.target.value,
-                      }))
-                    }
+                        title,
+                        ...(
+                          metadata && !touchedMetadata.current.has("category")
+                            ? { category: metadata.category }
+                            : {}
+                        ),
+                        ...(
+                          metadata && !touchedMetadata.current.has("tags")
+                            ? {
+                                tagsText: metadata.tags.join(", "),
+                                keywordsText: metadata.tags.join(", "),
+                              }
+                            : {}
+                        ),
+                      }));
+                    }}
+                    autoFocus
                     className={inputClass}
                   />
                 </div>
@@ -1103,6 +1131,22 @@ export function HowToPage() {
               </section>
 
               <aside className="space-y-4">
+                <details
+                  open={optionalDetailsOpen}
+                  onToggle={(event) =>
+                    setOptionalDetailsOpen(event.currentTarget.open)
+                  }
+                  className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold">
+                    <span className="flex items-center justify-between gap-3">
+                      Optional details
+                      <span className="truncate text-xs font-normal text-gray-400">
+                        {form.category || "Metadata, payment, login"}
+                      </span>
+                    </span>
+                  </summary>
+                  <div className="space-y-4 border-t border-gray-200 p-3 dark:border-gray-800">
                 <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-gray-500">
@@ -1110,12 +1154,13 @@ export function HowToPage() {
                     </label>
                     <input
                       value={form.category}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        touchedMetadata.current.add("category");
                         setForm((current) => ({
                           ...current,
                           category: event.target.value,
-                        }))
-                      }
+                        }));
+                      }}
                       className={inputClass}
                     />
                   </div>
@@ -1125,12 +1170,13 @@ export function HowToPage() {
                     </label>
                     <input
                       value={form.tagsText}
-                      onChange={(event) =>
+                      onChange={(event) => {
+                        touchedMetadata.current.add("tags");
                         setForm((current) => ({
                           ...current,
                           tagsText: event.target.value,
-                        }))
-                      }
+                        }));
+                      }}
                       className={inputClass}
                     />
                   </div>
@@ -1225,6 +1271,7 @@ export function HowToPage() {
                       }))
                     }
                     placeholder="URL"
+                    autoComplete="url"
                     className={inputClass}
                   />
                   <input
@@ -1236,6 +1283,8 @@ export function HowToPage() {
                       }))
                     }
                     placeholder="Email"
+                    type="email"
+                    autoComplete="email"
                     className={inputClass}
                   />
                   <input
@@ -1247,6 +1296,7 @@ export function HowToPage() {
                       }))
                     }
                     placeholder="Username"
+                    autoComplete="username"
                     className={inputClass}
                   />
                   <textarea
@@ -1340,6 +1390,7 @@ export function HowToPage() {
                             }
                             placeholder="Value"
                             type="password"
+                            autoComplete="new-password"
                             className={inputClass}
                           />
                           <button
@@ -1357,6 +1408,8 @@ export function HowToPage() {
                     </div>
                   )}
                 </section>
+                  </div>
+                </details>
               </aside>
             </div>
           </div>
