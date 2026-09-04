@@ -90,6 +90,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
   const location = useLocation();
   const [openGroup, setOpenGroup] = useState<FooterGroupKey | null>(null);
   const isAdmin = isAdminEmail(user?.email);
+  const hasCalendarAccess = isAdmin || Boolean(user?.calendarEnabled);
 
   useEffect(() => {
     setOpenGroup(null);
@@ -113,7 +114,10 @@ export function FooterNav({ className = "" }: { className?: string }) {
         location.pathname.startsWith(`${link.to}/`);
 
   const navItems = useMemo<FooterItem[]>(() => {
-    const canShow = (link: FooterLink) => !link.adminOnly || isAdmin;
+    const canShow = (link: FooterLink) =>
+      link.to === footerLinks.calendar.to
+        ? hasCalendarAccess
+        : !link.adminOnly || isAdmin;
     const visible = (links: FooterLink[]) => links.filter(canShow);
     const withMore = (
       primaryLinks: FooterLink[],
@@ -233,7 +237,7 @@ export function FooterNav({ className = "" }: { className?: string }) {
         footerLinks.videos,
       ]
     );
-  }, [isAdmin, location.pathname]);
+  }, [hasCalendarAccess, isAdmin, location.pathname]);
 
   const gridClass = gridClasses[Math.min(Math.max(navItems.length, 1), 5)];
   const itemClass =

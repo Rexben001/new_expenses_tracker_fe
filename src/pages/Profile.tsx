@@ -6,8 +6,8 @@ import {
   deleteSubAccount,
   updateUser,
 } from "../services/api";
-import { FiMoon, FiSun, FiUserPlus } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { FiCalendar, FiMoon, FiSun, FiUserPlus } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
 import { HeaderComponent } from "../components/HeaderComponent";
 import { FooterNav } from "../components/FooterNav";
 import SwipeShell from "../components/SwipeShell";
@@ -589,6 +589,28 @@ export function Profile() {
             </button>
           </section>
         )}
+
+        <section className={cardClass}>
+          <div className="flex items-start gap-3">
+            <span className="rounded-xl bg-violet-100 p-2.5 text-violet-700 dark:bg-violet-950/50 dark:text-violet-200">
+              <FiCalendar />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-gray-950 dark:text-gray-50">
+                Calendar transfer
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Securely send or receive calendar details between registered accounts.
+              </p>
+              <Link
+                to="/calendar/transfer"
+                className={`${secondaryButtonClass} mt-3 w-full`}
+              >
+                Open calendar transfer
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       {confirmOpen && (

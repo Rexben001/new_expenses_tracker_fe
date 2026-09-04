@@ -3,6 +3,8 @@ import { getTokens } from "./amplify";
 import {
   API_BASE_URL,
   ApiError,
+  acceptCalendarTransfer,
+  createCalendarTransfer,
   createFoodItem,
   createWardrobeItem,
   deleteFoodItem,
@@ -12,6 +14,7 @@ import {
   getTasks,
   getWardrobeItems,
   getWardrobePlan,
+  previewCalendarTransfer,
   requestWardrobeUploadUrl,
   saveWardrobePlan,
   updateFoodItem,
@@ -160,6 +163,50 @@ describe("api service", () => {
       [`${API_BASE_URL}wardrobe/plans/2026-09-07?subId=sub-1`, "GET"],
       [`${API_BASE_URL}wardrobe/plans/2026-09-07?subId=sub-1`, "PUT"],
     ]);
+  });
+
+  test("creates and accepts calendar transfers with the correct account scope", async () => {
+    mockedFetch.mockImplementation(async () => jsonResponse({ ok: true }));
+
+    await createCalendarTransfer(
+      {
+        recipientEmail: "friend@example.com",
+        mode: "move",
+        conflictPolicy: "merge",
+      },
+      "sub-1"
+    );
+    await acceptCalendarTransfer("ABCD-2345-EFGH");
+    await previewCalendarTransfer("ABCD-2345-EFGH");
+
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      1,
+      `${API_BASE_URL}calendar/transfers?subId=sub-1`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          recipientEmail: "friend@example.com",
+          mode: "move",
+          conflictPolicy: "merge",
+        }),
+        method: "POST",
+      })
+    );
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      2,
+      `${API_BASE_URL}calendar/transfers/accept`,
+      expect.objectContaining({
+        body: JSON.stringify({ code: "ABCD-2345-EFGH" }),
+        method: "POST",
+      })
+    );
+    expect(mockedFetch).toHaveBeenNthCalledWith(
+      3,
+      `${API_BASE_URL}calendar/transfers/preview`,
+      expect.objectContaining({
+        body: JSON.stringify({ code: "ABCD-2345-EFGH" }),
+        method: "POST",
+      })
+    );
   });
 
   test("throws ApiError with backend message and status code", async () => {

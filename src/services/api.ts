@@ -64,6 +64,44 @@ export type ExpenseInsightsResponse = {
   insights: ExpenseInsight[];
 };
 
+export type CalendarTransferMode = "copy" | "move";
+export type CalendarTransferConflictPolicy = "merge" | "skip" | "replace";
+
+export type CalendarTransferRequest = {
+  recipientEmail: string;
+  mode: CalendarTransferMode;
+  conflictPolicy: CalendarTransferConflictPolicy;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type CalendarTransferCode = {
+  code: string;
+  recipientEmail: string;
+  mode: CalendarTransferMode;
+  conflictPolicy: CalendarTransferConflictPolicy;
+  entryCount: number;
+  expiresAt: string;
+};
+
+export type CalendarTransferResult = {
+  message: string;
+  mode: CalendarTransferMode;
+  copiedCount: number;
+  skippedCount: number;
+  missingCount: number;
+};
+
+export type CalendarTransferPreview = {
+  sourceEmail: string;
+  mode: CalendarTransferMode;
+  conflictPolicy: CalendarTransferConflictPolicy;
+  entryCount: number;
+  dateFrom?: string;
+  dateTo?: string;
+  expiresAt: string;
+};
+
 export type HowToLoginDetails = {
   url?: string;
   email?: string;
@@ -498,6 +536,33 @@ export function deleteCalendarEntry(id: string, subId?: string) {
     method: "DELETE",
     path: addSubIdPath(`calendar/${id}`, subId),
   });
+}
+
+export function createCalendarTransfer(
+  body: CalendarTransferRequest,
+  subId?: string
+) {
+  return fetchApi({
+    method: "POST",
+    path: addSubIdPath("calendar/transfers", subId),
+    body,
+  }) as Promise<CalendarTransferCode>;
+}
+
+export function acceptCalendarTransfer(code: string) {
+  return fetchApi({
+    method: "POST",
+    path: "calendar/transfers/accept",
+    body: { code },
+  }) as Promise<CalendarTransferResult>;
+}
+
+export function previewCalendarTransfer(code: string) {
+  return fetchApi({
+    method: "POST",
+    path: "calendar/transfers/preview",
+    body: { code },
+  }) as Promise<CalendarTransferPreview>;
 }
 
 export function listHowToEntries(params: {

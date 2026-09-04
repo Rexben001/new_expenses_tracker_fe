@@ -26,6 +26,7 @@ import {
   FiDollarSign,
   FiEdit2,
   FiPlus,
+  FiSend,
   FiShare2,
   FiTrash2,
   FiUsers,
@@ -624,6 +625,14 @@ export function CalendarPage() {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/calendar/transfer"
+              aria-label="Transfer calendar"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 shadow-sm hover:bg-violet-100 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-100"
+            >
+              <FiSend className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Transfer</span>
+            </Link>
             <Link
               to="/calendar/dashboard"
               className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"

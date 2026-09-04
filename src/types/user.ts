@@ -4,6 +4,7 @@ export type User = {
   email?: string;
   colorMode?: "Dark" | "White";
   budgetStartDay?: number;
+  calendarEnabled?: boolean;
   accountType: "Main" | "Sub";
   id?: string;
 };

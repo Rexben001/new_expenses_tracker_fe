@@ -14,6 +14,7 @@ import { ExpenseInsightsPage } from "./pages/ExpenseInsightsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { WardrobePage } from "./pages/WardrobePage";
 import { CalendarDashboardPage } from "./pages/CalendarDashboardPage";
+import { CalendarTransferPage } from "./pages/CalendarTransferPage";
 import { TaskForm } from "./pages/TaskForm";
 import { TasksPage } from "./pages/TasksPage";
 import { FoodTrackerPage } from "./pages/FoodTrackerPage";
@@ -78,6 +79,41 @@ function AdminOnlyRoute({ children }: { children: ReactNode }) {
   if (isAdminEmail(email)) return <>{children}</>;
   if (resourceLoading.user || tokenEmail === undefined) return null;
   return <Navigate to="/" replace />;
+}
+
+function CalendarOnlyRoute({ children }: { children: ReactNode }) {
+  const { user, resourceLoading, currentAccount } = useItemContext();
+  const [tokenEmail, setTokenEmail] = useState<string | null>();
+
+  useEffect(() => {
+    if (user?.email) return;
+
+    let mounted = true;
+    getTokens()
+      .then((tokens) => {
+        if (!mounted) return;
+        setTokenEmail(
+          tokens.idToken
+            ? jwtDecode<CognitoIdClaims>(tokens.idToken).email ?? null
+            : null
+        );
+      })
+      .catch(() => {
+        if (mounted) setTokenEmail(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.email]);
+
+  if (isAdminEmail(user?.email ?? tokenEmail) || user.calendarEnabled) {
+    return <>{children}</>;
+  }
+  if (resourceLoading.user || tokenEmail === undefined || !currentAccount) {
+    return null;
+  }
+  return <Navigate to="/calendar/transfer" replace />;
 }
 
 export default function App() {
@@ -190,18 +226,22 @@ export default function App() {
                 <Route
                   path="/calendar"
                   element={
-                    <AdminOnlyRoute>
+                    <CalendarOnlyRoute>
                       <CalendarPage />
-                    </AdminOnlyRoute>
+                    </CalendarOnlyRoute>
                   }
                 />
                 <Route
                   path="/calendar/dashboard"
                   element={
-                    <AdminOnlyRoute>
+                    <CalendarOnlyRoute>
                       <CalendarDashboardPage />
-                    </AdminOnlyRoute>
+                    </CalendarOnlyRoute>
                   }
+                />
+                <Route
+                  path="/calendar/transfer"
+                  element={<CalendarTransferPage />}
                 />
                 <Route path="/budgets" element={<BudgetPage />} />
                 <Route path="/budgets/:budgetId" element={<BudgetIdPage />} />
