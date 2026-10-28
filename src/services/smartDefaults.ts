@@ -150,12 +150,12 @@ export function nextCalendarStartTime(
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const earliest = dateKey === today
     ? Math.ceil((now.getHours() * 60 + now.getMinutes()) / 30) * 30
-    : 9 * 60;
+    : 8 * 60;
 
-  for (let minutes = 9 * 60; minutes <= 19 * 60; minutes += 30) {
+  for (let minutes = 8 * 60; minutes <= 19 * 60; minutes += 30) {
     if (minutes >= earliest && !occupied.has(minutes)) return timeFromMinutes(minutes);
   }
-  return "09:00";
+  return "08:00";
 }
 
 export function findPreviousCalendarClient(
