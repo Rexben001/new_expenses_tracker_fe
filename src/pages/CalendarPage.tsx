@@ -154,6 +154,7 @@ export function CalendarPage() {
   const [formData, setFormData] = useState<CalendarFormData>({
     status: "booked",
     clients: [createBlankClient()],
+    startTime: "",
     notes: "",
   });
 
@@ -277,6 +278,12 @@ export function CalendarPage() {
     setFormData({
       status,
       clients,
+      startTime:
+        status === "available"
+          ? selectedEntry?.status === "available"
+            ? selectedEntry.startTime || "08:00"
+            : "08:00"
+          : "",
       notes: selectedEntry?.notes ?? "",
     });
     setIsEditorOpen(true);
@@ -288,6 +295,7 @@ export function CalendarPage() {
     setFormData((current) => ({
       ...current,
       status,
+      startTime: status === "available" ? current.startTime || "08:00" : "",
       clients:
         status === "booked"
           ? current.clients.length
@@ -436,7 +444,7 @@ export function CalendarPage() {
       date: selectedDateKey,
       status: formData.status,
       clients: formData.status === "booked" ? clients : [],
-      startTime: "",
+      startTime: formData.status === "available" ? formData.startTime : "",
       endTime: "",
       notes: formData.notes.trim(),
       updatedAt: new Date().toISOString(),
@@ -458,54 +466,6 @@ export function CalendarPage() {
       setFormError("Could not save this date.");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const markSelectedAvailable = async () => {
-    const body = {
-      date: selectedDateKey,
-      status: "available",
-      clients: [],
-      startTime: "",
-      endTime: "",
-      notes: "",
-      updatedAt: new Date().toISOString(),
-    };
-
-    try {
-      const subId = await getSubAccountId();
-
-      if (selectedEntry) {
-        setCalendarEntries(
-          calendarEntries.map((entry) =>
-            entry.date === selectedDateKey
-              ? {
-                  ...entry,
-                  status: "available",
-                  clients: [],
-                  startTime: "",
-                  endTime: "",
-                  notes: "",
-                  updatedAt: body.updatedAt,
-                }
-              : entry
-          )
-        );
-
-        await Promise.all(
-          selectedEntries.map((entry, index) =>
-            index === 0
-              ? updateCalendarEntry(entry.id, body, subId)
-              : deleteCalendarEntry(entry.id, subId)
-          )
-        );
-      } else {
-        await createCalendarEntry(body, subId);
-      }
-
-      await fetchCalendarEntries();
-    } catch {
-      await fetchCalendarEntries();
     }
   };
 
@@ -919,7 +879,7 @@ export function CalendarPage() {
             {selectedStatus === "unavailable" ? (
               <button
                 type="button"
-                onClick={markSelectedAvailable}
+                onClick={() => openEditor("available")}
                 className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Set Available
@@ -940,7 +900,7 @@ export function CalendarPage() {
             {selectedStatus === "booked" ? (
               <button
                 type="button"
-                onClick={markSelectedAvailable}
+                onClick={() => openEditor("available")}
                 className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 Mark Available
@@ -1018,6 +978,26 @@ export function CalendarPage() {
               <option value="unavailable">Unavailable</option>
             </select>
           </div>
+
+          {formData.status === "available" && (
+            <div>
+              <label htmlFor="availability-start-time" className="mb-1 block text-sm text-gray-500 dark:text-white">
+                Available from
+              </label>
+              <input
+                id="availability-start-time"
+                type="time"
+                min="08:00"
+                max="18:00"
+                step="3600"
+                required
+                value={formData.startTime}
+                onChange={(event) => setFormData((current) => ({ ...current, startTime: event.target.value }))}
+                className={inputClass}
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Clients will see hourly start times from this time through 18:00.</p>
+            </div>
+          )}
 
           {formData.status === "booked" && (
             <div className="space-y-3">

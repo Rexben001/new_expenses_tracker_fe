@@ -11,6 +11,7 @@ export type CalendarView = "STATUS" | "DETAILS";
 export type CalendarFormData = {
   status: CalendarStatus;
   clients: CalendarClient[];
+  startTime: string;
   notes: string;
 };
 
