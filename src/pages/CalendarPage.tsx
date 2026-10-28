@@ -200,6 +200,9 @@ export function CalendarPage() {
   const selectedEntries = entriesByDate.get(selectedDateKey) ?? [];
   const selectedClients = getEntryClients(selectedEntries);
   const selectedEntry = getPrimaryEntry(selectedEntries);
+  const selectedAvailabilityEntry = [...selectedEntries]
+    .filter((entry) => entry.status === "available" || entry.status === "unavailable")
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
   const selectedStatus = getDayStatus(selectedDate, selectedEntries);
   const selectedDateLabel = format(selectedDate, "EEEE, MMM d");
   const selectedDayTotal = getCalendarRevenue(selectedEntries);
@@ -280,11 +283,11 @@ export function CalendarPage() {
       clients,
       startTime:
         status === "available"
-          ? selectedEntry?.status === "available"
-            ? selectedEntry.startTime || "08:00"
+          ? selectedAvailabilityEntry?.status === "available"
+            ? selectedAvailabilityEntry.startTime || "08:00"
             : "08:00"
           : "",
-      notes: selectedEntry?.notes ?? "",
+      notes: (status === "booked" ? selectedEntry : selectedAvailabilityEntry)?.notes ?? "",
     });
     setIsEditorOpen(true);
   };
@@ -455,8 +458,9 @@ export function CalendarPage() {
 
     try {
       const subId = await getSubAccountId();
-      if (selectedEntry) {
-        await updateCalendarEntry(selectedEntry.id, body, subId);
+      const entryToUpdate = formData.status === "booked" ? selectedEntry : selectedAvailabilityEntry;
+      if (entryToUpdate) {
+        await updateCalendarEntry(entryToUpdate.id, body, subId);
       } else {
         await createCalendarEntry(body, subId);
       }
@@ -480,7 +484,7 @@ export function CalendarPage() {
       updatedAt: new Date().toISOString(),
     };
     const optimisticEntry: CalendarEntry = {
-      ...(selectedEntry ?? {
+      ...(selectedAvailabilityEntry ?? {
         id: createClientId(),
         createdAt: body.updatedAt,
       }),
@@ -488,21 +492,15 @@ export function CalendarPage() {
     };
 
     setCalendarEntries([
-      ...calendarEntries.filter((entry) => entry.date !== selectedDateKey),
+      ...calendarEntries.filter((entry) => entry.id !== selectedAvailabilityEntry?.id),
       optimisticEntry,
     ]);
 
     try {
       const subId = await getSubAccountId();
 
-      if (selectedEntry) {
-        await Promise.all(
-          selectedEntries.map((entry, index) =>
-            index === 0
-              ? updateCalendarEntry(entry.id, body, subId)
-            : deleteCalendarEntry(entry.id, subId)
-          )
-        );
+      if (selectedAvailabilityEntry) {
+        await updateCalendarEntry(selectedAvailabilityEntry.id, body, subId);
       } else {
         await createCalendarEntry(body, subId);
       }
